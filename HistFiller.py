@@ -3,12 +3,13 @@ from tqdm import tqdm
 import numpy as np
 import uproot
 import numpy as np
-import re
 import Loader
 from Histograms import FloatHistogram, IntHistogram
 from h5py import File, Group, Dataset
 import Analysis
+import yaml
 
+# runConfig = yaml.safe_load(file)
 # files to load
 filelist = [
     "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
@@ -39,6 +40,7 @@ vars = [
 
 # TODO
 # could think of having btag wp configurable for everything
+# make yaml config
 
 # define hists
 hists = {
@@ -47,9 +49,9 @@ hists = {
         binrange=(0, 900_000),
         bins=150,
     ),
-    "correctPariring": IntHistogram(
-        name="correctPariring",
-        binrange=(0, 2),
+    "correctPariringResolved": IntHistogram(
+        name="h1_correctPariringResolved",
+        binrange=(0, 3),
     ),
 }
 
