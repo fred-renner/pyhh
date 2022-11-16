@@ -1,17 +1,19 @@
 #!/usr/bin/env python3
 
 
-def GetGenerators(tree, vars):
+def GetGenerators(tree, vars, nEvents=None):
 
     # construct ranges, batch_size=1000 gives e.g.
     # [[0, 999], [1000, 1999], [2000, 2999],...]
     batch_size = 10_000
     ranges = []
     batch_ranges = []
-    for i in range(0, tree.num_entries, batch_size):
+    if not nEvents:
+        nEvents = tree.num_entries
+    for i in range(0, nEvents, batch_size):
         ranges += [i]
-    if tree.num_entries not in ranges:
-        ranges += [tree.num_entries + 1]
+    if nEvents not in ranges:
+        ranges += [nEvents + 1]
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j - 1]]
 

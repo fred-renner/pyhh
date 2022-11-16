@@ -1,5 +1,6 @@
-import operator
 import numpy as np
+
+np.set_printoptions(threshold=np.inf)
 
 
 def do(histkey, vars_arr):
@@ -23,22 +24,41 @@ def do(histkey, vars_arr):
         hh_m_selected = hh_m[hh_m > 0]
         return hh_m_selected
 
-    if histkey == "correctPariringResolved":
-        matchCritierion = 0.2
+    if histkey == "pairingEfficiencyResolved":
+        matchCriterion = 0.2
         # fmt: off
         # remove defaults
-        h1_nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-        h2_nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-        h1_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][h1_nonDefaults] > 0
-        h2_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][h2_nonDefaults] > 0
-        h1_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][h1_nonDefaults] < matchCritierion
-        h1_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][h1_nonDefaults] < matchCritierion
-        h2_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][h2_nonDefaults] < matchCritierion
-        h2_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][h2_nonDefaults] < matchCritierion
+        nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
+        h1_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+        h2_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+        h1_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h1_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h2_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h2_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
         # fmt: on
         # add  s/h
-
         # this works because of numpy
+        matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
+        matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
+
+        # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
+        matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
+
+        return matched
+
+    if histkey == "vrJetEfficiencyBoosted":
+        matchCriterion = 0.2
+        # fmt: off
+        # remove defaults        
+        nonDefaults = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
+        h1_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+        h2_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+        h1_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h1_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h2_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        h2_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+        # fmt: on
+
         matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
         matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
 
