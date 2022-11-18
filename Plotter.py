@@ -25,8 +25,8 @@ plt.style.use(hep.style.ATLAS)
 # print(file[hist]["edges"])[:]
 
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
-histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
+histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
+# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
 # make plot directory
 filename = histFile.split("/")
 filename = str(filename[-1]).replace(".h5", "")
@@ -102,4 +102,22 @@ with File(histFile, "r") as file:
             plt.tight_layout()
             # plt.legend(loc="upper right")
             plt.savefig(plotPath + "vrJetEfficiencyBoosted_0p2.pdf")
+            plt.close()
+
+        if "massplane_85" in hist:
+            plt.figure()
+            histValues=file[hist]["histogram"][1:-1,1:-1]
+            hep.hist2dplot(
+                histValues,
+                xbins=file[hist]["edges"][0][1:-1],
+                ybins=file[hist]["edges"][1][1:-1],
+            )
+            hep.atlas.text(" Simulation", loc=1)
+            hep.atlas.set_ylabel("Events")
+            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
+            ax = plt.gca()
+            ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+            plt.tight_layout()
+            # plt.legend(loc="upper right")
+            plt.savefig(plotPath + "massplane.pdf")
             plt.close()

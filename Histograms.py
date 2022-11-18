@@ -31,6 +31,45 @@ class FloatHistogram:
         hist.dims[0].attach_scale(ax)
 
 
+class FloatHistogram2D:
+    def __init__(self, name, binrange1, binrange2, bins=100, compress=True):
+        self._name = name
+        # add overflow and underflow bins
+        infvar = np.array([np.inf])
+        self._bins1 = np.concatenate(
+            [
+                -infvar,
+                np.linspace(*binrange1, bins),
+                infvar,
+            ]
+        )
+        self._bins2 = np.concatenate(
+            [
+                -infvar,
+                np.linspace(*binrange2, bins),
+                infvar,
+            ]
+        )
+        self._bins = np.array([self._bins1, self._bins2])
+        # book hist
+        self._hist = np.zeros((self._bins1.size - 1, self._bins2.size - 1), dtype=float)
+        # compression for h5 file
+        self._compression = dict(compression="gzip") if compress else {}
+
+    def fill(self, arr):
+        # print(arr)
+        hist = np.histogramdd(arr, bins=[self._bins1, self._bins2])[0]
+        self._hist += hist
+
+    def write(self, group, name=None):
+        hgroup = group.create_group(name or self._name)
+        hgroup.attrs["type"] = "float"
+        hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
+        ax = hgroup.create_dataset("edges", data=self._bins, **self._compression)
+        ax.make_scale("edges")
+        hist.dims[0].attach_scale(ax)
+
+
 class IntHistogram:
     def __init__(self, name, binrange):
         low, high = np.array(binrange, dtype=int)

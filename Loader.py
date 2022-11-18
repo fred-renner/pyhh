@@ -23,3 +23,4 @@ def GetGenerators(tree, vars, nEvents=-1):
             vars = tree.keys()
         arr = tree.arrays(vars, entry_start=batch[0], entry_stop=batch[1], library="np")
         yield arr
+        del arr

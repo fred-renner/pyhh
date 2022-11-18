@@ -24,6 +24,13 @@ def do(histkey, vars_arr):
         hh_m_selected = hh_m[hh_m > 0]
         return hh_m_selected
 
+    if histkey == "massplane_85":
+        h1_m = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_m"]
+        h1_m_selected = h1_m[h1_m > 0]
+        h2_m = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_m"]
+        h2_m_selected = h2_m[h2_m > 0]
+        return np.array([h1_m_selected, h2_m_selected]).T
+
     if histkey == "pairingEfficiencyResolved":
         matchCriterion = 0.2
         # fmt: off

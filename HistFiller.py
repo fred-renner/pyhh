@@ -4,7 +4,7 @@ import numpy as np
 import uproot
 import numpy as np
 import Loader
-from Histograms import FloatHistogram, IntHistogram
+from Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 from h5py import File, Group, Dataset
 import Analysis
 import yaml
@@ -15,8 +15,8 @@ import yaml
 filelist = [
     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801584.Py8EG_A14NNPDF23LO_XHS_X400_S200_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root",
-    "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
+    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
+    "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
 ]
 
 # make hist out file name from filename
@@ -43,6 +43,7 @@ vars = [
 # TODO
 # could think of having btag wp configurable for everything
 # make yaml config
+# could think of remove defaults before sending into analysis
 
 # define hists
 hists = {
@@ -59,6 +60,12 @@ hists = {
         name="vrJetEfficiencyBoosted",
         binrange=(0, 3),
     ),
+    "massplane_85": FloatHistogram2D(
+        name="massplane_85",
+        binrange1=(50_000, 300_000),
+        binrange2=(50_000, 300_000),
+        bins=150,
+    ),
 }
 
 # loop over input files
@@ -70,6 +77,8 @@ with File(histOutFile, "w") as outfile:
             tree = file_["AnalysisMiniTree"]
             # make generators to load only a certain amount of events
             generators = Loader.GetGenerators(tree, vars, nEvents=-1)
+            # or the uproot way, though not sure yet if it actually works since seems to keep filling memory
+            # for vars_arr in uproot.iterate(tree, tree.keys(), step_size="100 MB",library="np",how=dict):
             for vars_arr in generators:
                 for hist in hists:
                     # do analysis on a defined hist
