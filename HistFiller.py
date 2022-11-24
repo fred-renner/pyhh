@@ -14,9 +14,10 @@ import yaml
 # files to load
 filelist = [
     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801584.Py8EG_A14NNPDF23LO_XHS_X400_S200_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root",
     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-    "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
+    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
+    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440.root"
+    "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables.root"
 ]
 
 # make hist out file name from filename
@@ -44,18 +45,28 @@ vars = [
 # could think of having btag wp configurable for everything
 # make yaml config
 # could think of remove defaults before sending into analysis
+# make analysis object
 
 # define hists
 hists = {
+    "nLargeR": IntHistogram(
+        name="nLargeR",
+        binrange=(0, 10),
+    ),
+    "triggerEff": FloatHistogram(
+        name="triggerEff",
+        binrange=(0, 900_000),
+        bins=150,
+    ),
     "hh_m_85": FloatHistogram(
         name="hh_m_85",
         binrange=(0, 900_000),
         bins=150,
     ),
-    "pairingEfficiencyResolved": IntHistogram(
-        name="pairingEfficiencyResolved",
-        binrange=(0, 3),
-    ),
+    # "pairingEfficiencyResolved": IntHistogram(
+    #     name="pairingEfficiencyResolved",
+    #     binrange=(0, 3),
+    # ),
     "vrJetEfficiencyBoosted": IntHistogram(
         name="vrJetEfficiencyBoosted",
         binrange=(0, 3),
@@ -64,9 +75,10 @@ hists = {
         name="massplane_85",
         binrange1=(50_000, 300_000),
         binrange2=(50_000, 300_000),
-        bins=150,
+        bins=100,
     ),
 }
+
 
 # loop over input files
 with File(histOutFile, "w") as outfile:
@@ -75,11 +87,16 @@ with File(histOutFile, "w") as outfile:
         with uproot.open(file) as file_:
             # access the tree
             tree = file_["AnalysisMiniTree"]
-            # make generators to load only a certain amount of events
-            generators = Loader.GetGenerators(tree, vars, nEvents=-1)
-            # or the uproot way, though not sure yet if it actually works since seems to keep filling memory
-            # for vars_arr in uproot.iterate(tree, tree.keys(), step_size="100 MB",library="np",how=dict):
-            for vars_arr in generators:
+            # load only a certain amount of events
+
+            # as my generator implementation seems to keep filling memory?
+            # default to uproot way
+            # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
+            # for vars_arr in generators:
+            for vars_arr in uproot.iterate(
+                tree, tree.keys(), step_size="0.02 MB", library="np", how=dict
+            ):
+                print("loaded 100 mb")
                 for hist in hists:
                     # do analysis on a defined hist
                     values = Analysis.do(hist, vars_arr)
@@ -89,3 +106,12 @@ with File(histOutFile, "w") as outfile:
     # write histograms to file
     for hist in hists:
         hists[hist].write(outfile, hist)
+
+# if you want to plot directly
+import subprocess
+
+subprocess.call(
+    "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
+    f" {histOutFile}",
+    shell=True,
+)

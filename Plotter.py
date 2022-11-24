@@ -8,6 +8,8 @@ import mplhep as hep
 from h5py import File, Group, Dataset
 import os
 import logging
+import argparse
+
 
 # quick and dirty color log
 logging.basicConfig(level=logging.INFO)
@@ -24,9 +26,22 @@ plt.style.use(hep.style.ATLAS)
 # print(file[hist]["histogram"][1:-1])
 # print(file[hist]["edges"])[:]
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--histFile",
+    type=str,
+)
+args = parser.parse_args()
+
+
+if args.histFile:
+    histFile = args.histFile
+
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
-histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
+# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
+
+
 # make plot directory
 filename = histFile.split("/")
 filename = str(filename[-1]).replace(".h5", "")
@@ -37,7 +52,31 @@ if not os.path.isdir(plotPath):
 
 with File(histFile, "r") as file:
     for hist in file.keys():
+
         # access [1:-1] to remove underflow and overflow bins
+
+        if "nLargeR" in hist:
+            plt.figure()
+            vals = file[hist]["histogram"][1:-1]
+            hep.histplot(
+                file[hist]["histogram"][1:-1],
+                file[hist]["edges"],
+                label=hist,
+                density=False,
+                alpha=0.75,
+            )
+            hep.atlas.text(" Simulation", loc=1)
+            nEvents = vals[0] + vals[1]
+            hep.atlas.set_ylabel("Events")
+            hep.atlas.set_xlabel("Number large R jets")
+            ax = plt.gca()
+            ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+            # ax.set_xticks(file[hist]["edges"])
+            plt.tight_layout()
+            # plt.legend(loc="upper right")
+            plt.savefig(plotPath + "nLargeR.pdf")
+            plt.close()
+
         if "hh_m" in hist:
             plt.figure()
             hep.histplot(
@@ -67,10 +106,8 @@ with File(histFile, "r") as file:
                 density=False,
                 alpha=0.75,
             )
-            print(vals[0] + vals[1])
             hep.atlas.text(" Simulation", loc=1)
             nEvents = vals[0] + vals[1]
-            print(nEvents)
             hep.atlas.set_ylabel("Pairing efficiency")
             hep.atlas.set_xlabel("leading H (bin 0), subleading H (bin 1)")
             ax = plt.gca()
@@ -93,7 +130,6 @@ with File(histFile, "r") as file:
             )
             hep.atlas.text(" Simulation", loc=1)
             nEvents = vals[2] + vals[3]
-            print(nEvents)
             hep.atlas.set_ylabel("VR jets efficiency")
             hep.atlas.set_xlabel("leading H (bin 0), subleading H (bin 1)")
             ax = plt.gca()
@@ -106,15 +142,15 @@ with File(histFile, "r") as file:
 
         if "massplane_85" in hist:
             plt.figure()
-            histValues=file[hist]["histogram"][1:-1,1:-1]
+            histValues = file[hist]["histogram"][1:-1, 1:-1]
             hep.hist2dplot(
                 histValues,
                 xbins=file[hist]["edges"][0][1:-1],
                 ybins=file[hist]["edges"][1][1:-1],
             )
             hep.atlas.text(" Simulation", loc=1)
-            hep.atlas.set_ylabel("Events")
-            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
+            hep.atlas.set_ylabel("$m_{h2}$ $[GeV]$ ")
+            hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
             ax = plt.gca()
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             plt.tight_layout()
