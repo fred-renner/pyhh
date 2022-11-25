@@ -27,20 +27,19 @@ plt.style.use(hep.style.ATLAS)
 # print(file[hist]["edges"])[:]
 
 parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--histFile",
-    type=str,
-)
+parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
-
-
-if args.histFile:
-    histFile = args.histFile
 
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
+histFile = (
+    "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables.h5"
+)
 
+
+if args.histFile:
+    histFile = args.histFile
 
 # make plot directory
 filename = histFile.split("/")
@@ -55,26 +54,31 @@ with File(histFile, "r") as file:
 
         # access [1:-1] to remove underflow and overflow bins
 
-        if "nLargeR" in hist:
+        if "events_truth_mhh" in hist:
             plt.figure()
-            vals = file[hist]["histogram"][1:-1]
+            nTruthEvents = file[hist]["histogram"][1:-1]
+            nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
             hep.histplot(
-                file[hist]["histogram"][1:-1],
+                nTwoSelLargeR_truth_mhh / nTruthEvents,
                 file[hist]["edges"],
-                label=hist,
+                label=">2 nLargeR ",
+                yerr=True,
                 density=False,
-                alpha=0.75,
+                # alpha=0.75,
             )
             hep.atlas.text(" Simulation", loc=1)
-            nEvents = vals[0] + vals[1]
-            hep.atlas.set_ylabel("Events")
-            hep.atlas.set_xlabel("Number large R jets")
+            hep.atlas.set_ylabel("Acc x Efficiency")
+            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+            ax.containers[0].fmt = "o"
+            ax.containers[0].linewidth = 2
+            ax.containers[0].capsize = 6
+
             # ax.set_xticks(file[hist]["edges"])
             plt.tight_layout()
-            # plt.legend(loc="upper right")
-            plt.savefig(plotPath + "nLargeR.pdf")
+            plt.legend(loc="upper right")
+            plt.savefig(plotPath + "accEff_truth_mhh.pdf")
             plt.close()
 
         if "hh_m" in hist:

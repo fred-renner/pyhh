@@ -38,12 +38,16 @@ def do(histkey, vars_arr):
     lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
     lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
 
+    # event nr per iteration
     nEvents = len(lrj_pt)
+
+    # init some variables
     # make list holding the large R jet selection indices per event
     sel_lrj = [x for x in range(nEvents)]
-    nLargeR = np.zeros(nEvents)
-    nTwoLargeR = 0
-    # print(vars_arr["recojet_antikt10_NOSYS_pt"])
+    nLargeR = np.zeros(nEvents, dtype=int)
+    nTwoLargeRevents = np.zeros(nEvents, dtype=bool)
+    truth_m_hh = np.zeros(nEvents)
+
     for event in range(nEvents):
         # pt, eta cuts
         ptMin = lrj_pt[event] > 250.0
@@ -54,39 +58,42 @@ def do(histkey, vars_arr):
         if nJets < 2:
             selected = np.zeros(nJets, dtype=bool)
         else:
-            nTwoLargeR += 1
+            nTwoLargeRevents[event] = True
+        # count largR and save bool select array
         nLargeR[event] = nJets
+        # truth m_hh mass
         sel_lrj[event] = selected
-        # print(lrj_pt[event][sel_lrj[event]])
-    # print(nLargeR)
-    # breakpoint
-    truth_h1_p4 = vector.obj(
-                pt=vars_arr["truth_H1_pt"][event],
-                eta=vars_arr["truth_H1_eta"][event],
-                phi=vars_arr["truth_H1_phi"][event],
-                m=vars_arr["truth_H1_m"][event],
-            )
-    truth_h2_p4 = vector.obj(
-        pt=vars_arr["truth_H2_pt"][event],
-        eta=vars_arr["truth_H2_eta"][event],
-        phi=vars_arr["truth_H2_phi"][event],
-        m=vars_arr["truth_H2_m"][event],
-    )
-            # print((truth_h1_p4 + truth_h2_p4).mass)
-    if histkey == "triggerEff":
+        truth_h1_p4 = vector.obj(
+            pt=vars_arr["truth_H1_pt"][event],
+            eta=vars_arr["truth_H1_eta"][event],
+            phi=vars_arr["truth_H1_phi"][event],
+            m=vars_arr["truth_H1_m"][event],
+        )
+        truth_h2_p4 = vector.obj(
+            pt=vars_arr["truth_H2_pt"][event],
+            eta=vars_arr["truth_H2_eta"][event],
+            phi=vars_arr["truth_H2_phi"][event],
+            m=vars_arr["truth_H2_m"][event],
+        )
+        truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-        # goodLrjRatio = nTwoLargeR / nEvents
-        # truth_H1_m=vars_arr["truth_H1_m"]
+    if histkey == "events_truth_mhh":
+        # return only the truth m_hh values for events with at least two large R
+        valuesToBin = truth_m_hh[:]
+        return valuesToBin
 
+    if histkey == "nTwoSelLargeR_truth_mhh":
+        # return only the truth m_hh values for events with at least two large R
+        valuesToBin = truth_m_hh[nTwoLargeRevents[:]]
+        return valuesToBin
+
+    if histkey == "nTotalSelLargeR":
+        # duplicate the truth mhh values with the nr of large R jets for the hist
+        nSelLargeR = np.full((nEvents, np.max(nLargeR)), np.inf)
         for event in range(nEvents):
-            # lrj_pt[event][sel_lrj[event]]
-            largeReff = nLargeR[event]/sel_lrj[event].shape[0]
-            
-        breakpoint
-
-    if histkey == "nLargeR":
-        # nLargeR mit binning von von truth mhh machen 
-        return nLargeR
+            n = nLargeR[event]
+            nSelLargeR[event, :n] = np.full(n, truth_m_hh[event])
+        return nSelLargeR.flatten()
 
     if histkey == "hh_m_85":
         hh_m = vars_arr["resolved_DL1dv00_FixedCutBEff_85_hh_m"]

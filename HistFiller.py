@@ -48,16 +48,28 @@ vars = [
 # make analysis object
 
 # define hists
+accEffBinning = {"binrange": (0, 1_000_000), "bins": 100}
 hists = {
-    "nLargeR": IntHistogram(
-        name="nLargeR",
-        binrange=(0, 10),
+    "events_truth_mhh": FloatHistogram(
+        name="events_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
     ),
-    "triggerEff": FloatHistogram(
-        name="triggerEff",
-        binrange=(0, 900_000),
-        bins=150,
+    "nTwoSelLargeR_truth_mhh": FloatHistogram(
+        name="nTwoSelLargeR_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
     ),
+    # "nTotalSelLargeR": FloatHistogram(
+    #     name="nTotalSelLargeR",
+    #     binrange=(0, 1_000_000),
+    #     bins=150,
+    # ),
+    # "triggerEff": FloatHistogram(
+    #     name="triggerEff",
+    #     binrange=(0, 1_000_000),
+    #     bins=150,
+    # ),
     "hh_m_85": FloatHistogram(
         name="hh_m_85",
         binrange=(0, 900_000),
@@ -94,12 +106,13 @@ with File(histOutFile, "w") as outfile:
             # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
             # for vars_arr in generators:
             for vars_arr in uproot.iterate(
-                tree, tree.keys(), step_size="0.02 MB", library="np", how=dict
+                tree, tree.keys(), step_size="100 MB", library="np", how=dict
             ):
                 print("loaded 100 mb")
                 for hist in hists:
                     # do analysis on a defined hist
                     values = Analysis.do(hist, vars_arr)
+
                     # update bin heights per iteration
                     hists[hist].fill(values)
 
