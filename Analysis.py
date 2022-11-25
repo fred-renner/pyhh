@@ -85,7 +85,6 @@ def do(histkey, vars_arr):
     if histkey == "nTriggerPass_truth_mhh":
         # return only the truth m_hh values for events with at least two large R
         valuesToBin = truth_m_hh[trigger]
-        print(valuesToBin)
         return valuesToBin
 
     if histkey == "nTwoSelLargeR_truth_mhh":

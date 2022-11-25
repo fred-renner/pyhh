@@ -80,23 +80,14 @@ with File(histFile, "r") as file:
             plt.figure()
             nTruthEvents = file["events_truth_mhh"]["histogram"][1:-1]
             nTriggerPass_truth_mhh = file["nTriggerPass_truth_mhh"]["histogram"][1:-1]
-            hep.histplot(
-                nTriggerPass_truth_mhh / nTruthEvents,
-                file[hist]["edges"],
-                histtype="errorbar",
-                label="passed Trigger",
-                yerr=True,
-                density=False,
-                # alpha=0.75,
-            )
             nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
+            triggerPass = nTriggerPass_truth_mhh / nTruthEvents
+            twoLargeR = triggerPass * nTwoSelLargeR_truth_mhh / nTruthEvents
             hep.histplot(
-                (nTriggerPass_truth_mhh / nTruthEvents)
-                * nTwoSelLargeR_truth_mhh
-                / nTruthEvents,
+                [triggerPass, twoLargeR],
                 file[hist]["edges"],
                 histtype="errorbar",
-                label=">2 nLargeR ",
+                label=["passed Trigger",">2 nLargeR "],
                 yerr=True,
                 density=False,
                 # alpha=0.75,
