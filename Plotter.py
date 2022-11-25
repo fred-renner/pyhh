@@ -56,25 +56,57 @@ with File(histFile, "r") as file:
 
         if "events_truth_mhh" in hist:
             plt.figure()
-            nTruthEvents = file[hist]["histogram"][1:-1]
-            nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
+            nTruthEvents = file["events_truth_mhh"]["histogram"][1:-1]
             hep.histplot(
-                nTwoSelLargeR_truth_mhh / nTruthEvents,
+                nTruthEvents,
                 file[hist]["edges"],
-                label=">2 nLargeR ",
+                histtype="errorbar",
                 yerr=True,
                 density=False,
                 # alpha=0.75,
             )
             hep.atlas.text(" Simulation", loc=1)
-            hep.atlas.set_ylabel("Acc x Efficiency")
-            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
+            hep.atlas.set_ylabel("Events")
+            hep.atlas.set_xlabel("Truth $m_{hh}$ $[MeV]$ ")
             ax = plt.gca()
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-            ax.containers[0].fmt = "o"
-            ax.containers[0].linewidth = 2
-            ax.containers[0].capsize = 6
+            # ax.set_xticks(file[hist]["edges"])
+            plt.tight_layout()
+            plt.legend(loc="upper right")
+            plt.savefig(plotPath + "truth_mhh.pdf")
+            plt.close()
 
+        if "nTriggerPass_truth_mhh" in hist:
+            plt.figure()
+            nTruthEvents = file["events_truth_mhh"]["histogram"][1:-1]
+            nTriggerPass_truth_mhh = file["nTriggerPass_truth_mhh"]["histogram"][1:-1]
+            hep.histplot(
+                nTriggerPass_truth_mhh / nTruthEvents,
+                file[hist]["edges"],
+                histtype="errorbar",
+                label="passed Trigger",
+                yerr=True,
+                density=False,
+                # alpha=0.75,
+            )
+            nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
+            hep.histplot(
+                (nTriggerPass_truth_mhh / nTruthEvents)
+                * nTwoSelLargeR_truth_mhh
+                / nTruthEvents,
+                file[hist]["edges"],
+                histtype="errorbar",
+                label=">2 nLargeR ",
+                yerr=True,
+                density=False,
+                # alpha=0.75,
+            )
+
+            hep.atlas.text(" Simulation", loc=1)
+            hep.atlas.set_ylabel("Acc x Efficiency")
+            hep.atlas.set_xlabel("Truth $m_{hh}$ $[MeV]$ ")
+            ax = plt.gca()
+            ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             # ax.set_xticks(file[hist]["edges"])
             plt.tight_layout()
             plt.legend(loc="upper right")

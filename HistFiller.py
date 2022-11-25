@@ -48,10 +48,15 @@ vars = [
 # make analysis object
 
 # define hists
-accEffBinning = {"binrange": (0, 1_000_000), "bins": 100}
+accEffBinning = {"binrange": (0, 1_500_000), "bins": 100}
 hists = {
     "events_truth_mhh": FloatHistogram(
         name="events_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    "nTriggerPass_truth_mhh": FloatHistogram(
+        name="nTriggerPass_truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),

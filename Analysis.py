@@ -37,7 +37,7 @@ def do(histkey, vars_arr):
     # select large R jets
     lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
     lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
-
+    trigger = vars_arr["trigPassed_HLT_j460_a10sd_cssk_pf_jes_ftf_preselj225_L1SC111_CJ15"]
     # event nr per iteration
     nEvents = len(lrj_pt)
 
@@ -82,9 +82,15 @@ def do(histkey, vars_arr):
         valuesToBin = truth_m_hh[:]
         return valuesToBin
 
+    if histkey == "nTriggerPass_truth_mhh":
+        # return only the truth m_hh values for events with at least two large R
+        valuesToBin = truth_m_hh[trigger]
+        print(valuesToBin)
+        return valuesToBin
+
     if histkey == "nTwoSelLargeR_truth_mhh":
         # return only the truth m_hh values for events with at least two large R
-        valuesToBin = truth_m_hh[nTwoLargeRevents[:]]
+        valuesToBin = truth_m_hh[nTwoLargeRevents]
         return valuesToBin
 
     if histkey == "nTotalSelLargeR":
