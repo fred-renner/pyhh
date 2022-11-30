@@ -1,64 +1,58 @@
 import numpy as np
 import vector
-import multiprocessing
-from multiprocessing import Process, Manager
+import multiprocessing.dummy
 
 np.set_printoptions(threshold=np.inf)
 
 
-# init selection
-def InitObjectDict(objects, vars_arr):
-    # get some vars
-    # fmt: off
-    # print(vars_arr["recojet_antikt10_NOSYS_pt"])
-    objects["lrj_pt"] = vars_arr["recojet_antikt10_NOSYS_pt"]
-    objects["lrj_eta"] = vars_arr["recojet_antikt10_NOSYS_eta"]
-    objects["trigger"] = vars_arr["trigPassed_HLT_j460_a10sd_cssk_pf_jes_ftf_preselj225_L1SC111_CJ15"]
-    objects["vars_arr"] = vars_arr
-    # fmt: on
-    # event nr per iteration
-    objects["nEvents"] = len(objects["lrj_pt"])
+class ObjectSelection:
+    # select large R jets
+    def __init__(self, vars_arr):
+        # fmt: off
+        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
+        self.trigger = vars_arr["trigPassed_HLT_j460_a10sd_cssk_pf_jes_ftf_preselj225_L1SC111_CJ15"]
+        self.vars_arr = vars_arr
+        # fmt: on
+        # event nr per iteration
+        self.nEvents = len(self.lrj_pt)
 
-    # init some variables
-    # make list holding the large R jet selection indices per event
-    objects["sel_lrj"] = [x for x in range(objects["nEvents"])]
-    objects["nLargeR"] = np.zeros(objects["nEvents"], dtype=int)
-    objects["nTwoLargeRevents"] = np.zeros(objects["nEvents"], dtype=bool)
-    objects["truth_m_hh"] = np.zeros(objects["nEvents"])
+        # init some variables
+        # make list holding the large R jet selection indices per event
+        self.sel_lrj = [x for x in range(self.nEvents)]
+        self.nLargeR = np.zeros(self.nEvents, dtype=int)
+        self.nTwoLargeRevents = np.zeros(self.nEvents, dtype=bool)
+        self.truth_m_hh = np.zeros(self.nEvents)
 
-    return objects
+    def select(self, event):
+        # pt, eta cuts
+        ptMin = self.lrj_pt[event] > 250.0
+        etaMin = self.lrj_eta[event] < 2.0
+        selected = ptMin & etaMin
+        nJets = np.count_nonzero(selected)
+        # delete bool arrays if there are less then 2
+        if nJets < 2:
+            selected = np.zeros(nJets, dtype=bool)
+        else:
+            self.nTwoLargeRevents[event] = True
+        # count largeR and save bool select array
+        self.nLargeR[event] = nJets
+        # truth m_hh mass
+        self.sel_lrj[event] = selected
+        truth_h1_p4 = vector.obj(
+            pt=self.vars_arr["truth_H1_pt"][event],
+            eta=self.vars_arr["truth_H1_eta"][event],
+            phi=self.vars_arr["truth_H1_phi"][event],
+            m=self.vars_arr["truth_H1_m"][event],
+        )
+        truth_h2_p4 = vector.obj(
+            pt=self.vars_arr["truth_H2_pt"][event],
+            eta=self.vars_arr["truth_H2_eta"][event],
+            phi=self.vars_arr["truth_H2_phi"][event],
+            m=self.vars_arr["truth_H2_m"][event],
+        )
+        self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-
-def SelectPerEvent((objects, event)):
-    # pt, eta cuts
-    print(objects["lrj_pt"][event] )
-    ptMin = objects["lrj_pt"][event] > 250.0
-    etaMin = objects["lrj_eta"][event] < 2.0
-    selected = ptMin & etaMin
-    nJets = np.count_nonzero(selected)
-    # delete bool arrays if there are less then 2
-    if nJets < 2:
-        selected = np.zeros(nJets, dtype=bool)
-    else:
-        objects["nTwoLargeRevents"][event] = True
-    # count largeR and save bool select array
-    objects["nLargeR"][event] = nJets
-    # truth m_hh mass
-    objects["sel_lrj"][event] = selected
-    truth_h1_p4 = vector.obj(
-        pt=objects["vars_arr"]["truth_H1_pt"][event],
-        eta=objects["vars_arr"]["truth_H1_eta"][event],
-        phi=objects["vars_arr"]["truth_H1_phi"][event],
-        m=objects["vars_arr"]["truth_H1_m"][event],
-    )
-    truth_h2_p4 = vector.obj(
-        pt=objects["vars_arr"]["truth_H2_pt"][event],
-        eta=objects["vars_arr"]["truth_H2_eta"][event],
-        phi=objects["vars_arr"]["truth_H2_phi"][event],
-        m=objects["vars_arr"]["truth_H2_m"][event],
-    )
-    objects["truth_m_hh"][event] = (truth_h1_p4 + truth_h2_p4).mass
-    
 
 def do(histkey, vars_arr):
     """
@@ -76,48 +70,39 @@ def do(histkey, vars_arr):
         values to fill hist
     """
 
+    objects = ObjectSelection(vars_arr)
+
     # parallelize selection
 
     cpus = multiprocessing.cpu_count()
     # cpus = 1  # for debugging
     # the dummy version is needed to write to our actual object here and not
     # instead of having the child processes make copies
-    objects={}
-    objects = InitObjectDict(objects,vars_arr)
-
     with multiprocessing.Pool(cpus) as pool:
-        pool.map(SelectPerEvent, (objects,range(objects["nEvents"])))
-    # with Manager() as manager:
-    #     objects = manager.dict()
-    #     objects = InitObjectDict(objects,vars_arr)
-    #     events = manager.list(range(objects["nEvents"]))
-    #     p = Process(target=SelectPerEvent, args=(objects, events))
-    #     p.start()
-    #     p.join()
-
-    # for event in range(objects["nEvents"]):
-    #     objects["select"](event)
+        pool.map(objects.select, range(objects.nEvents))
+    # for event in range(objects.nEvents):
+    #     objects.select(event)
     if histkey == "events_truth_mhh":
         # return only the truth m_hh values for events with the selection
-        valuesToBin = objects["truth_m_hh"][:]
+        valuesToBin = objects.truth_m_hh[:]
         return valuesToBin
 
     if histkey == "nTriggerPass_truth_mhh":
         # return only the truth m_hh values for events with the selection
-        valuesToBin = objects["truth_m_hh"][objects["trigger"]]
+        valuesToBin = objects.truth_m_hh[objects.trigger]
         return valuesToBin
 
     if histkey == "nTwoSelLargeR_truth_mhh":
         # return only the truth m_hh values for events with the selection
-        valuesToBin = objects["truth_m_hh"][objects["nTwoLargeRevents"]]
+        valuesToBin = objects.truth_m_hh[objects.nTwoLargeRevents]
         return valuesToBin
 
     if histkey == "nTotalSelLargeR":
         # duplicate the truth mhh values with the nr of large R jets for the hist
-        nSelLargeR = np.full((objects["nEvents"], np.max(objects["nLargeR"])), np.inf)
-        for event in range(objects["nEvents"]):
-            n = objects["nLargeR"][event]
-            nSelLargeR[event, :n] = np.full(n, objects["truth_m_hh"][event])
+        nSelLargeR = np.full((objects.nEvents, np.max(objects.nLargeR)), np.inf)
+        for event in range(objects.nEvents):
+            n = objects.nLargeR[event]
+            nSelLargeR[event, :n] = np.full(n, objects.truth_m_hh[event])
         return nSelLargeR.flatten()
 
     if histkey == "hh_m_85":
