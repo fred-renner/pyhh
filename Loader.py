@@ -5,7 +5,7 @@ def GetGenerators(tree, vars, nEvents=-1):
 
     # construct ranges, batch_size=1000 gives e.g.
     # [[0, 999], [1000, 1999], [2000, 2999],...]
-    batch_size = 10_000
+    batch_size = 1_000
     ranges = []
     batch_ranges = []
     if nEvents==-1:

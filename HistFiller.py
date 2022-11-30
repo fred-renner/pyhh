@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import numpy as np
 import uproot
 import numpy as np
@@ -8,17 +8,29 @@ from Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 from h5py import File, Group, Dataset
 import Analysis
 import yaml
+import os
+import time
 
 # yaml.safe_load(file)
 
 # files to load
-filelist = [
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
-    # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440.root"
-    "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables.root"
-]
+
+# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
+filenames = os.listdir(path)
+
+if filenames:
+    filelist = [path + "/" + file for file in filenames]
+
+
+# filelist = [
+#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
+#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
+#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
+#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440.root"
+#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables.root"
+#     "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/user.frenner.31380623._000001.output-hh4b.root"
+# ]
 
 # make hist out file name from filename
 filename = filelist[0].split("/")
@@ -28,18 +40,27 @@ histOutFile = (
 )
 
 
+start = 'vars_arr["'
+end = '"]'
+
+vars = []
+for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "r"):
+    if "vars_arr[" in line:
+        vars.append((line.split(start))[1].split(end)[0])
+
+
 # vars to load
-vars = [
-    # "resolved_DL1dv00_FixedCutBEff_85_hh_m",
-    # "resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle",
-    # "resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle",
-    # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB",
-    # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB",
-    # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB",
-    # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB",
-    # "recojet_antikt4_NOSYS_pt",
-    # "boosted_DL1r_FixedCutBEff_85_h1_parentPdgId_leadingJet_closestTruthB",
-]
+# vars = [
+#     # "resolved_DL1dv00_FixedCutBEff_85_hh_m",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB",
+#     # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB",
+#     # "recojet_antikt4_NOSYS_pt",
+#     # "boosted_DL1r_FixedCutBEff_85_h1_parentPdgId_leadingJet_closestTruthB",
+# ]
 
 # TODO
 # could think of having btag wp configurable for everything
@@ -96,14 +117,15 @@ hists = {
     ),
 }
 
-
 # loop over input files
 with File(histOutFile, "w") as outfile:
     for file in filelist:
-        print("Making hists for " + filename)
+        print("Making hists for " + file)
         with uproot.open(file) as file_:
             # access the tree
             tree = file_["AnalysisMiniTree"]
+            pbar = tqdm(total=tree.num_entries, position=0, leave=True)
+            eventCount = 0
             # load only a certain amount of events
 
             # as my generator implementation seems to keep filling memory?
@@ -111,15 +133,16 @@ with File(histOutFile, "w") as outfile:
             # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
             # for vars_arr in generators:
             for vars_arr in uproot.iterate(
-                tree, tree.keys(), step_size="100 MB", library="np", how=dict
+                tree, vars, step_size=10, library="np", how=dict
             ):
-                print("loaded 100 mb")
                 for hist in hists:
                     # do analysis on a defined hist
                     values = Analysis.do(hist, vars_arr)
-
                     # update bin heights per iteration
                     hists[hist].fill(values)
+                pbar.update(vars_arr[vars[0]].shape[0])
+
+            pbar.close()
 
     # write histograms to file
     for hist in hists:

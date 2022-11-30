@@ -26,18 +26,19 @@ plt.style.use(hep.style.ATLAS)
 # print(file[hist]["histogram"][1:-1])
 # print(file[hist]["edges"])[:]
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--histFile", type=str, default=None)
-args = parser.parse_args()
-
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
-histFile = (
-    "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables.h5"
-)
+histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440_.h5"
+# histFile = (
+#     "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables.h5"
+# )
+histFile="/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.31380623._000001.output-hh4b.h5"
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--histFile", type=str, default=None)
+args = parser.parse_args()
 if args.histFile:
     histFile = args.histFile
 
@@ -87,7 +88,7 @@ with File(histFile, "r") as file:
                 [triggerPass, twoLargeR],
                 file[hist]["edges"],
                 histtype="errorbar",
-                label=["passed Trigger",">2 nLargeR "],
+                label=["passed Trigger", ">2 nLargeR "],
                 yerr=True,
                 density=False,
                 # alpha=0.75,
