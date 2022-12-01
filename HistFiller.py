@@ -5,7 +5,7 @@ import uproot
 import numpy as np
 import Loader
 from Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
-from h5py import File, Group, Dataset
+from h5py import File
 import Analysis
 import yaml
 import os
@@ -17,53 +17,25 @@ import multiprocessing
 # yaml.safe_load(file)
 
 # files to load
-
 path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
 # path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
 filenames = os.listdir(path)
+filelist = [path + "/" + file for file in filenames]
 
-if filenames:
-    filelist = [path + "/" + file for file in filenames]
-
-
-# filelist = [
-#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.root",
-#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.root"
-#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440.root"
-#     # "/lustre/fs22/group/atlas/freder/hh/run/analysis-variables.root"
-#     "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/user.frenner.31380623._000001.output-hh4b.root"
-# ]
 
 # make hist out file name from filename
-filename = filelist[0].split("/")
-filename = str(filename[-1]).replace(".root", "")
+dataset = path.split("/")
 histOutFile = (
-    "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + filename + ".h5"
+    "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + dataset[-1] + ".h5"
 )
 
-
+# figure out which vars to load from analysis script
 start = 'vars_arr["'
 end = '"]'
-
 vars = []
 for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "r"):
     if "vars_arr[" in line:
         vars.append((line.split(start))[1].split(end)[0])
-
-
-# vars to load
-# vars = [
-#     # "resolved_DL1dv00_FixedCutBEff_85_hh_m",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB",
-#     # "resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB",
-#     # "recojet_antikt4_NOSYS_pt",
-#     # "boosted_DL1r_FixedCutBEff_85_h1_parentPdgId_leadingJet_closestTruthB",
-# ]
 
 # TODO
 # could think of having btag wp configurable for everything
@@ -71,7 +43,7 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # could think of remove defaults before sending into analysis
 
 # define hists
-accEffBinning = {"binrange": (0, 1_500_000), "bins": 100}
+accEffBinning = {"binrange": (0, 3_000_000), "bins": 100}
 hists = {
     "events_truth_mhh": FloatHistogram(
         name="events_truth_mhh",
@@ -119,17 +91,13 @@ hists = {
     ),
 }
 
-
-# def filling_callback(results):
-#     print("did")
-#     for hist in hists:
-#         # update bin heights per iteration
-#         values = results[hist]
-#         print(values.shape)
-#         hists[hist].fill(values)
-#     #     print(hists[hist]._hist[100])
-#     # pbar.update(1000)
-
+# the filling is executed each time an Analysis.Run job finishes
+def filling_callback(results):
+    for hist in hists:
+        # update bin heights per iteration
+        values = results[hist]
+        hists[hist].fill(values)
+    pbar.update(batchSize)
 
 
 with File(histOutFile, "w") as outfile:
@@ -141,19 +109,21 @@ with File(histOutFile, "w") as outfile:
             tree = file_["AnalysisMiniTree"]
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
-            # load only a certain amount of events in batches likes
+            # with batchsize=1000 you would load events incrementally
             # [[0, 999], [1000, 1999], [2000, 2999],...]
-            eventBatches = Loader.EventRanges(tree, batch_size=100000)
-            with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
-                for batch in eventBatches:
-                    results=pool.apply(Analysis.Run, args=(batch, tree, vars))
-                    for hist in hists:
-                        # update bin heights per iteration
-                        values = results[hist]
-                        hists[hist].fill(values)
-                    pbar.update(batch[1])
-
-                pbar.close()
+            # the auto batchSize setup could crash if you don't have enough memory
+            cpus = multiprocessing.cpu_count()
+            batchSize = int(tree.num_entries / cpus)
+            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=-1)
+            # a pool objects can start child processes on different cpus
+            pool = multiprocessing.Pool(cpus)
+            for batch in eventBatches:
+                pool.apply_async(
+                    Analysis.Run, (batch, tree, vars), callback=filling_callback
+                )
+            pool.close()
+            pool.join()
+            pbar.close()
 
     # write histograms to file
     for hist in hists:
