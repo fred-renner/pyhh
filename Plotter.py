@@ -80,6 +80,9 @@ with File(histFile, "r") as file:
         if "nTriggerPass_truth_mhh" in hist:
             plt.figure()
             nTruthEvents = file["events_truth_mhh"]["histogram"][1:-1]
+            print(file["nTriggerPass_truth_mhh"]["histogram"][:])
+            print(file["events_truth_mhh"]["histogram"][:])
+
             nTriggerPass_truth_mhh = file["nTriggerPass_truth_mhh"]["histogram"][1:-1]
             nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
             triggerPass = nTriggerPass_truth_mhh / nTruthEvents

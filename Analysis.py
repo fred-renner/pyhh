@@ -1,8 +1,20 @@
 import numpy as np
 import vector
-import multiprocessing.dummy
+import multiprocessing
+from multiprocessing.managers import BaseManager
+import time    
 
 np.set_printoptions(threshold=np.inf)
+
+
+class MyManager(BaseManager):
+    pass
+
+
+def Manager():
+    m = MyManager()
+    m.start()
+    return m
 
 
 class ObjectSelection:
@@ -53,6 +65,18 @@ class ObjectSelection:
         )
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
+    def getObject(self):
+        return self
+
+
+def update(objects, event):
+    objects.select(event)
+    # return objects
+
+
+# def select(obj,event):
+#     obj.select(event)
+
 
 def do(histkey, vars_arr):
     """
@@ -73,15 +97,32 @@ def do(histkey, vars_arr):
     objects = ObjectSelection(vars_arr)
 
     # parallelize selection
+    t0 = time.time()
 
     cpus = multiprocessing.cpu_count()
     # cpus = 1  # for debugging
     # the dummy version is needed to write to our actual object here and not
     # instead of having the child processes make copies
-    with multiprocessing.Pool(cpus) as pool:
-        pool.map(objects.select, range(objects.nEvents))
+    # with multiprocessing.Pool(cpus) as pool:
+    #     pool.map(objects.select, range(objects.nEvents))
     # for event in range(objects.nEvents):
-    #     objects.select(event)
+    #     update(objects,event)
+
+    MyManager.register("ObjectSelection", ObjectSelection)
+
+    manager = Manager()
+    objects_ = manager.ObjectSelection(vars_arr)
+
+    pool = multiprocessing.Pool(cpus)
+    for event in range(objects_.getObject().nEvents):
+        pool.map_async(update, (objects_, event))
+    pool.close()
+    pool.join()
+    print(time.time() - t0)
+
+    objects = objects_.getObject()
+    print(time.time() - t0)
+    
     if histkey == "events_truth_mhh":
         # return only the truth m_hh values for events with the selection
         valuesToBin = objects.truth_m_hh[:]

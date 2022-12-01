@@ -9,8 +9,9 @@ from h5py import File, Group, Dataset
 import Analysis
 import yaml
 import os
-import time
-
+# import time    
+# t0 = time.time()
+# print(time.time() - t0)
 # yaml.safe_load(file)
 
 # files to load
@@ -133,7 +134,7 @@ with File(histOutFile, "w") as outfile:
             # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
             # for vars_arr in generators:
             for vars_arr in uproot.iterate(
-                tree, vars, step_size=10, library="np", how=dict
+                tree, vars, step_size=1_000, library="np", how=dict
             ):
                 for hist in hists:
                     # do analysis on a defined hist
