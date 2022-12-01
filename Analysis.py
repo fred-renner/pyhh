@@ -3,10 +3,10 @@ import vector
 from multiprocessing.managers import BaseManager
 import time
 
-np.set_printoptions(threshold=np.inf)
+# np.set_printoptions(threshold=np.inf)
 
 
-def DoAnalysis(batch, tree, vars):
+def Run(batch, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
@@ -106,63 +106,6 @@ class ObjectSelection:
         }
         return results
 
-
-# def update(objects, event):
-#     objects.select(event)
-#     # return objects
-
-
-# # def select(obj,event):
-# #     obj.select(event)
-
-
-def do(histkey, objects):
-    """
-    do analysis on a given histogram type
-    Parameters
-    ----------
-    histkey : str
-        histogram type
-    vars_arr : np.ndarray
-        loaded vars in memory
-
-    Returns
-    -------
-    np.ndarray
-        values to fill hist
-    """
-
-    if histkey == "events_truth_mhh":
-        # return only the truth m_hh values for events with the selection
-        valuesToBin = objects.truth_m_hh[:]
-        return valuesToBin
-
-    if histkey == "nTriggerPass_truth_mhh":
-        # return only the truth m_hh values for events with the selection
-        valuesToBin = objects.truth_m_hh[objects.trigger]
-        return valuesToBin
-
-    if histkey == "nTwoSelLargeR_truth_mhh":
-        # return only the truth m_hh values for events with the selection
-        valuesToBin = objects.truth_m_hh[objects.nTwoLargeRevents]
-        return valuesToBin
-
-    if histkey == "nTotalSelLargeR":
-        # duplicate the truth mhh values with the nr of large R jets for the
-        # hist
-        # fill array (events x max(nLarge)) with -inf values
-        nSelLargeR = np.full((objects.nEvents, np.max(objects.nLargeR)), -np.inf)
-        for event in range(objects.nEvents):
-            n = objects.nLargeR[event]
-            nSelLargeR[event, :n] = np.full(n, objects.truth_m_hh[event])
-        return nSelLargeR.flatten()
-
-    if histkey == "hh_m_85":
-
-        return objects.hh_m_selected
-
-    if histkey == "massplane_85":
-        return objects.m_h1h2
 
     # if histkey == "pairingEfficiencyResolved":
     #     matchCriterion = 0.2

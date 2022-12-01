@@ -9,7 +9,7 @@ from h5py import File, Group, Dataset
 import Analysis
 import yaml
 import os
-from multiprocessing import Pool
+import multiprocessing
 
 # import time
 # t0 = time.time()
@@ -18,8 +18,8 @@ from multiprocessing import Pool
 
 # files to load
 
-# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
-path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
+path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
 filenames = os.listdir(path)
 
 if filenames:
@@ -69,7 +69,6 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # could think of having btag wp configurable for everything
 # make yaml config
 # could think of remove defaults before sending into analysis
-# make analysis object
 
 # define hists
 accEffBinning = {"binrange": (0, 1_500_000), "bins": 100}
@@ -121,48 +120,40 @@ hists = {
 }
 
 
-# loop over input files
+# def filling_callback(results):
+#     print("did")
+#     for hist in hists:
+#         # update bin heights per iteration
+#         values = results[hist]
+#         print(values.shape)
+#         hists[hist].fill(values)
+#     #     print(hists[hist]._hist[100])
+#     # pbar.update(1000)
+
+
+
 with File(histOutFile, "w") as outfile:
+    # loop over input files
     for file in filelist:
         print("Making hists for " + file)
         with uproot.open(file) as file_:
             # access the tree
             tree = file_["AnalysisMiniTree"]
+            # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
-            eventCount = 0
-            # load only a certain amount of events
+            # load only a certain amount of events in batches likes
+            # [[0, 999], [1000, 1999], [2000, 2999],...]
+            eventBatches = Loader.EventRanges(tree, batch_size=100000)
+            with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
+                for batch in eventBatches:
+                    results=pool.apply(Analysis.Run, args=(batch, tree, vars))
+                    for hist in hists:
+                        # update bin heights per iteration
+                        values = results[hist]
+                        hists[hist].fill(values)
+                    pbar.update(batch[1])
 
-            # as my generator implementation seems to keep filling memory?
-            # default to uproot way
-            # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
-            # for vars_arr in generators:
-
-            """"laden, init, select -> computations, hist for loop -> return
-            values"""
-            eventBatches = Loader.EventRanges(tree, batch_size=1000)
-
-            # with Pool() as p:
-            #     p.map_async(Analysis.DoSelection, (eventBatches, tree))
-
-            # for vars_arr in uproot.iterate(
-            #     tree, vars, step_size=1_000, library="np", how=dict
-            # ):
-            for batch in eventBatches:
-                results = Analysis.DoAnalysis(batch, tree, vars)
-                for hist in hists:
-                    # update bin heights per iteration
-                    values = results[hist]
-                    hists[hist].fill(values)
-                pbar.update(batch[0])
-
-            # def f(x):
-            #     return x*x
-
-            # if __name__ == '__main__':
-            #     with Pool(5) as p:
-            #         print(p.map(f, [1, 2, 3]))
-
-            pbar.close()
+                pbar.close()
 
     # write histograms to file
     for hist in hists:
