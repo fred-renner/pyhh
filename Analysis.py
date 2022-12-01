@@ -1,20 +1,18 @@
 import numpy as np
 import vector
-import multiprocessing
 from multiprocessing.managers import BaseManager
-import time    
+import time
 
 np.set_printoptions(threshold=np.inf)
 
 
-class MyManager(BaseManager):
-    pass
-
-
-def Manager():
-    m = MyManager()
-    m.start()
-    return m
+def DoAnalysis(batch, tree, vars):
+    vars_arr = tree.arrays(
+        vars, entry_start=batch[0], entry_stop=batch[1], library="np"
+    )
+    objects = ObjectSelection(vars_arr)
+    objects.select()
+    return objects.returnResults()
 
 
 class ObjectSelection:
@@ -28,15 +26,23 @@ class ObjectSelection:
         # fmt: on
         # event nr per iteration
         self.nEvents = len(self.lrj_pt)
-
+        self.eventNrs = range(self.nEvents)
         # init some variables
         # make list holding the large R jet selection indices per event
         self.sel_lrj = [x for x in range(self.nEvents)]
         self.nLargeR = np.zeros(self.nEvents, dtype=int)
         self.nTwoLargeRevents = np.zeros(self.nEvents, dtype=bool)
-        self.truth_m_hh = np.zeros(self.nEvents)
+        self.truth_m_hh = np.zeros(self.nEvents, dtype=float)
 
-    def select(self, event):
+    def select(self):
+        for event in self.eventNrs:
+            self.largeRSelect(event)
+            self.truth_mhh(event)
+        self.hh_m_85()
+        self.massplane_85()
+        self.nTotalSelLargeR()
+
+    def largeRSelect(self, event):
         # pt, eta cuts
         ptMin = self.lrj_pt[event] > 250.0
         etaMin = self.lrj_eta[event] < 2.0
@@ -51,6 +57,18 @@ class ObjectSelection:
         self.nLargeR[event] = nJets
         # truth m_hh mass
         self.sel_lrj[event] = selected
+
+    def nTotalSelLargeR(self):
+        # duplicate the truth mhh values with the nr of large R jets for the
+        # hist
+        # init array (events x max(nLarge)) with -inf values
+        nSelLargeR = np.full((self.nEvents, np.max(self.nLargeR)), -np.inf)
+        for event in range(self.nEvents):
+            n = self.nLargeR[event]
+            nSelLargeR[event, :n] = np.full(n, self.truth_m_hh[event])
+        self.nSelLargeRFlat = nSelLargeR.flatten()
+
+    def truth_mhh(self, event):
         truth_h1_p4 = vector.obj(
             pt=self.vars_arr["truth_H1_pt"][event],
             eta=self.vars_arr["truth_H1_eta"][event],
@@ -65,20 +83,40 @@ class ObjectSelection:
         )
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-    def getObject(self):
-        return self
+    def hh_m_85(self):
+        hh_m = self.vars_arr["resolved_DL1dv00_FixedCutBEff_85_hh_m"]
+        self.hh_m_selected = hh_m[hh_m > 0]
+
+    def massplane_85(self):
+        h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_85_h1_m"]
+        h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_85_h2_m"]
+        selection = (h1_m > 0) & (h2_m > 0)
+        h1_m_selected = h1_m[selection]
+        h2_m_selected = h2_m[selection]
+        self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
+
+    def returnResults(self):
+        results = {
+            "events_truth_mhh": self.truth_m_hh[:],
+            "nTriggerPass_truth_mhh": self.truth_m_hh[self.trigger],
+            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.nTwoLargeRevents],
+            "nTotalSelLargeR": self.nSelLargeRFlat,
+            "hh_m_85": self.hh_m_selected,
+            "massplane_85": self.m_h1h2,
+        }
+        return results
 
 
-def update(objects, event):
-    objects.select(event)
-    # return objects
+# def update(objects, event):
+#     objects.select(event)
+#     # return objects
 
 
-# def select(obj,event):
-#     obj.select(event)
+# # def select(obj,event):
+# #     obj.select(event)
 
 
-def do(histkey, vars_arr):
+def do(histkey, objects):
     """
     do analysis on a given histogram type
     Parameters
@@ -94,35 +132,6 @@ def do(histkey, vars_arr):
         values to fill hist
     """
 
-    objects = ObjectSelection(vars_arr)
-
-    # parallelize selection
-    t0 = time.time()
-
-    cpus = multiprocessing.cpu_count()
-    # cpus = 1  # for debugging
-    # the dummy version is needed to write to our actual object here and not
-    # instead of having the child processes make copies
-    # with multiprocessing.Pool(cpus) as pool:
-    #     pool.map(objects.select, range(objects.nEvents))
-    # for event in range(objects.nEvents):
-    #     update(objects,event)
-
-    MyManager.register("ObjectSelection", ObjectSelection)
-
-    manager = Manager()
-    objects_ = manager.ObjectSelection(vars_arr)
-
-    pool = multiprocessing.Pool(cpus)
-    for event in range(objects_.getObject().nEvents):
-        pool.map_async(update, (objects_, event))
-    pool.close()
-    pool.join()
-    print(time.time() - t0)
-
-    objects = objects_.getObject()
-    print(time.time() - t0)
-    
     if histkey == "events_truth_mhh":
         # return only the truth m_hh values for events with the selection
         valuesToBin = objects.truth_m_hh[:]
@@ -139,65 +148,61 @@ def do(histkey, vars_arr):
         return valuesToBin
 
     if histkey == "nTotalSelLargeR":
-        # duplicate the truth mhh values with the nr of large R jets for the hist
-        nSelLargeR = np.full((objects.nEvents, np.max(objects.nLargeR)), np.inf)
+        # duplicate the truth mhh values with the nr of large R jets for the
+        # hist
+        # fill array (events x max(nLarge)) with -inf values
+        nSelLargeR = np.full((objects.nEvents, np.max(objects.nLargeR)), -np.inf)
         for event in range(objects.nEvents):
             n = objects.nLargeR[event]
             nSelLargeR[event, :n] = np.full(n, objects.truth_m_hh[event])
         return nSelLargeR.flatten()
 
     if histkey == "hh_m_85":
-        hh_m = vars_arr["resolved_DL1dv00_FixedCutBEff_85_hh_m"]
-        hh_m_selected = hh_m[hh_m > 0]
-        return hh_m_selected
+
+        return objects.hh_m_selected
 
     if histkey == "massplane_85":
-        h1_m = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_m"]
-        h2_m = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_m"]
-        selection = (h1_m > 0) & (h2_m > 0)
-        h1_m_selected = h1_m[selection]
-        h2_m_selected = h2_m[selection]
-        return np.array([h1_m_selected, h2_m_selected]).T
+        return objects.m_h1h2
 
-    if histkey == "pairingEfficiencyResolved":
-        matchCriterion = 0.2
-        # fmt: off
-        # remove defaults
-        nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-        h1_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-        h2_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-        h1_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h1_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h2_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h2_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        # fmt: on
-        # add  s/h
-        # this works because of numpy
-        matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
-        matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
+    # if histkey == "pairingEfficiencyResolved":
+    #     matchCriterion = 0.2
+    #     # fmt: off
+    #     # remove defaults
+    #     nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
+    #     h1_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+    #     h2_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+    #     h1_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h1_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h2_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h2_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     # fmt: on
+    #     # add  s/h
+    #     # this works because of numpy
+    #     matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
+    #     matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
 
-        # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
-        matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
+    #     # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
+    #     matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
 
-        return matched
+    #     return matched
 
-    if histkey == "vrJetEfficiencyBoosted":
-        matchCriterion = 0.2
-        # fmt: off
-        # remove defaults        
-        nonDefaults = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-        h1_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-        h2_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-        h1_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h1_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h2_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        h2_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-        # fmt: on
+    # if histkey == "vrJetEfficiencyBoosted":
+    #     matchCriterion = 0.2
+    #     # fmt: off
+    #     # remove defaults
+    #     nonDefaults = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
+    #     h1_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+    #     h2_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
+    #     h1_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h1_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h2_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     h2_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
+    #     # fmt: on
 
-        matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
-        matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
+    #     matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
+    #     matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
 
-        # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
-        matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
+    #     # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
+    #     matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
 
-        return matched
+    #     return matched

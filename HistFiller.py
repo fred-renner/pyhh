@@ -9,7 +9,9 @@ from h5py import File, Group, Dataset
 import Analysis
 import yaml
 import os
-# import time    
+from multiprocessing import Pool
+
+# import time
 # t0 = time.time()
 # print(time.time() - t0)
 # yaml.safe_load(file)
@@ -106,10 +108,10 @@ hists = {
     #     name="pairingEfficiencyResolved",
     #     binrange=(0, 3),
     # ),
-    "vrJetEfficiencyBoosted": IntHistogram(
-        name="vrJetEfficiencyBoosted",
-        binrange=(0, 3),
-    ),
+    # "vrJetEfficiencyBoosted": IntHistogram(
+    #     name="vrJetEfficiencyBoosted",
+    #     binrange=(0, 3),
+    # ),
     "massplane_85": FloatHistogram2D(
         name="massplane_85",
         binrange1=(50_000, 300_000),
@@ -117,6 +119,7 @@ hists = {
         bins=100,
     ),
 }
+
 
 # loop over input files
 with File(histOutFile, "w") as outfile:
@@ -133,15 +136,31 @@ with File(histOutFile, "w") as outfile:
             # default to uproot way
             # generators = Loader.GetGenerators(tree, vars, nEvents=-1)
             # for vars_arr in generators:
-            for vars_arr in uproot.iterate(
-                tree, vars, step_size=1_000, library="np", how=dict
-            ):
+
+            """"laden, init, select -> computations, hist for loop -> return
+            values"""
+            eventBatches = Loader.EventRanges(tree, batch_size=1000)
+
+            # with Pool() as p:
+            #     p.map_async(Analysis.DoSelection, (eventBatches, tree))
+
+            # for vars_arr in uproot.iterate(
+            #     tree, vars, step_size=1_000, library="np", how=dict
+            # ):
+            for batch in eventBatches:
+                results = Analysis.DoAnalysis(batch, tree, vars)
                 for hist in hists:
-                    # do analysis on a defined hist
-                    values = Analysis.do(hist, vars_arr)
                     # update bin heights per iteration
+                    values = results[hist]
                     hists[hist].fill(values)
-                pbar.update(vars_arr[vars[0]].shape[0])
+                pbar.update(batch[0])
+
+            # def f(x):
+            #     return x*x
+
+            # if __name__ == '__main__':
+            #     with Pool(5) as p:
+            #         print(p.map(f, [1, 2, 3]))
 
             pbar.close()
 
