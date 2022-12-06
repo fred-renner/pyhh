@@ -1,0 +1,12 @@
+
+executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFill.sh
+log                     = HistFill.log
+output                  = outfile.txt
+error                   = errors.txt
+should_transfer_files   = Yes
+when_to_transfer_output = ON_EXIT
+request_cpus = 16
+getenv = True
+notification = Always
+
+queue

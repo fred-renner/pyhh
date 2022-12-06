@@ -22,8 +22,8 @@ class FloatHistogram:
         hist = np.histogramdd(arr, bins=[self._bins])[0]
         self._hist += hist
 
-    def write(self, group, name=None):
-        hgroup = group.create_group(name or self._name)
+    def write(self, file_):
+        hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins[1:-1], **self._compression)
@@ -61,8 +61,8 @@ class FloatHistogram2D:
         hist = np.histogramdd(arr, bins=[self._bins1, self._bins2])[0]
         self._hist += hist
 
-    def write(self, group, name=None):
-        hgroup = group.create_group(name or self._name)
+    def write(self, file_):
+        hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins, **self._compression)
@@ -87,7 +87,10 @@ class IntHistogram:
             arr = arr.astype(np.int64)
         self._hist[1:-1] += np.bincount(arr, minlength=self._nbins)
 
-    def write(self, file_, name=None):
+    def write(
+        self,
+        file_,
+    ):
         c = dict(compression="gzip")
         file = file_.create_group(name or self._name)
         file.attrs["type"] = "int"

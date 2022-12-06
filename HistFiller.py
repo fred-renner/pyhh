@@ -10,6 +10,13 @@ import Analysis
 import yaml
 import os
 import multiprocessing
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--cpus", type=int, default=None)
+args = parser.parse_args()
+
 
 # import time
 # t0 = time.time()
@@ -43,37 +50,49 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # could think of remove defaults before sending into analysis
 
 # define hists
-accEffBinning = {"binrange": (0, 3_000_000), "bins": 100}
-hists = {
-    "events_truth_mhh": FloatHistogram(
-        name="events_truth_mhh",
+accEffBinning = {"binrange": (0, 3_000_000), "bins": 150}
+TriggerEff = {"binrange": (0, 3_000_000), "bins": 100}
+
+hists = [
+    FloatHistogram(
+        name="truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
-    "nTriggerPass_truth_mhh": FloatHistogram(
+    FloatHistogram(
         name="nTriggerPass_truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
-    "nTwoSelLargeR_truth_mhh": FloatHistogram(
+    FloatHistogram(
         name="nTwoSelLargeR_truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
-    # "nTotalSelLargeR": FloatHistogram(
-    #     name="nTotalSelLargeR",
-    #     binrange=(0, 1_000_000),
-    #     bins=150,
-    # ),
-    # "triggerEff": FloatHistogram(
-    #     name="triggerEff",
-    #     binrange=(0, 1_000_000),
-    #     bins=150,
-    # ),
-    "hh_m_85": FloatHistogram(
+    FloatHistogram(
+        name="nTotalSelLargeR",
+        binrange=(0, 2_500_000),
+        bins=100,
+    ),
+    FloatHistogram(
+        name="triggerRef_leadingLargeRpT",
+        binrange=TriggerEff["binrange"],
+        bins=TriggerEff["bins"],
+    ),
+    FloatHistogram(
+        name="trigger_leadingLargeRpT",
+        binrange=TriggerEff["binrange"],
+        bins=TriggerEff["bins"],
+    ),
+    FloatHistogram(
+        name="leadingLargeRpT",
+        binrange=TriggerEff["binrange"],
+        bins=TriggerEff["bins"],
+    ),
+    FloatHistogram(
         name="hh_m_85",
-        binrange=(0, 900_000),
-        bins=150,
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
     ),
     # "pairingEfficiencyResolved": IntHistogram(
     #     name="pairingEfficiencyResolved",
@@ -83,21 +102,25 @@ hists = {
     #     name="vrJetEfficiencyBoosted",
     #     binrange=(0, 3),
     # ),
-    "massplane_85": FloatHistogram2D(
+    FloatHistogram2D(
         name="massplane_85",
-        binrange1=(50_000, 300_000),
-        binrange2=(50_000, 300_000),
+        binrange1=(50_000, 250_000),
+        binrange2=(50_000, 250_000),
         bins=100,
     ),
-}
+]
 
 # the filling is executed each time an Analysis.Run job finishes
 def filling_callback(results):
     for hist in hists:
         # update bin heights per iteration
-        values = results[hist]
-        hists[hist].fill(values)
+        values = results[hist._name]
+        hist.fill(values)
     pbar.update(batchSize)
+
+
+def error_handler(e):
+    print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
 
 
 with File(histOutFile, "w") as outfile:
@@ -111,15 +134,24 @@ with File(histOutFile, "w") as outfile:
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             # with batchsize=1000 you would load events incrementally
             # [[0, 999], [1000, 1999], [2000, 2999],...]
-            # the auto batchSize setup could crash if you don't have enough memory
+            # the auto batchSize setup could crash if you don't have enough
+            # memory
             cpus = multiprocessing.cpu_count()
             batchSize = int(tree.num_entries / cpus)
-            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=-1)
+
+            if args.cpus:
+                cpus = args.cpus
+                batchSize = 30_0000
+
+            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=None)
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
             for batch in eventBatches:
                 pool.apply_async(
-                    Analysis.Run, (batch, tree, vars), callback=filling_callback
+                    Analysis.Run,
+                    (batch, tree, vars),
+                    callback=filling_callback,
+                    error_callback=error_handler,
                 )
             pool.close()
             pool.join()
@@ -127,7 +159,7 @@ with File(histOutFile, "w") as outfile:
 
     # write histograms to file
     for hist in hists:
-        hists[hist].write(outfile, hist)
+        hist.write(outfile)
 
 # if you want to plot directly
 import subprocess

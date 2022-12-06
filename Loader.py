@@ -3,13 +3,13 @@
 def EventRanges(
     tree,
     batch_size=1_000,
-    nEvents=-1
+    nEvents=None
 ):
     # construct ranges, batch_size=1000 gives e.g.
     # [[0, 999], [1000, 1999], [2000, 2999],...]
     ranges = []
     batch_ranges = []
-    if nEvents == -1:
+    if nEvents is None:
         nEvents = tree.num_entries
     for i in range(0, nEvents, batch_size):
         ranges += [i]
