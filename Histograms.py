@@ -72,7 +72,7 @@ class FloatHistogram2D:
 
 class IntHistogram:
     def __init__(self, name, binrange):
-        low, high = np.array(binrange, dtype=int)
+        low, high = np.array(binrange, dtype=np.int64)
         if not np.isclose([low, high], binrange).all():
             raise ValueError(f"interval {binrange} needs to be integer")
         self._name = name

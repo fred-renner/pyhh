@@ -95,13 +95,68 @@ with File(histFile, "r") as file:
             hep.atlas.set_ylabel("Cumulative Trigger eff.")
             hep.atlas.set_xlabel("Leading Large R Jet p$_T$ $[GeV]$ ")
             ax = plt.gca()
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
 
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-            # ax.set_xticks(file[hist]["edges"])
+            ax.set_ylim([0.8, 1.05])
+            ax.set_xlim([0.8, 2500_000])
+            plt.grid()
             plt.tight_layout()
             plt.legend(loc="upper right")
             plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
+            plt.close()
+
+        if "trigger_leadingLargeRm" in hist:
+            # normalize + cumulative
+            edges = file["triggerRef_leadingLargeRm"]["edges"]
+            counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            triggerRef_leadingLargeRm = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
+
+            edges = file["trigger_leadingLargeRm"]["edges"]
+            counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            trigger_leadingLargeRm = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
+
+            # print(trigger_leadingLargeRpT)
+            # triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"][
+            #     "histogram"
+            # ][1:-1]
+            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
+
+            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
+            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
+            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+            # )
+            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
+            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
+            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+            # )
+            plt.figure()
+            hep.histplot(
+                trigger_leadingLargeRm / triggerRef_leadingLargeRm,
+                file[hist]["edges"],
+                histtype="errorbar",
+                yerr=False,
+                # density=True,
+                # alpha=0.75,
+            )
+
+            hep.atlas.text(" Simulation", loc=1)
+            hep.atlas.set_ylabel("Cumulative Trigger eff.")
+            hep.atlas.set_xlabel("Leading Large R Jet Mass $[GeV]$ ")
+            ax = plt.gca()
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+            ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+            plt.grid()
+
+            plt.tight_layout()
+            plt.legend(loc="upper right")
+            plt.savefig(plotPath + "trigger_leadingLargeRm.pdf")
             plt.close()
 
         if "nTriggerPass_truth_mhh" in hist:
@@ -134,7 +189,7 @@ with File(histFile, "r") as file:
             hep.atlas.set_ylabel("Acc x Efficiency")
             hep.atlas.set_xlabel("Truth $m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
 
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             # ax.set_ylim([0, 1.2])
@@ -144,7 +199,7 @@ with File(histFile, "r") as file:
             plt.legend(loc="lower right")
             plt.savefig(plotPath + "accEff_truth_mhh.pdf")
             plt.close()
-            
+
         if "leadingLargeRpT" in hist:
             plt.figure()
             leadingLargeRpT = file["leadingLargeRpT"]["histogram"][1:-1]
@@ -166,7 +221,7 @@ with File(histFile, "r") as file:
             hep.atlas.set_xlabel("Leading Large R Jet p$_T$ $[GeV]$ ")
             ax = plt.gca()
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             plt.tight_layout()
             plt.legend(loc="upper right")
             plt.savefig(plotPath + "leadingLargeRpT.pdf")
@@ -174,33 +229,62 @@ with File(histFile, "r") as file:
 
         if "truth_mhh" in hist:
             plt.figure()
+            hh_m_85 = file["hh_m_85"]["histogram"][1:-1]
             nTruthEvents = file["truth_mhh"]["histogram"][1:-1]
             hep.histplot(
-                nTruthEvents,
+                [nTruthEvents, hh_m_85],
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=False,
+                yerr=True,
                 density=False,
+                label=["truth", "reco"]
                 # alpha=0.75,
             )
             hep.atlas.text(" Simulation", loc=1)
             hep.atlas.set_ylabel("Events")
-            hep.atlas.set_xlabel("Truth $m_{hh}$ $[GeV]$ ")
+            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
             ax.set_yscale("log")
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             # ax.set_xticks(file[hist]["edges"])
             plt.tight_layout()
             plt.legend(loc="upper right")
+            hep.yscale_legend()
             plt.savefig(plotPath + "truth_mhh.pdf")
             plt.close()
-            
+
+        if "truth_mhh" in hist:
+            plt.figure()
+            hh_m_85 = file["hh_m_85"]["histogram"][1:-1]
+            nTruthEvents = file["truth_mhh"]["histogram"][1:-1]
+            hep.histplot(
+                hh_m_85 / nTruthEvents,
+                file[hist]["edges"],
+                histtype="errorbar",
+                yerr=False,
+                density=False,
+                # label=["truth", "reco"]
+                # alpha=0.75,
+            )
+            hep.atlas.text(" Simulation", loc=1)
+            hep.atlas.set_ylabel("Events (reco / truth)")
+            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
+            ax = plt.gca()
+            # ax.set_yscale("log")
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+            ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+            plt.legend(loc="upper right")
+            # hep.yscale_legend()
+            plt.tight_layout()
+            plt.savefig(plotPath + "truth_reco_ratio_mhh.pdf")
+            plt.close()
+
         if "hh_m_85" in hist:
             plt.figure()
-            nTruthEvents = file["hh_m_85"]["histogram"][1:-1]
+            hh_m_85 = file["hh_m_85"]["histogram"][1:-1]
             hep.histplot(
-                nTruthEvents,
+                hh_m_85,
                 file[hist]["edges"],
                 histtype="errorbar",
                 yerr=False,
@@ -212,14 +296,13 @@ with File(histFile, "r") as file:
             hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
             ax.set_yscale("log")
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             # ax.set_xticks(file[hist]["edges"])
             plt.tight_layout()
             plt.legend(loc="upper right")
             plt.savefig(plotPath + "reco_mhh.pdf")
-            plt.close()            
-        
+            plt.close()
 
         if "pairingEfficiencyResolved" in hist:
             plt.figure()
@@ -273,13 +356,16 @@ with File(histFile, "r") as file:
                 xbins=file[hist]["edges"][0][1:-1],
                 ybins=file[hist]["edges"][1][1:-1],
             )
-            hep.atlas.text(" Simulation", loc=1)
+            txt = hep.atlas.text(" Simulation", loc=1)
+            txt[0]._color = "white"
+            txt[1]._color = "white"
             hep.atlas.set_ylabel("$m_{h2}$ $[GeV]$ ")
             hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
             ax = plt.gca()
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
-            ax.yaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1f"))     
+            ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+            ax.yaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+            ax.set_aspect('equal')
             plt.tight_layout()
             # plt.legend(loc="upper right")
             plt.savefig(plotPath + "massplane.pdf")

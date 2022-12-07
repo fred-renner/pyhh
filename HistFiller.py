@@ -51,7 +51,8 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 150}
-TriggerEff = {"binrange": (0, 3_000_000), "bins": 100}
+TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 100}
+TriggerEffm = {"binrange": (0, 300_000), "bins": 100}
 
 hists = [
     FloatHistogram(
@@ -75,19 +76,29 @@ hists = [
         bins=100,
     ),
     FloatHistogram(
+        name="leadingLargeRpT",
+        binrange=TriggerEffpT["binrange"],
+        bins=TriggerEffpT["bins"],
+    ),
+    FloatHistogram(
         name="triggerRef_leadingLargeRpT",
-        binrange=TriggerEff["binrange"],
-        bins=TriggerEff["bins"],
+        binrange=TriggerEffpT["binrange"],
+        bins=TriggerEffpT["bins"],
     ),
     FloatHistogram(
         name="trigger_leadingLargeRpT",
-        binrange=TriggerEff["binrange"],
-        bins=TriggerEff["bins"],
+        binrange=TriggerEffpT["binrange"],
+        bins=TriggerEffpT["bins"],
     ),
     FloatHistogram(
-        name="leadingLargeRpT",
-        binrange=TriggerEff["binrange"],
-        bins=TriggerEff["bins"],
+        name="triggerRef_leadingLargeRm",
+        binrange=TriggerEffm["binrange"],
+        bins=TriggerEffm["bins"],
+    ),
+    FloatHistogram(
+        name="trigger_leadingLargeRm",
+        binrange=TriggerEffm["binrange"],
+        bins=TriggerEffm["bins"],
     ),
     FloatHistogram(
         name="hh_m_85",
@@ -143,7 +154,7 @@ with File(histOutFile, "w") as outfile:
                 cpus = args.cpus
                 batchSize = 30_0000
 
-            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=None)
+            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=10)
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
             for batch in eventBatches:

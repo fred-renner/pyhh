@@ -23,8 +23,8 @@ class ObjectSelection:
         self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
         self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
-        self.trigger = vars_arr["trigPassed_HLT_j460_a10sd_cssk_pf_jes_ftf_preselj225_L1SC111_CJ15"]
-        self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1SC111_CJ15"]
+        self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
+        self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
         # fmt: on
         # event nr per iteration
         self.nEvents = len(self.lrj_pt)
@@ -34,39 +34,42 @@ class ObjectSelection:
         # make list holding the large R jet selection indices per event
         self.sel_lrj = [x for x in range(self.nEvents)]
         # int init
-        self.nLargeR = np.zeros(self.nEvents, dtype=int)
-        intInitArray = np.full(self.nEvents, -1, dtype=int)
-        self.nLargeRSelected = intInitArray
-        self.leadingLargeRindex = intInitArray
+        intInitArray = np.full(self.nEvents, -1, dtype=np.int)
+        self.nLargeR = np.copy(intInitArray)
+        self.nLargeRSelected = np.copy(intInitArray)
+        self.leadingLargeRindex = np.copy(intInitArray)
         # bool init
         boolInitArray = np.zeros(self.nEvents, dtype=bool)
-        self.nTwoLargeRevents = boolInitArray
-        self.AtLeastOneLargeR = boolInitArray
-        self.AtLeastOneLargeR = boolInitArray
-        self.leadingLargeRmassGreater100 = boolInitArray
+        self.SelectedTwoLargeRevents = np.copy(boolInitArray)
+        self.AtLeastOneLargeR = np.copy(boolInitArray)
+        self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
+        self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
+
         # float init
         floatInitArray = np.full(self.nEvents, -1, dtype=float)
-        self.m_hh = floatInitArray
-        self.truth_m_hh = floatInitArray
-        self.leadingLargeRpt = floatInitArray
+        self.m_hh = np.copy(floatInitArray)
+        self.truth_m_hh = np.copy(floatInitArray)
+        self.leadingLargeRpt = np.copy(floatInitArray)
+        self.leadingLargeRm = np.copy(floatInitArray)
 
     # mcEventWeights
     # pileupWeight_NOSYS
     # generatorWeight_NOSYS
 
     def select(self):
-        for event in self.eventRange:
+        for event in self.eventRange:            
             self.largeRSelect(event)
             self.truth_mhh(event)
             self.getLeadingLargeR(event)
-            self.getLeadingLargeRpts(event)
+            self.getLeadingLargeRcuts(event)
         self.hh_m_85()
         self.massplane_85()
         self.nTotalSelLargeR()
 
     def largeRSelect(self, event):
         # pt, eta cuts
-        ptMin = self.lrj_pt[event] > 250.0
+
+        ptMin = self.lrj_pt[event] > 250_000.0
         etaMin = self.lrj_eta[event] < 2.0
         selected = ptMin & etaMin
         nJetsSelected = np.count_nonzero(selected)
@@ -74,22 +77,29 @@ class ObjectSelection:
         if nJetsSelected < 2:
             selected = np.zeros(nJetsSelected, dtype=bool)
         else:
-            self.nTwoLargeRevents[event] = True
+            self.SelectedTwoLargeRevents[event] = True
         # count largeR and save bool select array
         self.nLargeRSelected[event] = nJetsSelected
         self.sel_lrj[event] = selected
+
 
     def getLeadingLargeR(self, event):
         # check which event has at least one Large R
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
         if self.nLargeR[event] > 0:
             self.AtLeastOneLargeR[event] = True
-            self.leadingLargeRindex[event] = np.argmax(self.lrj_pt[event])
+            maxPtIndex = np.argmax(self.lrj_pt[event])
+            self.leadingLargeRindex[event] = maxPtIndex
+            self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]
+            maxMIndex = np.argmax(self.lrj_m[event])
+            self.leadingLargeRm[event] = self.lrj_m[event][maxMIndex]
 
-    def getLeadingLargeRpts(self, event):
+    def getLeadingLargeRcuts(self, event):
         if self.AtLeastOneLargeR[event]:
-            if self.lrj_m[event][self.leadingLargeRindex[event]] > 100:
-                self.leadingLargeRmassGreater100 = True
+            if self.leadingLargeRm[event] > 100_000.0:
+                self.leadingLargeRmassGreater100[event] = True
+            if self.leadingLargeRpt[event] > 500_000.0:
+                self.leadingLargeRpTGreater500[event] = True
 
     def nTotalSelLargeR(self):
         self.nSelLargeRFlat = self.ReplicateBins(
@@ -135,7 +145,7 @@ class ObjectSelection:
         results = {
             "truth_mhh": self.truth_m_hh[:],
             "nTriggerPass_truth_mhh": self.truth_m_hh[self.trigger[:]],
-            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.nTwoLargeRevents],
+            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.SelectedTwoLargeRevents],
             "nTotalSelLargeR": self.nSelLargeRFlat,
             "hh_m_85": self.hh_m_selected,
             "massplane_85": self.m_h1h2,
@@ -143,8 +153,17 @@ class ObjectSelection:
             "trigger_leadingLargeRpT": self.leadingLargeRpt[
                 (self.trigger & self.leadingLargeRmassGreater100)
             ],
-            "triggerRef_leadingLargeRpT": self.leadingLargeRpt[self.triggerRef],
+            "triggerRef_leadingLargeRpT": self.leadingLargeRpt[
+                (self.triggerRef & self.leadingLargeRmassGreater100)
+            ],
+            "trigger_leadingLargeRm": self.leadingLargeRm[
+                (self.trigger & self.leadingLargeRpTGreater500)
+            ],
+            "triggerRef_leadingLargeRm": self.leadingLargeRm[
+                (self.triggerRef & self.leadingLargeRpTGreater500)
+            ],
         }
+
         return results
 
     # if histkey == "pairingEfficiencyResolved":
