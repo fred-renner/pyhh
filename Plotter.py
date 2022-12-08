@@ -53,40 +53,36 @@ with File(histFile, "r") as file:
 
         if "trigger_leadingLargeRpT" in hist:
             # normalize + cumulative
-            edges = file["triggerRef_leadingLargeRpT"]["edges"]
-            counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            triggerRef_leadingLargeRpT = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            edges = file["trigger_leadingLargeRpT"]["edges"]
-            counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            trigger_leadingLargeRpT = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            # print(trigger_leadingLargeRpT)
-            # triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"][
-            #     "histogram"
-            # ][1:-1]
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
-            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+            # edges = file["triggerRef_leadingLargeRpT"]["edges"]
+            # counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # triggerRef_leadingLargeRpT = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
             # )
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
-            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+
+            # edges = file["trigger_leadingLargeRpT"]["edges"]
+            # counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # trigger_leadingLargeRpT = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
             # )
+
+            triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"][
+                "histogram"
+            ][1:-1]
+            trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
+
+            trigger_leadingLargeRpT_err = tools.getEfficiencyErrors(
+                passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+            )
             plt.figure()
+            plt.grid()
+
             hep.histplot(
                 trigger_leadingLargeRpT / triggerRef_leadingLargeRpT,
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=False,
+                yerr=trigger_leadingLargeRpT_err,
                 # density=True,
                 # alpha=0.75,
             )
@@ -100,7 +96,6 @@ with File(histFile, "r") as file:
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             ax.set_ylim([0.8, 1.05])
             ax.set_xlim([0.8, 2500_000])
-            plt.grid()
             plt.tight_layout()
             plt.legend(loc="upper right")
             plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
@@ -108,40 +103,34 @@ with File(histFile, "r") as file:
 
         if "trigger_leadingLargeRm" in hist:
             # normalize + cumulative
-            edges = file["triggerRef_leadingLargeRm"]["edges"]
-            counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            triggerRef_leadingLargeRm = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            edges = file["trigger_leadingLargeRm"]["edges"]
-            counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            trigger_leadingLargeRm = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            # print(trigger_leadingLargeRpT)
-            # triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"][
-            #     "histogram"
-            # ][1:-1]
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
-            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+            # edges = file["triggerRef_leadingLargeRm"]["edges"]
+            # counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # triggerRef_leadingLargeRm = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
             # )
-            # trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-            # triggerRef_leadingLargeRpT_err = tools.getEfficiencyErrors(
-            #     passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
+
+            # edges = file["trigger_leadingLargeRm"]["edges"]
+            # counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # trigger_leadingLargeRm = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
             # )
+
+            triggerRef_leadingLargeRm = file["triggerRef_leadingLargeRm"][
+                "histogram"
+            ][1:-1]
+            trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
+            trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
+                passed=trigger_leadingLargeRm, total=triggerRef_leadingLargeRm
+            )
             plt.figure()
             hep.histplot(
                 trigger_leadingLargeRm / triggerRef_leadingLargeRm,
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=False,
+                yerr=trigger_leadingLargeRm_err
+
                 # density=True,
                 # alpha=0.75,
             )
@@ -178,7 +167,7 @@ with File(histFile, "r") as file:
                 file[hist]["edges"],
                 histtype="errorbar",
                 label=["passed Trigger", "≥2 LargeR"],
-                yerr=False,
+                yerr=[nTriggerPass_truth_mhh_err, nTwoSelLargeR_truth_mhh_err],
                 # density=False,
                 # w2=np.ones(triggerPass.shape[0])*0.001,
                 alpha=0.75,
@@ -365,7 +354,7 @@ with File(histFile, "r") as file:
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.yaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
-            ax.set_aspect('equal')
+            ax.set_aspect("equal")
             plt.tight_layout()
             # plt.legend(loc="upper right")
             plt.savefig(plotPath + "massplane.pdf")

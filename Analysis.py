@@ -34,7 +34,7 @@ class ObjectSelection:
         # make list holding the large R jet selection indices per event
         self.sel_lrj = [x for x in range(self.nEvents)]
         # int init
-        intInitArray = np.full(self.nEvents, -1, dtype=np.int)
+        intInitArray = np.full(self.nEvents, -1, dtype=int)
         self.nLargeR = np.copy(intInitArray)
         self.nLargeRSelected = np.copy(intInitArray)
         self.leadingLargeRindex = np.copy(intInitArray)
@@ -96,6 +96,7 @@ class ObjectSelection:
 
     def getLeadingLargeRcuts(self, event):
         if self.AtLeastOneLargeR[event]:
+            print(self.leadingLargeRpt[event])
             if self.leadingLargeRm[event] > 100_000.0:
                 self.leadingLargeRmassGreater100[event] = True
             if self.leadingLargeRpt[event] > 500_000.0:

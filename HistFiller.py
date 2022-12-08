@@ -24,7 +24,8 @@ args = parser.parse_args()
 # yaml.safe_load(file)
 
 # files to load
-path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
 # path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
 filenames = os.listdir(path)
 filelist = [path + "/" + file for file in filenames]
@@ -154,7 +155,7 @@ with File(histOutFile, "w") as outfile:
                 cpus = args.cpus
                 batchSize = 30_0000
 
-            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=10)
+            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=None)
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
             for batch in eventBatches:
