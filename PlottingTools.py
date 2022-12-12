@@ -1,6 +1,6 @@
 import numpy as np
 
-# https://indico.cern.ch/event/66256/contributions/2071577/attachments/1017176/1447814/EfficiencyErrors.pdf 
+# https://indico.cern.ch/event/66256/contributions/2071577/attachments/1017176/1447814/EfficiencyErrors.pdf
 # https://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2286-cd.pdf
 # http://phys.kent.edu/~smargeti/STAR/D0/Ullrich-Errors.pdf
 
@@ -29,7 +29,7 @@ def EfficiencyErrorBayesian(k, n, bUpper):
 
 
 def getEfficiencyErrors(passed, total):
-
+    """get relative upper and lower error bar positions"""
     upper_err = np.array(
         [
             EfficiencyErrorBayesian(passed, total, bUpper=True)

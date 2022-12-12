@@ -15,8 +15,9 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)
-args = parser.parse_args()
+parser.add_argument("--debug", action="store_true")
 
+args = parser.parse_args()
 
 # import time
 # t0 = time.time()
@@ -24,9 +25,9 @@ args = parser.parse_args()
 # yaml.safe_load(file)
 
 # files to load
-# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
-path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
-# path = "/lustre/fs22/group/atlas/freder/hh/run/testfiles"
+path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
+
 filenames = os.listdir(path)
 filelist = [path + "/" + file for file in filenames]
 
@@ -51,7 +52,7 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # could think of remove defaults before sending into analysis
 
 # define hists
-accEffBinning = {"binrange": (0, 3_000_000), "bins": 150}
+accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 100}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 100}
 
@@ -67,7 +68,17 @@ hists = [
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
+        name="nTwoLargeR_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
         name="nTwoSelLargeR_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagHigh_2b2b_truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
@@ -102,7 +113,37 @@ hists = [
         bins=TriggerEffm["bins"],
     ),
     FloatHistogram(
-        name="hh_m_85",
+        name="btagLow_1b1j_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagLow_2b1j_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagLow_2b2j_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagHigh_1b1b_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagHigh_2b1b_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="btagHigh_2b2b_truth_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="hh_m_77",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
@@ -115,7 +156,7 @@ hists = [
     #     binrange=(0, 3),
     # ),
     FloatHistogram2D(
-        name="massplane_85",
+        name="massplane_77",
         binrange1=(50_000, 250_000),
         binrange2=(50_000, 250_000),
         bins=100,
@@ -134,6 +175,13 @@ def filling_callback(results):
 def error_handler(e):
     print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
 
+# debugging settings
+if args.debug:
+    nEvents = 100
+    cpus = 1
+    filelist = filelist[:1]
+else:
+    nEvents = None
 
 with File(histOutFile, "w") as outfile:
     # loop over input files
@@ -144,18 +192,17 @@ with File(histOutFile, "w") as outfile:
             tree = file_["AnalysisMiniTree"]
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
-            # with batchsize=1000 you would load events incrementally
-            # [[0, 999], [1000, 1999], [2000, 2999],...]
             # the auto batchSize setup could crash if you don't have enough
             # memory
             cpus = multiprocessing.cpu_count()
             batchSize = int(tree.num_entries / cpus)
-
             if args.cpus:
                 cpus = args.cpus
-                batchSize = 30_0000
+                batchSize = 10_0000
 
-            eventBatches = Loader.EventRanges(tree, batch_size=batchSize, nEvents=None)
+            eventBatches = Loader.EventRanges(
+                tree, batch_size=batchSize, nEvents=nEvents
+            )
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
             for batch in eventBatches:
@@ -174,10 +221,11 @@ with File(histOutFile, "w") as outfile:
         hist.write(outfile)
 
 # if you want to plot directly
-import subprocess
+if not args.debug:
+    import subprocess
 
-subprocess.call(
-    "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
-    f" {histOutFile}",
-    shell=True,
-)
+    subprocess.call(
+        "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
+        f" {histOutFile}",
+        shell=True,
+    )

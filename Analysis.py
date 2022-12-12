@@ -2,6 +2,8 @@ import numpy as np
 import vector
 import time
 import awkward as ak
+import uproot
+from operator import xor
 
 np.set_printoptions(threshold=np.inf)
 
@@ -18,76 +20,96 @@ def Run(batch, tree, vars):
 class ObjectSelection:
     # select large R jets
     def __init__(self, vars_arr):
+
+        # mcEventWeights
+        # pileupWeight_NOSYS
+        # generatorWeight_NOSYS
+
         # fmt: off
         self.vars_arr = vars_arr
-        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
-        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
-        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
         self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
         self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
+        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
+        self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
+        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
+        self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
+
         # fmt: on
-        # event nr per iteration
+        # event amount per iteration
         self.nEvents = len(self.lrj_pt)
         self.eventRange = range(self.nEvents)
 
         # init some variables
         # make list holding the large R jet selection indices per event
-        self.sel_lrj = [x for x in range(self.nEvents)]
+        self.selPtSort_lrj = [x for x in self.eventRange]
         # int init
         intInitArray = np.full(self.nEvents, -1, dtype=int)
         self.nLargeR = np.copy(intInitArray)
         self.nLargeRSelected = np.copy(intInitArray)
         self.leadingLargeRindex = np.copy(intInitArray)
+
         # bool init
         boolInitArray = np.zeros(self.nEvents, dtype=bool)
-        self.SelectedTwoLargeRevents = np.copy(boolInitArray)
-        self.AtLeastOneLargeR = np.copy(boolInitArray)
+        self.atLeastOneLargeR = np.copy(boolInitArray)
+        self.selectedTwoLargeRevents = np.copy(boolInitArray)
+        self.btagLow_1b1j = np.copy(boolInitArray)
+        self.btagLow_2b1j = np.copy(boolInitArray)
+        self.btagLow_2b2j = np.copy(boolInitArray)
+        self.btagHigh_1b1b = np.copy(boolInitArray)
+        self.btagHigh_2b1b = np.copy(boolInitArray)
+        self.btagHigh_2b2b = np.copy(boolInitArray)
+
         self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
         self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
 
         # float init
-        floatInitArray = np.full(self.nEvents, -1, dtype=float)
+        floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
         self.m_hh = np.copy(floatInitArray)
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
 
-    # mcEventWeights
-    # pileupWeight_NOSYS
-    # generatorWeight_NOSYS
-
     def select(self):
-        for event in self.eventRange:            
-            self.largeRSelect(event)
-            self.truth_mhh(event)
+        for event in self.eventRange:
+            # order matters!
+            if not self.vr_dontOverlap[event]:
+                # should we actually throw away the whole event?
+                continue
+            self.largeRSelectSort(event)
             self.getLeadingLargeR(event)
             self.getLeadingLargeRcuts(event)
-        self.hh_m_85()
-        self.massplane_85()
+            self.getVRtags(event)
+            self.truth_mhh(event)
+        self.hh_m_77()
+        self.massplane_77()
         self.nTotalSelLargeR()
 
-    def largeRSelect(self, event):
-        # pt, eta cuts
-
+    def largeRSelectSort(self, event):
+        # pt, eta cuts and sort
         ptMin = self.lrj_pt[event] > 250_000.0
-        etaMin = self.lrj_eta[event] < 2.0
-        selected = ptMin & etaMin
+        etaMin = np.abs(self.lrj_eta[event]) < 2.0
+        selected = np.array((ptMin & etaMin), dtype=bool)
+        # counting
         nJetsSelected = np.count_nonzero(selected)
-        # delete bool arrays if there are less then 2
-        if nJetsSelected < 2:
-            selected = np.zeros(nJetsSelected, dtype=bool)
-        else:
-            self.SelectedTwoLargeRevents[event] = True
-        # count largeR and save bool select array
+        self.nLargeR[event] = self.lrj_pt[event].shape[0]
         self.nLargeRSelected[event] = nJetsSelected
-        self.sel_lrj[event] = selected
-
+        # empty array if there are less then 2
+        if nJetsSelected < 2:
+            self.selPtSort_lrj[event] = np.array([])
+        else:
+            self.selectedTwoLargeRevents[event] = True
+            # selected is a bool array for lrj_pt[event]
+            # now sort by getting jet indices in decreasing order of pt
+            self.selPtSort_lrj[event] = np.flip(
+                np.argsort(self.lrj_pt[event][selected])
+            )[0:2]
 
     def getLeadingLargeR(self, event):
         # check which event has at least one Large R
-        self.nLargeR[event] = self.lrj_pt[event].shape[0]
         if self.nLargeR[event] > 0:
-            self.AtLeastOneLargeR[event] = True
+            self.atLeastOneLargeR[event] = True
             maxPtIndex = np.argmax(self.lrj_pt[event])
             self.leadingLargeRindex[event] = maxPtIndex
             self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]
@@ -95,8 +117,7 @@ class ObjectSelection:
             self.leadingLargeRm[event] = self.lrj_m[event][maxMIndex]
 
     def getLeadingLargeRcuts(self, event):
-        if self.AtLeastOneLargeR[event]:
-            print(self.leadingLargeRpt[event])
+        if self.atLeastOneLargeR[event]:
             if self.leadingLargeRm[event] > 100_000.0:
                 self.leadingLargeRmassGreater100[event] = True
             if self.leadingLargeRpt[event] > 500_000.0:
@@ -107,12 +128,87 @@ class ObjectSelection:
             binnedObject=self.truth_m_hh, Counts=self.nLargeRSelected
         )
 
+    def getVRtags(self, event):
+        if self.selectedTwoLargeRevents[event]:
+            # print(self.vr_btag_77[event]._values)
+            # print(self.vr_btag_77[event]._values[0])
+            # get leading jets
+            j1_index = self.selPtSort_lrj[event][0]
+            j2_index = self.selPtSort_lrj[event][1]
+            # get their corresponding vr jets
+            j1_VRs = self.vr_btag_77[event]._values[j1_index]
+            j2_VRs = self.vr_btag_77[event]._values[j2_index]
+            # count their tags
+            j1_VRs_Btag = np.count_nonzero(j1_VRs)
+            j2_VRs_Btag = np.count_nonzero(j2_VRs)
+
+            j1_VRs_noBtag = len(j1_VRs) - j1_VRs_Btag
+            j2_VRs_noBtag = len(j2_VRs) - j2_VRs_Btag
+
+            # this is not mutually exclusive....
+            if xor(
+                j1_VRs_Btag == 1 and j2_VRs_noBtag >= 1,
+                j2_VRs_Btag == 1 and j1_VRs_noBtag >= 1,
+            ):
+                self.btagLow_1b1j[event] = True
+            if xor(
+                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 1,
+                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 1,
+            ):
+                self.btagLow_2b1j[event] = True
+            if xor(
+                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 2,
+                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 2,
+            ):
+                self.btagLow_2b2j[event] = True
+            if j1_VRs_Btag == 1 and j2_VRs_Btag == 1:
+                self.btagHigh_1b1b[event] = True
+            if xor(
+                j1_VRs_Btag >= 2 and j2_VRs_Btag == 1,
+                j2_VRs_Btag >= 2 and j1_VRs_Btag == 1,
+            ):
+                self.btagHigh_2b1b[event] = True
+            if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
+                self.btagHigh_2b2b[event] = True
+            # print("self.btagLow_1b1j ", self.btagLow_1b1j[event])
+            # print("self.btagLow_2b1j ", self.btagLow_2b1j[event])
+            # print("self.btagLow_2b2j ", self.btagLow_2b2j[event])
+            # print("self.btagHigh_1b1b ", self.btagHigh_1b1b[event])
+            # print("self.btagHigh_2b1b ", self.btagHigh_2b1b[event])
+            # print("self.btagHigh_2b2b ", self.btagHigh_2b2b[event])
+
+    # //.Define("passBJetSkimBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] > 0 : false")
+    # //.Define("passBJetSkim_min2bsBoosted","passTwoFatJets ? ntagsBoosted[0] >= 1 && ntagsBoosted[1] >= 1 : false")
+    # //.Define("pass4TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 4 : false")
+    # //.Define("pass3TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 3 : false")
+    # //.Define("pass2TagSplitBoosted","passTwoFatJets ? ntagsBoosted[0] == 1 && ntagsBoosted[1] == 1 : false")
+    # //.Define("pass2TagBoosted","passTwoFatJets ? (ntagsBoosted[0] == 2 && ntagsBoosted[1] == 0)||(ntagsBoosted[0] == 0 && ntagsBoosted[1] == 2) : false")
+    # //.Define("pass1TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 1 : false")
+    # //.Define("pass4Trk","passTwoFatJets ? trks[0] + trks[1] == 4 : false")
+    # //.Define("pass3Trk","passTwoFatJets ? trks[0] + trks[1] == 3 : false")
+    # //.Define("pass2Trk","passTwoFatJets ? trks[0] >= 1 && trks[1] >= 1 : false")
+    # // Use eventNumber to randomize events for background sharing.
+    # // To reserve the last bit for similar randomization in reweighting procedure,
+    # // do this randomization on (eventNumber>>1).
+    # //.Define("eventRand","(eventNumber)%5")
+    # // tag region definitions
+    # //.Define("is_4bBoosted","pass4TagBoosted")
+    # //.Define("is_3bBoosted","pass3TagBoosted")
+    # //.Define("is_2bsBoosted","pass2TagSplitBoosted")
+    # //.Define("is_4b_bkgmodelBoosted","pass2TagBoosted && pass4Trk && eventRand < "+std::to_string(bkgShareBoosted))
+    # //.Define("is_3b_bkgmodelBoosted","pass2TagBoosted && (pass3Trk || (pass4Trk && eventRand >= "+std::to_string(bkgShareBoosted)+"))")
+    # //.Define("is_2bs_bkgmodelBoosted","pass1TagBoosted && pass2Trk")
+
     def ReplicateBins(self, binnedObject, Counts):
         # duplicate the binnedObject bin value with the given Counts per event
         replicatedBins = np.full((self.nEvents, np.max(Counts)), -np.inf)
         for event in self.eventRange:
             n = Counts[event]
-            replicatedBins[event, :n] = np.full(n, binnedObject[event])
+            # account for skipped events/defaults
+            if n == -1:
+                continue
+            else:
+                replicatedBins[event, :n] = np.full(n, binnedObject[event])
         return replicatedBins.flatten()
 
     def truth_mhh(self, event):
@@ -130,13 +226,13 @@ class ObjectSelection:
         )
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-    def hh_m_85(self):
-        hh_m = self.vars_arr["boosted_DL1r_FixedCutBEff_85_hh_m"]
+    def hh_m_77(self):
+        hh_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_hh_m"]
         self.hh_m_selected = hh_m[hh_m > 0]
 
-    def massplane_85(self):
-        h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_85_h1_m"]
-        h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_85_h2_m"]
+    def massplane_77(self):
+        h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h1_m"]
+        h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h2_m"]
         selection = (h1_m > 0) & (h2_m > 0)
         h1_m_selected = h1_m[selection]
         h2_m_selected = h2_m[selection]
@@ -146,10 +242,17 @@ class ObjectSelection:
         results = {
             "truth_mhh": self.truth_m_hh[:],
             "nTriggerPass_truth_mhh": self.truth_m_hh[self.trigger[:]],
-            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.SelectedTwoLargeRevents],
+            "nTwoLargeR_truth_mhh": self.truth_m_hh[(self.nLargeR >= 2)],
+            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.selectedTwoLargeRevents],
+            "btagLow_1b1j_truth_mhh": self.truth_m_hh[self.btagLow_1b1j],
+            "btagLow_2b1j_truth_mhh": self.truth_m_hh[self.btagLow_2b1j],
+            "btagLow_2b2j_truth_mhh": self.truth_m_hh[self.btagLow_2b2j],
+            "btagHigh_1b1b_truth_mhh": self.truth_m_hh[self.btagHigh_1b1b],
+            "btagHigh_2b1b_truth_mhh": self.truth_m_hh[self.btagHigh_2b1b],
+            "btagHigh_2b2b_truth_mhh": self.truth_m_hh[self.btagHigh_2b2b],
             "nTotalSelLargeR": self.nSelLargeRFlat,
-            "hh_m_85": self.hh_m_selected,
-            "massplane_85": self.m_h1h2,
+            "hh_m_77": self.hh_m_selected,
+            "massplane_77": self.m_h1h2,
             "leadingLargeRpT": self.leadingLargeRpt,
             "trigger_leadingLargeRpT": self.leadingLargeRpt[
                 (self.trigger & self.leadingLargeRmassGreater100)
