@@ -70,46 +70,50 @@ class OOMFormatter(matplotlib.ticker.ScalarFormatter):
 
 def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
     # calculate cumulatives and errors for efficiency plots
-    ratio = np.array([])
-    cumulatives = np.array([])
-    baseline_err = np.array([])
-    cumulatives_err = np.array([])
+    ratio = []
+    cumulatives = []
+    baseline_err = []
+    cumulatives_err = []
 
     for i in range(len(hists)):
-        ratio=np.concatenate((ratio,hists[i] / baseline))
+        ratio.append(hists[i] / baseline)
         if i == 0:
-            cumulatives=np.concatenate((cumulatives,ratio))
+            cumulatives.append(ratio[0])
         elif i >= stopCumulativeFrom:
-            cumulatives=np.concatenate((cumulatives,cumulatives[stopCumulativeFrom - 1] * ratio[i]))
+            cumulatives.append(cumulatives[stopCumulativeFrom - 2] * ratio[i])
         else:
-            cumulatives=np.concatenate((cumulatives,cumulatives[i - 1] * ratio[i]))
+            cumulatives.append(cumulatives[i - 1] * ratio[i])
         # error wrt baseline
-        baseline_err=np.concatenate((baseline_err,getEfficiencyErrors(passed=hists[i], total=baseline)))
+        baseline_err.append(getEfficiencyErrors(passed=hists[i], total=baseline))
 
-    print(len(baseline_err))
-    print(baseline_err[0].shape)
+    # print(baseline_err[0])
     # error propagation
-    for i in range(len(cumulatives)):
+    for i in range(len(hists)):
+        err_sum = 0
         if i == 0:
-            cumulatives_err=np.concatenate((cumulatives_err,baseline_err[0]))
+            cumulatives_err.append(baseline_err[0])
+            continue
+        elif i >= stopCumulativeFrom:
+            for k in range(stopCumulativeFrom - 1):
+                err_sum += pow((baseline_err[k] / ratio[k]), 2)
+            err_sum += pow((baseline_err[i] / ratio[i]), 2)
         else:
-            if i >= stopCumulativeFrom:
-                until = stopCumulativeFrom
-            else:
-                until = i
-            err_sum =np.array([])
-            for k in range(until):
-                err_sum += np.power((baseline_err[k] / ratio[k]), 2)
-            propageted_err = ratio[i] * np.sqrt(err_sum)
-
-            # print(len(propageted_err))
-            # print(propageted_err[0].shape)
-            cumulatives_err=np.concatenate((cumulatives_err,propageted_err))
-
-    #         triggerPass = nTriggerPass_truth_mhh / nTruthEvents
+            for k in range(i):
+                err_sum += pow((baseline_err[k] / ratio[k]), 2)
+        print(i)
+        propagated_err = np.array(cumulatives[i]) * np.sqrt(err_sum)
+        print(propagated_err[:, 55:75])
+        cumulatives_err.append(propagated_err)
+    # triggerPass = nTriggerPass_truth_mhh / nTruthEvents
     #         twoLargeR = triggerPass * nTwoLargeR_truth_mhh / nTruthEvents
     #         twoSelLargeR = twoLargeR * nTwoSelLargeR_truth_mhh / nTruthEvents
     #         btagLow_1b1j = twoSelLargeR * btagLow_1b1j / nTruthEvents
+
+    #         btagLow_2b1j =
+    #         btagLow_2b2j =
+    #         btagHigh_1b1b =
+    #         btagHigh_2b1b =
+    #         btagHigh_2b2b =
 
     #         # errors
     #         nTriggerPass_err = tools.getEfficiencyErrors(
