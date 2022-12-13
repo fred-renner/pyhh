@@ -26,7 +26,7 @@ args = parser.parse_args()
 
 # files to load
 path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
-# path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
+path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
 
 filenames = os.listdir(path)
 filelist = [path + "/" + file for file in filenames]
@@ -74,11 +74,6 @@ hists = [
     ),
     FloatHistogram(
         name="nTwoSelLargeR_truth_mhh",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
-    ),
-    FloatHistogram(
-        name="btagHigh_2b2b_truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
@@ -175,11 +170,12 @@ def filling_callback(results):
 def error_handler(e):
     print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
 
+
 # debugging settings
 if args.debug:
     nEvents = 100
     cpus = 1
-    filelist = filelist[:1]
+    filelist = filelist[:2]
 else:
     nEvents = None
 

@@ -46,31 +46,36 @@ plotPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/plots-" + filename
 if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
 
+
+def getHist(name):
+    h = file[name]["histogram"][1:-1]
+    return h
+
+
 with File(histFile, "r") as file:
     for hist in file.keys():
 
         # access [1:-1] to remove underflow and overflow bins
 
         if "trigger_leadingLargeRpT" in hist:
-            # normalize + cumulative
-            # edges = file["triggerRef_leadingLargeRpT"]["edges"]
-            # counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            # triggerRef_leadingLargeRpT = np.array(
-            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            # )
-
-            # edges = file["trigger_leadingLargeRpT"]["edges"]
-            # counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            # trigger_leadingLargeRpT = np.array(
-            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            # )
-
             triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"][
                 "histogram"
             ][1:-1]
             trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
+            # normalize + cumulative
+            edges = file["triggerRef_leadingLargeRpT"]["edges"]
+            counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            triggerRef_leadingLargeRpT = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
+
+            edges = file["trigger_leadingLargeRpT"]["edges"]
+            counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            trigger_leadingLargeRpT = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
 
             trigger_leadingLargeRpT_err = tools.getEfficiencyErrors(
                 passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
@@ -82,8 +87,8 @@ with File(histFile, "r") as file:
                 trigger_leadingLargeRpT / triggerRef_leadingLargeRpT,
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=trigger_leadingLargeRpT_err,
-                solid_capstyle='projecting',
+                yerr=False,
+                solid_capstyle="projecting",
                 capsize=3,
                 # density=True,
                 # alpha=0.75,
@@ -104,24 +109,25 @@ with File(histFile, "r") as file:
 
         if "trigger_leadingLargeRm" in hist:
             # normalize + cumulative
-            # edges = file["triggerRef_leadingLargeRm"]["edges"]
-            # counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            # triggerRef_leadingLargeRm = np.array(
-            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            # )
-
-            # edges = file["trigger_leadingLargeRm"]["edges"]
-            # counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            # trigger_leadingLargeRm = np.array(
-            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            # )
-
             triggerRef_leadingLargeRm = file["triggerRef_leadingLargeRm"]["histogram"][
                 1:-1
             ]
             trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
+
+            edges = file["triggerRef_leadingLargeRm"]["edges"]
+            counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            triggerRef_leadingLargeRm = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
+
+            edges = file["trigger_leadingLargeRm"]["edges"]
+            counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            trigger_leadingLargeRm = np.array(
+                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            )
+
             trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
                 passed=trigger_leadingLargeRm, total=triggerRef_leadingLargeRm
             )
@@ -131,7 +137,7 @@ with File(histFile, "r") as file:
                 file[hist]["edges"],
                 histtype="errorbar",
                 yerr=trigger_leadingLargeRm_err,
-                solid_capstyle='projecting',
+                solid_capstyle="projecting",
                 capsize=3,
                 # density=True,
                 # alpha=0.75,
@@ -151,98 +157,48 @@ with File(histFile, "r") as file:
             plt.close()
 
         if "nTriggerPass_truth_mhh" in hist:
-            nTruthEvents = file["truth_mhh"]["histogram"][1:-1]
-            nTriggerPass_truth_mhh = file["nTriggerPass_truth_mhh"]["histogram"][1:-1]
-            nTwoLargeR_truth_mhh = file["nTwoLargeR_truth_mhh"]["histogram"][1:-1]
-            nTwoSelLargeR_truth_mhh = file["nTwoSelLargeR_truth_mhh"]["histogram"][1:-1]
-            btagHigh_2b2b_truth_mhh = file["btagHigh_2b2b_truth_mhh"][
-                "histogram"
-            ][1:-1]
-            triggerPass = nTriggerPass_truth_mhh / nTruthEvents
-            twoLargeR = triggerPass * nTwoLargeR_truth_mhh / nTruthEvents
-            twoSelLargeR = twoLargeR * nTwoSelLargeR_truth_mhh / nTruthEvents
-            twoSelLargeRhave2b = (
-                twoSelLargeR * btagHigh_2b2b_truth_mhh / nTruthEvents
+            truth_mhh = file["truth_mhh"]["histogram"][1:-1]
+            keys = [
+                "nTriggerPass_truth_mhh",
+                "nTwoLargeR_truth_mhh",
+                "nTwoSelLargeR_truth_mhh",
+                "btagLow_1b1j_truth_mhh",
+                "btagLow_2b1j_truth_mhh",
+                "btagLow_2b2j_truth_mhh",
+                "btagHigh_1b1b_truth_mhh",
+                "btagHigh_2b1b_truth_mhh",
+                "btagHigh_2b2b_truth_mhh",
+            ]
+            hists = []
+            for key in keys:
+                hists.append(file[key]["histogram"][1:-1])
+            hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
+                hists, baseline=truth_mhh, stopCumulativeFrom=4
             )
-            
-            btagLow_1b1j=file["btagLow_1b1j_truth_mhh"]["histogram"][1:-1]
-            btagLow_2b1j=file["btagLow_2b1j_truth_mhh"]["histogram"][1:-1]
-            btagLow_2b2j=file["btagLow_2b2j_truth_mhh"]["histogram"][1:-1]
-            btagHigh_1b1b=file["btagHigh_1b1b_truth_mhh"]["histogram"][1:-1]
-            btagHigh_2b1b=file["btagHigh_2b1b_truth_mhh"]["histogram"][1:-1]
-            btagHigh_2b2b=file["btagHigh_2b2b_truth_mhh"]["histogram"][1:-1]
-            
-            # errors
-            nTriggerPass_err = tools.getEfficiencyErrors(
-                passed=nTriggerPass_truth_mhh, total=nTruthEvents
-            )
-            nTwoLargeR_err = tools.getEfficiencyErrors(
-                passed=nTwoLargeR_truth_mhh, total=nTruthEvents
-            )
-            nTwoSelLargeR_err = tools.getEfficiencyErrors(
-                passed=nTwoSelLargeR_truth_mhh, total=nTruthEvents
-            )
-            nTwoLargeRHave2BtagVR_err = tools.getEfficiencyErrors(
-                passed=btagHigh_2b2b_truth_mhh, total=nTruthEvents
-            )
-            # error propagation
-            twoLargeR_err = twoLargeR * np.sqrt(
-                np.power(nTriggerPass_err / triggerPass, 2)
-                + np.power(nTwoLargeR_err / twoLargeR, 2)
-            )
-            twoSelLargeR_err = twoSelLargeR * np.sqrt(
-                np.power(nTriggerPass_err / triggerPass, 2)
-                + np.power(nTwoLargeR_err / twoLargeR, 2)
-                + np.power(nTwoSelLargeR_err / twoSelLargeR, 2)
-            )
-            twoSelLargeRhave2b_err = twoSelLargeR * np.sqrt(
-                np.power(nTriggerPass_err / triggerPass, 2)
-                + np.power(nTwoLargeR_err / twoLargeR, 2)
-                + np.power(nTwoSelLargeR_err / twoSelLargeR, 2)
-                + np.power(nTwoLargeRHave2BtagVR_err / twoSelLargeRhave2b, 2)
-            )
-
+            labels = [
+                "passed Trigger",
+                "≥2 LargeR",
+                "$p_T$>250 GeV, $|\eta\| < 2.0$",
+                "btagLow 1b1j",
+                "btagLow 2b1j",
+                "btagLow 2b2j",
+                "btagHigh 1b1b",
+                "btagHigh 2b1b",
+                "btagHigh 2b2b",
+            ]
             plt.figure()
-            hep.histplot(
-                triggerPass,
-                file[hist]["edges"],
-                histtype="errorbar",
-                label="passed Trigger",
-                yerr=nTriggerPass_err,
-                alpha=0.75,
-                solid_capstyle='projecting',
-                capsize=3,
-            )
-            hep.histplot(
-                twoLargeR,
-                file[hist]["edges"],
-                histtype="errorbar",
-                label="≥2 LargeR",
-                yerr=twoLargeR_err,
-                alpha=0.75,
-                solid_capstyle='projecting',
-                capsize=3,
-            )
-            hep.histplot(
-                twoSelLargeR,
-                file[hist]["edges"],
-                histtype="errorbar",
-                label="$p_T$>250 GeV, $|\eta\| < 2.0$",
-                yerr=twoSelLargeR_err,
-                alpha=0.75,
-                solid_capstyle='projecting',
-                capsize=3,
-            )
-            hep.histplot(
-                twoSelLargeRhave2b,
-                file[hist]["edges"],
-                histtype="errorbar",
-                label="2 b-tagged VR per Large R",
-                yerr=twoSelLargeRhave2b_err,
-                alpha=0.75,
-                solid_capstyle='projecting',
-                capsize=3,
-            )
+
+            for h, err, label in zip(hists_cumulative, hists_cumulative_err, labels):
+                hep.histplot(
+                    h,
+                    file[hist]["edges"],
+                    histtype="errorbar",
+                    label=label,
+                    yerr=err,
+                    alpha=0.75,
+                    solid_capstyle="projecting",
+                    capsize=3,
+                )
 
             hep.atlas.text(" Simulation", loc=1)
             hep.atlas.set_ylabel("Acc x Efficiency")
@@ -251,7 +207,7 @@ with File(histFile, "r") as file:
             ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             ax.set_ylim([0, 1.4])
-            plt.legend(loc='upper left', bbox_to_anchor=(0.01,0.9))
+            plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
             hep.rescale_to_axessize
             plt.tight_layout()
             plt.savefig(plotPath + "accEff_truth_mhh.pdf")

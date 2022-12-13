@@ -87,12 +87,9 @@ class IntHistogram:
             arr = arr.astype(np.int64)
         self._hist[1:-1] += np.bincount(arr, minlength=self._nbins)
 
-    def write(
-        self,
-        file_,
-    ):
+    def write(self, file_):
         c = dict(compression="gzip")
-        file = file_.create_group(name or self._name)
+        file = file_.create_group(self._name)
         file.attrs["type"] = "int"
         hist = file.create_dataset("histogram", data=self._hist, **c)
         edges = np.arange(self._nbins + 1) - self._offset
