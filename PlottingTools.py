@@ -86,7 +86,6 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
         # error wrt baseline
         baseline_err.append(getEfficiencyErrors(passed=hists[i], total=baseline))
 
-    # print(baseline_err[0])
     # error propagation
     for i in range(len(hists)):
         err_sum = 0
@@ -100,9 +99,7 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
         else:
             for k in range(i):
                 err_sum += pow((baseline_err[k] / ratio[k]), 2)
-        print(i)
         propagated_err = np.array(cumulatives[i]) * np.sqrt(err_sum)
-        print(propagated_err[:, 55:75])
         cumulatives_err.append(propagated_err)
     # triggerPass = nTriggerPass_truth_mhh / nTruthEvents
     #         twoLargeR = triggerPass * nTwoLargeR_truth_mhh / nTruthEvents

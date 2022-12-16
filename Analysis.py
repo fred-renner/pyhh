@@ -18,23 +18,42 @@ def Run(batch, tree, vars):
 
 
 class ObjectSelection:
-    # select large R jets
     def __init__(self, vars_arr):
 
         # mcEventWeights
         # pileupWeight_NOSYS
         # generatorWeight_NOSYS
-
+        if any("truth" in x for x in vars_arr):
+            self.hasTruth = True
+        else:
+            self.hasTruth = False
         # fmt: off
         self.vars_arr = vars_arr
-        self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
-        self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
+        # mc21
+        if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
+            self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
+            self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
+        # mc20 
+        # r13144
+        elif "trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100" in vars_arr: 
+            self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100"]
+            self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
+        # r13145
+        elif "trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100" in vars_arr:
+            self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100"]
+            self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
+        # r13167
+        elif "trigPassed_HLT_j420_a10_lcw_L1J100" in vars_arr:
+            self.trigger = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
+            self.triggerRef = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
+        
+        
         self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
         self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
         self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
         self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
-        self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
+        # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
         # fmt: on
         # event amount per iteration
@@ -67,6 +86,8 @@ class ObjectSelection:
         # float init
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
         self.m_hh = np.copy(floatInitArray)
+        self.h1_m = np.copy(floatInitArray)
+        self.h2_m = np.copy(floatInitArray)
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
@@ -74,16 +95,17 @@ class ObjectSelection:
     def select(self):
         for event in self.eventRange:
             # order matters!
-            if not self.vr_dontOverlap[event]:
-                # should we actually throw away the whole event?
-                continue
+            # if not self.vr_dontOverlap[event]:
+            #     # should we actually throw away the whole event?
+            #     continue
             self.largeRSelectSort(event)
             self.getLeadingLargeR(event)
             self.getLeadingLargeRcuts(event)
             self.getVRtags(event)
-            self.truth_mhh(event)
-        self.hh_m_77()
-        self.massplane_77()
+            self.hh_m_77(event)
+            if self.hasTruth:
+                self.truth_mhh(event)
+
         self.nTotalSelLargeR()
 
     def largeRSelectSort(self, event):
@@ -226,33 +248,59 @@ class ObjectSelection:
         )
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-    def hh_m_77(self):
-        hh_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_hh_m"]
-        self.hh_m_selected = hh_m[hh_m > 0]
+    def hh_m_77(self, event):
+        # hh_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_hh_m"]
+        # self.hh_m_selected = hh_m[hh_m > 0]
+        if self.selectedTwoLargeRevents[event]:
+            leadingLargeRindex = self.selPtSort_lrj[event][0]
+            subleadingLargeRindex = self.selPtSort_lrj[event][1]
+            h1_p4 = vector.obj(
+                pt=self.lrj_pt[event][leadingLargeRindex],
+                eta=self.lrj_eta[event][leadingLargeRindex],
+                phi=self.lrj_phi[event][leadingLargeRindex],
+                m=self.lrj_m[event][leadingLargeRindex],
+            )
+            h2_p4 = vector.obj(
+                pt=self.lrj_pt[event][subleadingLargeRindex],
+                eta=self.lrj_eta[event][subleadingLargeRindex],
+                phi=self.lrj_phi[event][subleadingLargeRindex],
+                m=self.lrj_m[event][subleadingLargeRindex],
+            )
+            self.h1_m[event] = self.lrj_m[event][leadingLargeRindex]
+            self.h2_m[event] = self.lrj_m[event][subleadingLargeRindex]
+            self.m_hh[event] = (h1_p4 + h2_p4).mass
 
-    def massplane_77(self):
-        h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h1_m"]
-        h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h2_m"]
-        selection = (h1_m > 0) & (h2_m > 0)
-        h1_m_selected = h1_m[selection]
-        h2_m_selected = h2_m[selection]
-        self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
+    # def massplane_77(self):
+    #     h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h1_m"]
+    #     h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h2_m"]
+    #     selection = (h1_m > 0) & (h2_m > 0)
+    #     h1_m_selected = h1_m[selection]
+    #     h2_m_selected = h2_m[selection]
+    #     self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
 
     def returnResults(self):
+
         results = {
-            "truth_mhh": self.truth_m_hh[:],
-            "nTriggerPass_truth_mhh": self.truth_m_hh[self.trigger[:]],
-            "nTwoLargeR_truth_mhh": self.truth_m_hh[(self.nLargeR >= 2)],
-            "nTwoSelLargeR_truth_mhh": self.truth_m_hh[self.selectedTwoLargeRevents],
-            "btagLow_1b1j_truth_mhh": self.truth_m_hh[self.btagLow_1b1j],
-            "btagLow_2b1j_truth_mhh": self.truth_m_hh[self.btagLow_2b1j],
-            "btagLow_2b2j_truth_mhh": self.truth_m_hh[self.btagLow_2b2j],
-            "btagHigh_1b1b_truth_mhh": self.truth_m_hh[self.btagHigh_1b1b],
-            "btagHigh_2b1b_truth_mhh": self.truth_m_hh[self.btagHigh_2b1b],
-            "btagHigh_2b2b_truth_mhh": self.truth_m_hh[self.btagHigh_2b2b],
+            "truth_mhh": self.truth_m_hh,
+            "mhh": self.m_hh,
+            "mh2": self.h1_m[self.btagHigh_2b2b],
+            "mh1": self.h2_m[self.btagHigh_2b2b],
+            "nTriggerPass_mhh": self.m_hh[self.trigger],
+            "nTwoLargeR_mhh": self.m_hh[(self.nLargeR >= 2)],
+            "nTwoSelLargeR_mhh": self.m_hh[self.selectedTwoLargeRevents],
+            "btagLow_1b1j_mhh": self.m_hh[self.btagLow_1b1j],
+            "btagLow_2b1j_mhh": self.m_hh[self.btagLow_2b1j],
+            "btagLow_2b2j_mhh": self.m_hh[self.btagLow_2b2j],
+            "btagHigh_1b1b_mhh": self.m_hh[self.btagHigh_1b1b],
+            "btagHigh_2b1b_mhh": self.m_hh[self.btagHigh_2b1b],
+            "btagHigh_2b2b_mhh": self.m_hh[self.btagHigh_2b2b],
             "nTotalSelLargeR": self.nSelLargeRFlat,
-            "hh_m_77": self.hh_m_selected,
-            "massplane_77": self.m_h1h2,
+            "massplane_77": np.array(
+                [
+                    self.h1_m[self.btagHigh_2b2b],
+                    self.h2_m[self.btagHigh_2b2b],
+                ]
+            ).T,
             "leadingLargeRpT": self.leadingLargeRpt,
             "trigger_leadingLargeRpT": self.leadingLargeRpt[
                 (self.trigger & self.leadingLargeRmassGreater100)

@@ -11,7 +11,11 @@ import yaml
 import os
 import multiprocessing
 import argparse
+import glob
 
+
+# TODO
+# make yaml config
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)
@@ -25,18 +29,33 @@ args = parser.parse_args()
 # yaml.safe_load(file)
 
 # files to load
-path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
-path = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
+pattern = "*"
 
-filenames = os.listdir(path)
-filelist = [path + "/" + file for file in filenames]
+# mc20 testfiles
+topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/run/bkg-test"
 
+# mc21 signal
+topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_30.801172.Py8EG_A14NNPDF23LO_jj_JZ7.e8453_s3873_r13829_p5278_TREE"
+
+# mc20 bkg
+topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+pattern = "*ttbar*/*"
+histOutFileName = "hists-MC20-bkg-ttbar.h5"
+
+
+# get all files also from subdirectories with wildcard
+filelist = []
+for file in glob.iglob(topPath + "/" + pattern):
+    filelist += [file]
 
 # make hist out file name from filename
-dataset = path.split("/")
-histOutFile = (
-    "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + dataset[-1] + ".h5"
-)
+if "histOutFileName" not in locals():
+    dataset = filelist[0].split("/")
+    histOutFileName = "hists-" + dataset[-2] + ".h5"
+histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName
 
 # figure out which vars to load from analysis script
 start = 'vars_arr["'
@@ -44,12 +63,9 @@ end = '"]'
 vars = []
 for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "r"):
     if "vars_arr[" in line:
-        vars.append((line.split(start))[1].split(end)[0])
+        if "#" not in line:
+            vars.append((line.split(start))[1].split(end)[0])
 
-# TODO
-# could think of having btag wp configurable for everything
-# make yaml config
-# could think of remove defaults before sending into analysis
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
@@ -63,17 +79,31 @@ hists = [
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="nTriggerPass_truth_mhh",
+        name="mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="nTwoLargeR_truth_mhh",
+        name="mh1",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),FloatHistogram(
+        name="mh2",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="nTwoSelLargeR_truth_mhh",
+        name="nTriggerPass_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="nTwoLargeR_mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="nTwoSelLargeR_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
@@ -108,39 +138,40 @@ hists = [
         bins=TriggerEffm["bins"],
     ),
     FloatHistogram(
-        name="btagLow_1b1j_truth_mhh",
+        name="btagLow_1b1j_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagLow_2b1j_truth_mhh",
+        name="btagLow_2b1j_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagLow_2b2j_truth_mhh",
+        name="btagLow_2b2j_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagHigh_1b1b_truth_mhh",
+        name="btagHigh_1b1b_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagHigh_2b1b_truth_mhh",
+        name="btagHigh_2b1b_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagHigh_2b2b_truth_mhh",
+        name="btagHigh_2b2b_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
-    FloatHistogram(
-        name="hh_m_77",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
+    FloatHistogram2D(
+        name="massplane_77",
+        binrange1=(50_000, 250_000),
+        binrange2=(50_000, 250_000),
+        bins=100,
     ),
     # "pairingEfficiencyResolved": IntHistogram(
     #     name="pairingEfficiencyResolved",
@@ -150,12 +181,6 @@ hists = [
     #     name="vrJetEfficiencyBoosted",
     #     binrange=(0, 3),
     # ),
-    FloatHistogram2D(
-        name="massplane_77",
-        binrange1=(50_000, 250_000),
-        binrange2=(50_000, 250_000),
-        bins=100,
-    ),
 ]
 
 # the filling is executed each time an Analysis.Run job finishes
@@ -169,6 +194,7 @@ def filling_callback(results):
 
 def error_handler(e):
     print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
+    pool.terminate()
 
 
 # debugging settings
@@ -181,16 +207,20 @@ else:
 
 with File(histOutFile, "w") as outfile:
     # loop over input files
-    for file in filelist:
+    for i, file in enumerate(filelist):
         print("Making hists for " + file)
+        print("Processing file " + str(i + 1) + "/" + str(len(filelist)))
         with uproot.open(file) as file_:
             # access the tree
+            print(file)
             tree = file_["AnalysisMiniTree"]
+            # take only vars that exist
+            vars = set(tree.keys()).intersection(vars)
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             # the auto batchSize setup could crash if you don't have enough
             # memory
-            cpus = multiprocessing.cpu_count()
+            cpus = multiprocessing.cpu_count() - 8
             batchSize = int(tree.num_entries / cpus)
             if args.cpus:
                 cpus = args.cpus

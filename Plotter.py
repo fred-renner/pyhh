@@ -25,16 +25,9 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
 
-
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801577.Py8EG_A14NNPDF23LO_XHS_X200_S70_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801619.Py8EG_A14NNPDF23LO_XHS_X2000_S400_4b.deriv.DAOD_PHYS.e8448_s3681_r13167_p5057.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc20_13TeV.801591.Py8EG_A14NNPDF23LO_XHS_X750_S300_4b.deriv.DAOD_PHYS.e8448_a899_r13167_p5057.h5"
-histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables-mc21_13p6TeV.601479.PhPy8EG_HH4b_cHHH01d0.deriv.DAOD_PHYS.e8472_s3873_r13829_p5440_.h5"
-# histFile = (
-#     "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-analysis-variables.h5"
-# )
 histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
-
+# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
+histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
 if args.histFile:
     histFile = args.histFile
 
@@ -52,6 +45,7 @@ def getHist(name):
     return h
 
 
+
 with File(histFile, "r") as file:
     for hist in file.keys():
 
@@ -62,24 +56,25 @@ with File(histFile, "r") as file:
                 "histogram"
             ][1:-1]
             trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-            # normalize + cumulative
-            edges = file["triggerRef_leadingLargeRpT"]["edges"]
-            counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            triggerRef_leadingLargeRpT = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            edges = file["trigger_leadingLargeRpT"]["edges"]
-            counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            trigger_leadingLargeRpT = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
 
             trigger_leadingLargeRpT_err = tools.getEfficiencyErrors(
                 passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
             )
+            # normalize + cumulative
+            # edges = file["triggerRef_leadingLargeRpT"]["edges"]
+            # counts = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # triggerRef_leadingLargeRpT = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            # )
+
+            # edges = file["trigger_leadingLargeRpT"]["edges"]
+            # counts = file["trigger_leadingLargeRpT"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # trigger_leadingLargeRpT = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            # )
+
             plt.figure()
             plt.grid()
 
@@ -87,21 +82,22 @@ with File(histFile, "r") as file:
                 trigger_leadingLargeRpT / triggerRef_leadingLargeRpT,
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=False,
+                yerr=trigger_leadingLargeRpT_err,
                 solid_capstyle="projecting",
                 capsize=3,
                 # density=True,
-                # alpha=0.75,
+                alpha=0.75,
             )
 
             hep.atlas.text(" Simulation", loc=1)
-            hep.atlas.set_ylabel("Cumulative Trigger eff.")
+            # hep.atlas.set_ylabel("Cumulative Trigger eff.")
+            hep.atlas.set_ylabel("Trigger eff.")
             hep.atlas.set_xlabel("Leading Large R Jet p$_T$ $[GeV]$ ")
             ax = plt.gca()
             ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-            ax.set_ylim([0.8, 1.05])
-            ax.set_xlim([0.8, 2500_000])
+            # ax.set_ylim([0.8, 1.05])
+            # ax.set_xlim([0.8, 2500_000])
             plt.tight_layout()
             plt.legend(loc="upper right")
             plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
@@ -113,24 +109,23 @@ with File(histFile, "r") as file:
                 1:-1
             ]
             trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
-
-            edges = file["triggerRef_leadingLargeRm"]["edges"]
-            counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            triggerRef_leadingLargeRm = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
-            edges = file["trigger_leadingLargeRm"]["edges"]
-            counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
-            values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
-            trigger_leadingLargeRm = np.array(
-                plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
-            )
-
             trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
                 passed=trigger_leadingLargeRm, total=triggerRef_leadingLargeRm
             )
+            # edges = file["triggerRef_leadingLargeRm"]["edges"]
+            # counts = file["triggerRef_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # triggerRef_leadingLargeRm = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            # )
+
+            # edges = file["trigger_leadingLargeRm"]["edges"]
+            # counts = file["trigger_leadingLargeRm"]["histogram"][1:-1].astype(int)
+            # values = np.repeat((edges[:-1] + edges[1:]) / 2.0, counts)
+            # trigger_leadingLargeRm = np.array(
+            #     plt.hist(values, edges, density=True, cumulative=True)[0], dtype=float
+            # )
+
             plt.figure()
             hep.histplot(
                 trigger_leadingLargeRm / triggerRef_leadingLargeRm,
@@ -140,13 +135,16 @@ with File(histFile, "r") as file:
                 solid_capstyle="projecting",
                 capsize=3,
                 # density=True,
-                # alpha=0.75,
+                alpha=0.75,
             )
 
             hep.atlas.text(" Simulation", loc=1)
-            hep.atlas.set_ylabel("Cumulative Trigger eff.")
+            # hep.atlas.set_ylabel("Cumulative Trigger eff.")
+            hep.atlas.set_ylabel("Trigger eff.")
             hep.atlas.set_xlabel("Leading Large R Jet Mass $[GeV]$ ")
             ax = plt.gca()
+            ax.set_ylim([0, 2])
+
             ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
             plt.grid()
@@ -156,24 +154,24 @@ with File(histFile, "r") as file:
             plt.savefig(plotPath + "trigger_leadingLargeRm.pdf")
             plt.close()
 
-        if "nTriggerPass_truth_mhh" in hist:
-            truth_mhh = file["truth_mhh"]["histogram"][1:-1]
+        if "nTriggerPass_mhh" in hist:
+            mhh = file["mhh"]["histogram"][1:-1]
             keys = [
-                "nTriggerPass_truth_mhh",
-                "nTwoLargeR_truth_mhh",
-                "nTwoSelLargeR_truth_mhh",
-                "btagLow_1b1j_truth_mhh",
-                "btagLow_2b1j_truth_mhh",
-                "btagLow_2b2j_truth_mhh",
-                "btagHigh_1b1b_truth_mhh",
-                "btagHigh_2b1b_truth_mhh",
-                "btagHigh_2b2b_truth_mhh",
+                "nTriggerPass_mhh",
+                "nTwoLargeR_mhh",
+                "nTwoSelLargeR_mhh",
+                "btagLow_1b1j_mhh",
+                "btagLow_2b1j_mhh",
+                "btagLow_2b2j_mhh",
+                "btagHigh_1b1b_mhh",
+                "btagHigh_2b1b_mhh",
+                "btagHigh_2b2b_mhh",
             ]
             hists = []
             for key in keys:
                 hists.append(file[key]["histogram"][1:-1])
             hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
-                hists, baseline=truth_mhh, stopCumulativeFrom=4
+                hists, baseline=mhh, stopCumulativeFrom=4
             )
             labels = [
                 "passed Trigger",
@@ -188,7 +186,9 @@ with File(histFile, "r") as file:
             ]
             plt.figure()
 
-            for h, err, label in zip(hists_cumulative, hists_cumulative_err, labels):
+            for i, (h, err, label) in enumerate(
+                zip(hists_cumulative, hists_cumulative_err, labels)
+            ):
                 hep.histplot(
                     h,
                     file[hist]["edges"],
@@ -198,11 +198,12 @@ with File(histFile, "r") as file:
                     alpha=0.75,
                     solid_capstyle="projecting",
                     capsize=3,
+                    color="C{}".format(i),
                 )
 
             hep.atlas.text(" Simulation", loc=1)
             hep.atlas.set_ylabel("Acc x Efficiency")
-            hep.atlas.set_xlabel("Truth $m_{hh}$ $[GeV]$ ")
+            hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
             ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
             ax.get_xaxis().get_offset_text().set_position((1.09, 0))
@@ -210,7 +211,7 @@ with File(histFile, "r") as file:
             plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
             hep.rescale_to_axessize
             plt.tight_layout()
-            plt.savefig(plotPath + "accEff_truth_mhh.pdf")
+            plt.savefig(plotPath + "accEff_mhh.pdf")
             plt.close()
 
         if "leadingLargeRpT" in hist:
@@ -240,21 +241,25 @@ with File(histFile, "r") as file:
             plt.savefig(plotPath + "leadingLargeRpT.pdf")
             plt.close()
 
-        if "hh_m_77" in hist:
+        if "mhh" in hist:
             plt.figure()
-            hh_m_77 = file["hh_m_77"]["histogram"][1:-1]
-            nTruthEvents = file["truth_mhh"]["histogram"][1:-1]
+            mhh = file["mhh"]["histogram"][1:-1]
+            # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
+            # trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
+            #     passed=mhh, total=truth_mhh
+            # )
             hep.histplot(
-                hh_m_77 / nTruthEvents,
+                mhh,  # / truth_mhh,
                 file[hist]["edges"],
                 histtype="errorbar",
-                yerr=False,
-                density=False,
+                yerr=True,
+                solid_capstyle="projecting",
+                capsize=3,
                 # label=["truth", "reco"]
                 # alpha=0.75,
             )
             hep.atlas.text(" Simulation", loc=1)
-            hep.atlas.set_ylabel("Events (reco / truth)")
+            hep.atlas.set_ylabel("Events")
             hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
             ax = plt.gca()
             # ax.set_yscale("log")
@@ -263,8 +268,9 @@ with File(histFile, "r") as file:
             plt.legend(loc="upper right")
             # hep.yscale_legend()
             plt.tight_layout()
-            plt.savefig(plotPath + "truth_reco_ratio_mhh.pdf")
+            plt.savefig(plotPath + "mhh.pdf")
             plt.close()
+
 
         if "pairingEfficiencyResolved" in hist:
             plt.figure()
