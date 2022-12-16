@@ -46,8 +46,7 @@ class ObjectSelection:
         elif "trigPassed_HLT_j420_a10_lcw_L1J100" in vars_arr:
             self.trigger = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
             self.triggerRef = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
-        
-        
+
         self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
         self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
@@ -302,6 +301,7 @@ class ObjectSelection:
                 ]
             ).T,
             "leadingLargeRpT": self.leadingLargeRpt,
+            "leadingLargeRpT_trigger": self.leadingLargeRpt[self.trigger],
             "trigger_leadingLargeRpT": self.leadingLargeRpt[
                 (self.trigger & self.leadingLargeRmassGreater100)
             ],

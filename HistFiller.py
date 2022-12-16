@@ -32,15 +32,22 @@ args = parser.parse_args()
 pattern = "*"
 
 # mc20 testfiles
-topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/bkg-test"
 
 # mc21 signal
-topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_30.801172.Py8EG_A14NNPDF23LO_jj_JZ7.e8453_s3873_r13829_p5278_TREE"
 
+# mc20 signal
+# 1cvv1cv1
+topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
+
 # mc20 bkg
+#ttbar
 topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
 pattern = "*ttbar*/*"
 histOutFileName = "hists-MC20-bkg-ttbar.h5"
@@ -55,6 +62,7 @@ for file in glob.iglob(topPath + "/" + pattern):
 if "histOutFileName" not in locals():
     dataset = filelist[0].split("/")
     histOutFileName = "hists-" + dataset[-2] + ".h5"
+
 histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName
 
 # figure out which vars to load from analysis script
@@ -87,7 +95,8 @@ hists = [
         name="mh1",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
-    ),FloatHistogram(
+    ),
+    FloatHistogram(
         name="mh2",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
@@ -114,6 +123,11 @@ hists = [
     ),
     FloatHistogram(
         name="leadingLargeRpT",
+        binrange=TriggerEffpT["binrange"],
+        bins=TriggerEffpT["bins"],
+    ),
+    FloatHistogram(
+        name="leadingLargeRpT_trigger",
         binrange=TriggerEffpT["binrange"],
         bins=TriggerEffpT["bins"],
     ),
@@ -173,10 +187,6 @@ hists = [
         binrange2=(50_000, 250_000),
         bins=100,
     ),
-    # "pairingEfficiencyResolved": IntHistogram(
-    #     name="pairingEfficiencyResolved",
-    #     binrange=(0, 3),
-    # ),
     # "vrJetEfficiencyBoosted": IntHistogram(
     #     name="vrJetEfficiencyBoosted",
     #     binrange=(0, 3),
@@ -212,10 +222,9 @@ with File(histOutFile, "w") as outfile:
         print("Processing file " + str(i + 1) + "/" + str(len(filelist)))
         with uproot.open(file) as file_:
             # access the tree
-            print(file)
             tree = file_["AnalysisMiniTree"]
             # take only vars that exist
-            vars = set(tree.keys()).intersection(vars)
+            varsExist = set(tree.keys()).intersection(vars)
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             # the auto batchSize setup could crash if you don't have enough
@@ -234,7 +243,7 @@ with File(histOutFile, "w") as outfile:
             for batch in eventBatches:
                 pool.apply_async(
                     Analysis.Run,
-                    (batch, tree, vars),
+                    (batch, tree, varsExist),
                     callback=filling_callback,
                     error_callback=error_handler,
                 )
