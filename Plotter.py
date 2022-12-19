@@ -25,10 +25,15 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
 
+# fmt: off
+histFileBkg = []
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
 histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
+histFileBkg = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
+
+# fmt: on
+
 if args.histFile:
     histFile = args.histFile
 
@@ -41,7 +46,7 @@ if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
 
 
-def getHist(name):
+def getHist(file, name):
     # access [1:-1] to remove underflow and overflow bins
     h = file[name]["histogram"][1:-1]
     bins = file[name]["edges"]
@@ -314,21 +319,61 @@ def vrJetEfficiencyBoosted():
     plt.savefig(plotPath + "vrJetEfficiencyBoosted_0p2.pdf")
     plt.close()
 
+
 def mh1_ratio():
+    plt.figure()
+    signal, edges = getHist(file, "mh1")
+    bkg, edges2 = getHist(fileBkg, "mh1")
+
     fig, (ax, rax) = plt.subplots(
         nrows=2,
         ncols=1,
-        figsize=(10,10),
+        figsize=(8, 8),
         gridspec_kw={"height_ratios": (3, 1)},
-        sharex=True
+        sharex=True,
     )
-    hep.cms.label(data=True,lumi=59.97,year=2018,loc=0)
-    fig.subplots_adjust(hspace=.07)
+
+    hep.histplot(
+        [signal, bkg],
+        edges,
+        stack=True,
+        histtype="fill",
+        # yerr=True,
+        label=["SM Signal", "t$\overline{t}$"],
+        ax=ax,
+    )
+    ratio_err = tools.getEfficiencyErrors(passed=signal, total=bkg)
+
+    hep.histplot(
+        signal / bkg,
+        edges,
+        stack=True,
+        histtype="errorbar",
+        yerr=ratio_err,
+        label=["SM Signal", "t$\overline{t}$"],
+        ax=rax,
+        color="Black",
+    )
+    # hep.cms.label(data=True, lumi=59.97, year=2018, loc=0)
+    fig.subplots_adjust(hspace=0.07)
+    ax.set_ylabel("Events")
+    rax.set_ylabel("Signal/Background")
+    hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
+    rax.get_xaxis().get_offset_text().set_position((1.09, 0))
+
+    plt.tight_layout()
+    ax.legend(loc="upper right")
+    plt.savefig(plotPath + "mh1_ratio.pdf")
+    plt.close()
+
 
 with File(histFile, "r") as file:
-    trigger_leadingLargeRpT()
-    trigger_leadingLargeRm()
-    accEff_mhh()
-    leadingLargeRpT()
-    mhh()
-    massplane_77()
+    # trigger_leadingLargeRpT()
+    # trigger_leadingLargeRm()
+    # accEff_mhh()
+    # leadingLargeRpT()
+    # mhh()
+    # massplane_77()
+    if histFileBkg:
+        with File(histFileBkg, "r") as fileBkg:
+            mh1_ratio()
