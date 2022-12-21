@@ -101,16 +101,8 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
                 err_sum += pow((baseline_err[k] / ratio[k]), 2)
         propagated_err = np.array(cumulatives[i]) * np.sqrt(err_sum)
         cumulatives_err.append(propagated_err)
-    # triggerPass = nTriggerPass_truth_mhh / nTruthEvents
+    #         triggerPass = nTriggerPass_truth_mhh / nTruthEvents
     #         twoLargeR = triggerPass * nTwoLargeR_truth_mhh / nTruthEvents
-    #         twoSelLargeR = twoLargeR * nTwoSelLargeR_truth_mhh / nTruthEvents
-    #         btagLow_1b1j = twoSelLargeR * btagLow_1b1j / nTruthEvents
-
-    #         btagLow_2b1j =
-    #         btagLow_2b2j =
-    #         btagHigh_1b1b =
-    #         btagHigh_2b1b =
-    #         btagHigh_2b2b =
 
     #         # errors
     #         nTriggerPass_err = tools.getEfficiencyErrors(
@@ -119,27 +111,31 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
     #         nTwoLargeR_err = tools.getEfficiencyErrors(
     #             passed=nTwoLargeR_truth_mhh, total=nTruthEvents
     #         )
-    #         nTwoSelLargeR_err = tools.getEfficiencyErrors(
-    #             passed=nTwoSelLargeR_truth_mhh, total=nTruthEvents
-    #         )
-    #         btagLow_1b1j_err = tools.getEfficiencyErrors(
-    #             passed=btagLow_1b1j, total=nTruthEvents
-    #         )
     #         # error propagation
     #         twoLargeR_err = twoLargeR * np.sqrt(
     #             np.power(nTriggerPass_err / triggerPass, 2)
     #             + np.power(nTwoLargeR_err / twoLargeR, 2)
     #         )
-    #         twoSelLargeR_err = twoSelLargeR * np.sqrt(
-    #             np.power(nTriggerPass_err / triggerPass, 2)
-    #             + np.power(nTwoLargeR_err / twoLargeR, 2)
-    #             + np.power(nTwoSelLargeR_err / twoSelLargeR, 2)
-    #         )
-    #         twoSelLargeRhave2b_err = twoSelLargeRhave2b * np.sqrt(
-    #             np.power(nTriggerPass_err / triggerPass, 2)
-    #             + np.power(nTwoLargeR_err / twoLargeR, 2)
-    #             + np.power(nTwoSelLargeR_err / twoSelLargeR, 2)
-    #             + np.power(nTwoLargeRHave2BtagVR_err / twoSelLargeRhave2b, 2)
-    #         )
-
     return cumulatives, cumulatives_err
+
+
+def poisson_err(dh, col, bins):
+    """
+    Calculates weighted Poisson error (sqrt(N) if
+    all weights == 1).
+
+    Parameters
+    ----------
+    dh : data_holder or data_holder_list
+        See data_prep for object definition. Contains
+        DataFrame used for calculation
+    col : str
+        Variable used for binning
+    bins : list or NumPy array
+        Histogram bin edges
+
+    """
+
+    return np.sqrt(
+        np.histogram(dh.nom_df[col], weights=dh.nom_weights**2, bins=bins)[0]
+    )

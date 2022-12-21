@@ -8,21 +8,22 @@ from operator import xor
 np.set_printoptions(threshold=np.inf)
 
 
-def Run(batch, tree, vars):
+def Run(batch, metaData, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
-    objects = ObjectSelection(vars_arr)
+    objects = ObjectSelection(metaData, vars_arr)
     objects.select()
     return objects.returnResults()
 
 
 class ObjectSelection:
-    def __init__(self, vars_arr):
+    def __init__(self, metaData, vars_arr):
 
         # mcEventWeights
         # pileupWeight_NOSYS
         # generatorWeight_NOSYS
+        self.mcWeights = vars_arr["mcEventWeights"]
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -78,11 +79,11 @@ class ObjectSelection:
         self.btagHigh_1b1b = np.copy(boolInitArray)
         self.btagHigh_2b1b = np.copy(boolInitArray)
         self.btagHigh_2b2b = np.copy(boolInitArray)
-
         self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
         self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
 
         # float init
+        weights = np.full(self.nEvents, 1.0, dtype=float)
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
         self.m_hh = np.copy(floatInitArray)
         self.h1_m = np.copy(floatInitArray)
@@ -92,6 +93,7 @@ class ObjectSelection:
         self.leadingLargeRm = np.copy(floatInitArray)
 
     def select(self):
+        
         for event in self.eventRange:
             # order matters!
             # if not self.vr_dontOverlap[event]:
@@ -131,6 +133,7 @@ class ObjectSelection:
         # check which event has at least one Large R
         if self.nLargeR[event] > 0:
             self.atLeastOneLargeR[event] = True
+            # cannot use selPtSort as they are selected!
             maxPtIndex = np.argmax(self.lrj_pt[event])
             self.leadingLargeRindex[event] = maxPtIndex
             self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]

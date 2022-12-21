@@ -12,7 +12,8 @@ import os
 import multiprocessing
 import argparse
 import glob
-
+import subprocess
+import HistFillerTools as tools
 
 # TODO
 # make yaml config
@@ -32,7 +33,7 @@ args = parser.parse_args()
 pattern = "*"
 
 # mc20 testfiles
-# topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
+topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/bkg-test"
 
 # mc21 signal
@@ -42,9 +43,9 @@ pattern = "*"
 
 # mc20 signal
 # 1cvv1cv1
-topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
+# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+# pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+# histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
 #ttbar
@@ -77,6 +78,8 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
+h1Binning = {"binrange": (0, 300_000), "bins": 100}
+hhbinning={"binrange": (0, 300_000), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 100}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 100}
 
@@ -212,17 +215,20 @@ if args.debug:
     nEvents = 100
     cpus = 1
     filelist = filelist[:2]
+    histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug"
 else:
     nEvents = None
 
 with File(histOutFile, "w") as outfile:
     # loop over input files
-    for i, file in enumerate(filelist):
-        print("Making hists for " + file)
+    for i, file_ in enumerate(filelist):
+        print("Making hists for " + file_)
         print("Processing file " + str(i + 1) + "/" + str(len(filelist)))
-        with uproot.open(file) as file_:
+        with uproot.open(file_) as file:
+            # get CutBookKeepers / weights info
+            metaData=tools.getMetaData(file)
             # access the tree
-            tree = file_["AnalysisMiniTree"]
+            tree = file["AnalysisMiniTree"]
             # take only vars that exist
             varsExist = set(tree.keys()).intersection(vars)
             # progressbar
@@ -243,7 +249,7 @@ with File(histOutFile, "w") as outfile:
             for batch in eventBatches:
                 pool.apply_async(
                     Analysis.Run,
-                    (batch, tree, varsExist),
+                    (batch, metaData,tree, varsExist),
                     callback=filling_callback,
                     error_callback=error_handler,
                 )
@@ -257,8 +263,6 @@ with File(histOutFile, "w") as outfile:
 
 # if you want to plot directly
 if not args.debug:
-    import subprocess
-
     subprocess.call(
         "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
         f" {histOutFile}",

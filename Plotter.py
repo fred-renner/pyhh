@@ -12,10 +12,10 @@ import argparse
 import PlottingTools as tools
 
 # quick and dirty color log
-logging.basicConfig(level=logging.INFO)
-logging.addLevelName(
-    logging.INFO, "\033[1;32m%s\033[1;0m" % logging.getLevelName(logging.INFO)
-)
+# logging.basicConfig(level=logging.INFO)
+# logging.addLevelName(
+#     logging.INFO, "\033[1;32m%s\033[1;0m" % logging.getLevelName(logging.INFO)
+# )
 
 matplotlib.font_manager._rebuild()
 plt.style.use(hep.style.ATLAS)
@@ -93,11 +93,11 @@ def trigger_leadingLargeRpT():
     hep.atlas.set_ylabel("Trigger eff.")
     hep.atlas.set_xlabel("Leading Large R Jet p$_T$ $[GeV]$ ")
     ax = plt.gca()
-    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
     # ax.set_ylim([0.8, 1.05])
     # ax.set_xlim([0.8, 2500_000])
     plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
     plt.close()
@@ -143,11 +143,11 @@ def trigger_leadingLargeRm():
     ax = plt.gca()
     ax.set_ylim([0, 2])
 
-    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
     plt.grid()
 
     plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "trigger_leadingLargeRm.pdf")
     plt.close()
@@ -204,12 +204,13 @@ def accEff_mhh():
     hep.atlas.set_ylabel("Acc x Efficiency")
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
-    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+    
     ax.set_ylim([0, 1.4])
     plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
     hep.rescale_to_axessize
     plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.savefig(plotPath + "accEff_mhh.pdf")
     plt.close()
 
@@ -222,22 +223,24 @@ def leadingLargeRpT():
         passed=leadingLargeRpT_trigger, total=leadingLargeRpT
     )
     hep.histplot(
-        leadingLargeRpT / leadingLargeRpT_trigger,
+        leadingLargeRpT_trigger / leadingLargeRpT,
         file["leadingLargeRpT"]["edges"],
         histtype="errorbar",
         yerr=err,
         density=False,
         # alpha=0.75,
-        label=["triggerRef_leadingLargeRpT", "trigger_leadingLargeRpT"],
+        solid_capstyle="projecting",
+        capsize=3,
+        label="trigPassed_HLT_j420_a10_lcw_L1J100",
     )
     hep.atlas.text(" Simulation", loc=1)
-    hep.atlas.set_ylabel("Events")
+    hep.atlas.set_ylabel("Trigger efficiency")
     hep.atlas.set_xlabel("Leading Large R Jet p$_T$ $[GeV]$ ")
     ax = plt.gca()
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
-    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.tight_layout()
-    plt.legend(loc="upper right")
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+    plt.legend(loc="lower right")
     plt.savefig(plotPath + "leadingLargeRpT.pdf")
     plt.close()
 
@@ -287,11 +290,12 @@ def massplane_77():
     hep.atlas.set_ylabel("$m_{h2}$ $[GeV]$ ")
     hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
     ax = plt.gca()
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
+    plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.get_yaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     ax.yaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
-    plt.tight_layout()
     # plt.legend(loc="upper right")
     plt.savefig(plotPath + "massplane.pdf")
     plt.close()
@@ -321,9 +325,34 @@ def vrJetEfficiencyBoosted():
 
 
 def mh1_ratio():
-    plt.figure()
     signal, edges = getHist(file, "mh1")
-    bkg, edges2 = getHist(fileBkg, "mh1")
+    ttbar, edges2 = getHist(fileBkg, "mh1")
+    bkg = np.array([ttbar])
+    bkg_total = np.sum(bkg, axis=0)
+    ratio = signal / bkg_total
+
+    values_signal = np.repeat((edges[:-1] + edges[1:]) / 2.0, signal.astype(int))
+    values_bkg = np.repeat((edges[:-1] + edges[1:]) / 2.0, bkg_total.astype(int))
+    cumulative_signal = np.array(
+        plt.hist(
+            values_signal,
+            edges,
+            # density=True,
+            cumulative=True,
+        )[0],
+        dtype=float,
+    )
+    cumulative_bkg = np.array(
+        plt.hist(
+            values_bkg,
+            edges,
+            # density=True,
+            cumulative=True,
+        )[0],
+        dtype=float,
+    )
+
+    plt.figure()
 
     fig, (ax, rax) = plt.subplots(
         nrows=2,
@@ -332,48 +361,62 @@ def mh1_ratio():
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
-
+    # stack plot
     hep.histplot(
-        [signal, bkg],
+        ttbar,
         edges,
         stack=True,
         histtype="fill",
         # yerr=True,
-        label=["SM Signal", "t$\overline{t}$"],
+        label="t$\overline{t}$",
         ax=ax,
+        edgecolor="black",
     )
-    ratio_err = tools.getEfficiencyErrors(passed=signal, total=bkg)
-
+    # signal
     hep.histplot(
-        signal / bkg,
+        signal,
+        edges,
+        histtype="step",
+        # yerr=True,
+        label="SM Signal",
+        ax=ax,
+        color="orangered",
+        linewidth=1.5,
+    )
+    # ratio plot
+    hep.histplot(
+        # cumulative_signal/cumulative_bkg,
+        ratio,
         edges,
         stack=True,
         histtype="errorbar",
-        yerr=ratio_err,
-        label=["SM Signal", "t$\overline{t}$"],
+        yerr=np.sqrt(signal) / np.sqrt(bkg) + 1e-9,
+        label=["SM Signal", "$t\overline{t}$"],
         ax=rax,
         color="Black",
     )
     # hep.cms.label(data=True, lumi=59.97, year=2018, loc=0)
     fig.subplots_adjust(hspace=0.07)
     ax.set_ylabel("Events")
-    rax.set_ylabel("Signal/Background")
-    hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
-    rax.get_xaxis().get_offset_text().set_position((1.09, 0))
+    rax.set_ylabel("Signal/Bkg")
+    rax.set_ylim([0, 2])
 
+    hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
     plt.tight_layout()
+    rax.get_xaxis().get_offset_text().set_position((2, 0))
+    rax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i",offset=False))
     ax.legend(loc="upper right")
     plt.savefig(plotPath + "mh1_ratio.pdf")
     plt.close()
 
 
 with File(histFile, "r") as file:
-    # trigger_leadingLargeRpT()
-    # trigger_leadingLargeRm()
-    # accEff_mhh()
-    # leadingLargeRpT()
-    # mhh()
-    # massplane_77()
+    trigger_leadingLargeRpT()
+    trigger_leadingLargeRm()
+    accEff_mhh()
+    leadingLargeRpT()
+    mhh()
+    massplane_77()
     if histFileBkg:
         with File(histFileBkg, "r") as fileBkg:
             mh1_ratio()
