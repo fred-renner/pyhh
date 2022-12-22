@@ -18,8 +18,8 @@ class FloatHistogram:
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 
-    def fill(self, arr):
-        hist = np.histogramdd(arr, bins=[self._bins])[0]
+    def fill(self, values, weights):
+        hist = np.histogramdd(values, bins=[self._bins], weights=weights)[0]
         self._hist += hist
 
     def write(self, file_):
@@ -56,9 +56,10 @@ class FloatHistogram2D:
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 
-    def fill(self, arr):
-        # print(arr)
-        hist = np.histogramdd(arr, bins=[self._bins1, self._bins2])[0]
+    def fill(self, values, weights):
+        hist = np.histogramdd(values, weights=weights, bins=[self._bins1, self._bins2])[
+            0
+        ]
         self._hist += hist
 
     def write(self, file_):

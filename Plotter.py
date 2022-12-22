@@ -30,7 +30,7 @@ histFileBkg = []
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
 histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
-histFileBkg = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
+# histFileBkg = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
 
 # fmt: on
 
@@ -168,6 +168,7 @@ def accEff_mhh():
     ]
     hists = []
     for key in keys:
+        print(file[key]["histogram"][1:-1].shape)
         hists.append(file[key]["histogram"][1:-1])
     hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
         hists, baseline=mhh, stopCumulativeFrom=4

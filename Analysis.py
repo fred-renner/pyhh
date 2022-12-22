@@ -17,13 +17,44 @@ def Run(batch, metaData, tree, vars):
     return objects.returnResults()
 
 
+def get_lumi(years: list):
+    """
+    Get luminosity value per given year in fb-1
+
+    Parameters
+    ----------
+    yr: list
+        Year corresponding to desired lumi (15, 16, 17, 18, or all)
+
+    """
+    lumi = {
+        "2015": 3.4454,
+        "2016": 33.4022,
+        "2017": 44.6306,
+        "2018": 58.7916,
+        "all": 140.06894,
+    }
+    l = 0
+    for yr in years:
+        l += lumi[yr]
+
+    return l
+
+
 class ObjectSelection:
     def __init__(self, metaData, vars_arr):
 
         # mcEventWeights
         # pileupWeight_NOSYS
         # generatorWeight_NOSYS
-        self.mcWeights = vars_arr["mcEventWeights"]
+
+        # need to configure per r tag
+        lumi = get_lumi(metaData["dataYears"])
+        # crosssection comes in nb-1
+        crossSection = float(metaData["crossSection"]) * 1e-3
+        sum_of_weights = metaData["initial_sum_of_weights"]
+        self.weightFactor = crossSection * lumi / sum_of_weights
+
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -83,7 +114,7 @@ class ObjectSelection:
         self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
 
         # float init
-        weights = np.full(self.nEvents, 1.0, dtype=float)
+        self.weights = np.full(self.nEvents, 1.0, dtype=float)
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
         self.m_hh = np.copy(floatInitArray)
         self.h1_m = np.copy(floatInitArray)
@@ -93,12 +124,14 @@ class ObjectSelection:
         self.leadingLargeRm = np.copy(floatInitArray)
 
     def select(self):
-        
         for event in self.eventRange:
             # order matters!
             # if not self.vr_dontOverlap[event]:
             #     # should we actually throw away the whole event?
             #     continue
+            self.weights[event] = (
+                self.vars_arr["mcEventWeights"][event][0] * self.weightFactor
+            )
             self.largeRSelectSort(event)
             self.getLeadingLargeR(event)
             self.getLeadingLargeRcuts(event)
@@ -149,7 +182,7 @@ class ObjectSelection:
 
     def nTotalSelLargeR(self):
         self.nSelLargeRFlat = self.ReplicateBins(
-            binnedObject=self.truth_m_hh, Counts=self.nLargeRSelected
+            binnedObject=self.m_hh, Counts=self.nLargeRSelected
         )
 
     def getVRtags(self, event):
@@ -281,45 +314,74 @@ class ObjectSelection:
     #     self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
 
     def returnResults(self):
-
+        # print((self.h1_m, self.btagHigh_2b2b))
         results = {
-            "truth_mhh": self.truth_m_hh,
-            "mhh": self.m_hh,
-            "mh2": self.h1_m[self.btagHigh_2b2b],
-            "mh1": self.h2_m[self.btagHigh_2b2b],
-            "nTriggerPass_mhh": self.m_hh[self.trigger],
-            "nTwoLargeR_mhh": self.m_hh[(self.nLargeR >= 2)],
-            "nTwoSelLargeR_mhh": self.m_hh[self.selectedTwoLargeRevents],
-            "btagLow_1b1j_mhh": self.m_hh[self.btagLow_1b1j],
-            "btagLow_2b1j_mhh": self.m_hh[self.btagLow_2b1j],
-            "btagLow_2b2j_mhh": self.m_hh[self.btagLow_2b2j],
-            "btagHigh_1b1b_mhh": self.m_hh[self.btagHigh_1b1b],
-            "btagHigh_2b1b_mhh": self.m_hh[self.btagHigh_2b1b],
-            "btagHigh_2b2b_mhh": self.m_hh[self.btagHigh_2b2b],
-            "nTotalSelLargeR": self.nSelLargeRFlat,
-            "massplane_77": np.array(
-                [
-                    self.h1_m[self.btagHigh_2b2b],
-                    self.h2_m[self.btagHigh_2b2b],
-                ]
-            ).T,
-            "leadingLargeRpT": self.leadingLargeRpt,
-            "leadingLargeRpT_trigger": self.leadingLargeRpt[self.trigger],
-            "trigger_leadingLargeRpT": self.leadingLargeRpt[
-                (self.trigger & self.leadingLargeRmassGreater100)
-            ],
-            "triggerRef_leadingLargeRpT": self.leadingLargeRpt[
-                (self.triggerRef & self.leadingLargeRmassGreater100)
-            ],
-            "trigger_leadingLargeRm": self.leadingLargeRm[
-                (self.trigger & self.leadingLargeRpTGreater500)
-            ],
-            "triggerRef_leadingLargeRm": self.leadingLargeRm[
-                (self.triggerRef & self.leadingLargeRpTGreater500)
-            ],
+            "truth_mhh": self.resultTuple(self.truth_m_hh),
+            "mhh": self.resultTuple(self.m_hh),
+            "mh1": self.resultTuple(self.h1_m, self.btagHigh_2b2b),
+            "mh2": self.resultTuple(self.h2_m, self.btagHigh_2b2b),
+            "nTriggerPass_mhh": self.resultTuple(self.m_hh, self.trigger),
+            "nTwoLargeR_mhh": self.resultTuple(self.m_hh, self.nLargeR >= 2),
+            "nTwoSelLargeR_mhh": self.resultTuple(
+                self.m_hh, self.selectedTwoLargeRevents
+            ),
+            "btagLow_1b1j_mhh": self.resultTuple(self.m_hh, self.btagLow_1b1j),
+            "btagLow_2b1j_mhh": self.resultTuple(self.m_hh, self.btagLow_2b1j),
+            "btagLow_2b2j_mhh": self.resultTuple(self.m_hh, self.btagLow_2b2j),
+            "btagHigh_1b1b_mhh": self.resultTuple(self.m_hh, self.btagHigh_1b1b),
+            "btagHigh_2b1b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b1b),
+            "btagHigh_2b2b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
+            "nTotalSelLargeR": self.resultTuple(self.nSelLargeRFlat, oneWeights=True),
+            "leadingLargeRpT": self.resultTuple(self.leadingLargeRpt, oneWeights=True),
+            "leadingLargeRpT_trigger": self.resultTuple(
+                self.leadingLargeRpt, self.trigger
+            ),
+            "trigger_leadingLargeRpT": self.resultTuple(
+                self.leadingLargeRpt, self.trigger & self.leadingLargeRmassGreater100
+            ),
+            "triggerRef_leadingLargeRpT": self.resultTuple(
+                self.leadingLargeRpt, self.triggerRef & self.leadingLargeRmassGreater100
+            ),
+            "trigger_leadingLargeRm": self.resultTuple(
+                self.leadingLargeRm, self.trigger & self.leadingLargeRpTGreater500
+            ),
+            "triggerRef_leadingLargeRm": self.resultTuple(
+                self.leadingLargeRm, self.triggerRef & self.leadingLargeRpTGreater500
+            ),
+            "massplane_77": (
+                np.array(
+                    [
+                        self.h1_m[self.btagHigh_2b2b],
+                        self.h2_m[self.btagHigh_2b2b],
+                    ]
+                ).T,
+                np.array(self.weights[self.btagHigh_2b2b]),
+            ),
         }
 
+        # np.array(
+        #         [
+        #             self.h1_m[self.btagHigh_2b2b],
+        #             self.h2_m[self.btagHigh_2b2b],
+        #         ]
+        #     ).T,
+
+        # blah= np.array(
+        #         [
+        #             self.h1_m[self.btagHigh_2b2b],
+        #             self.h2_m[self.btagHigh_2b2b],
+        #         ]
+        #     ).T,
+        # print("blah" ,blah)
         return results
+
+    def resultTuple(self, var, sel=None, oneWeights=False):
+        if oneWeights:
+            return (var, np.ones(var.shape))
+        if sel is None:
+            return (var, self.weights)
+        else:
+            return (var[sel], self.weights[sel])
 
     # if histkey == "pairingEfficiencyResolved":
     #     matchCriterion = 0.2

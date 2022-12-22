@@ -24,11 +24,6 @@ parser.add_argument("--debug", action="store_true")
 
 args = parser.parse_args()
 
-# import time
-# t0 = time.time()
-# print(time.time() - t0)
-# yaml.safe_load(file)
-
 # files to load
 pattern = "*"
 
@@ -43,15 +38,15 @@ topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
 
 # mc20 signal
 # 1cvv1cv1
-# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-# pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-# histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
+topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
-#ttbar
-topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-pattern = "*ttbar*/*"
-histOutFileName = "hists-MC20-bkg-ttbar.h5"
+# ttbar
+# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+# pattern = "*ttbar*/*"
+# histOutFileName = "hists-MC20-bkg-ttbar.h5"
 
 
 # get all files also from subdirectories with wildcard
@@ -79,7 +74,7 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
 h1Binning = {"binrange": (0, 300_000), "bins": 100}
-hhbinning={"binrange": (0, 300_000), "bins": 100}
+hhbinning = {"binrange": (0, 500_000), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 100}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 100}
 
@@ -89,6 +84,7 @@ hists = [
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
+    # needs to be the same binning as accEff for plot
     FloatHistogram(
         name="mhh",
         binrange=accEffBinning["binrange"],
@@ -96,13 +92,13 @@ hists = [
     ),
     FloatHistogram(
         name="mh1",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
+        binrange=h1Binning["binrange"],
+        bins=h1Binning["bins"],
     ),
     FloatHistogram(
         name="mh2",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
+        binrange=h1Binning["binrange"],
+        bins=h1Binning["bins"],
     ),
     FloatHistogram(
         name="nTriggerPass_mhh",
@@ -200,8 +196,8 @@ hists = [
 def filling_callback(results):
     for hist in hists:
         # update bin heights per iteration
-        values = results[hist._name]
-        hist.fill(values)
+        res = results[hist._name]
+        hist.fill(values=res[0], weights=res[1])
     pbar.update(batchSize)
 
 
@@ -212,21 +208,15 @@ def error_handler(e):
 
 # debugging settings
 if args.debug:
-    nEvents = 100
-    cpus = 1
     filelist = filelist[:2]
     histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug"
-else:
-    nEvents = None
+
 
 with File(histOutFile, "w") as outfile:
     # loop over input files
     for i, file_ in enumerate(filelist):
-        print("Making hists for " + file_)
         print("Processing file " + str(i + 1) + "/" + str(len(filelist)))
         with uproot.open(file_) as file:
-            # get CutBookKeepers / weights info
-            metaData=tools.getMetaData(file)
             # access the tree
             tree = file["AnalysisMiniTree"]
             # take only vars that exist
@@ -235,12 +225,22 @@ with File(histOutFile, "w") as outfile:
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             # the auto batchSize setup could crash if you don't have enough
             # memory
-            cpus = multiprocessing.cpu_count() - 8
-            batchSize = int(tree.num_entries / cpus)
-            if args.cpus:
-                cpus = args.cpus
-                batchSize = 10_0000
-
+            if args.debug:
+                nEvents = 1000
+                cpus = 1
+                batchSize = int(tree.num_entries)
+                metaData = {}
+                metaData["initial_sum_of_weights"] = 1e10
+                metaData["crossSection"] = 1e-3
+            else:
+                nEvents = None
+                cpus = multiprocessing.cpu_count() - 4
+                batchSize = int(tree.num_entries / cpus)
+                # get CutBookKeepers / weights info
+                metaData = tools.getMetaData(file)
+                if args.cpus:
+                    cpus = args.cpus
+                    batchSize = 10_0000
             eventBatches = Loader.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
@@ -249,7 +249,7 @@ with File(histOutFile, "w") as outfile:
             for batch in eventBatches:
                 pool.apply_async(
                     Analysis.Run,
-                    (batch, metaData,tree, varsExist),
+                    (batch, metaData, tree, varsExist),
                     callback=filling_callback,
                     error_callback=error_handler,
                 )
