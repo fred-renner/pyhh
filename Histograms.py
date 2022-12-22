@@ -15,6 +15,7 @@ class FloatHistogram:
         )
         # book hist
         self._hist = np.zeros(self._bins.size - 1, dtype=float)
+        self._w=np.ones(self._bins.size - 1, dtype=float)
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 

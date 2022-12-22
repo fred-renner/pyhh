@@ -32,6 +32,7 @@ def get_lumi(years: list):
         "2016": 33.4022,
         "2017": 44.6306,
         "2018": 58.7916,
+        # "2022": 140.06894,  ############## just for testing ##################
         "all": 140.06894,
     }
     l = 0
@@ -44,17 +45,12 @@ def get_lumi(years: list):
 class ObjectSelection:
     def __init__(self, metaData, vars_arr):
 
-        # mcEventWeights
-        # pileupWeight_NOSYS
-        # generatorWeight_NOSYS
-
-        # need to configure per r tag
+        # mcEventWeights[:][0] == generatorWeight_NOSYS
         lumi = get_lumi(metaData["dataYears"])
-        # crosssection comes in nb-1
-        crossSection = float(metaData["crossSection"]) * 1e-3
+        # crosssection comes in nb-1 (* 1e6 = fb-1)
+        sigma = metaData["crossSection"] * 1e6
         sum_of_weights = metaData["initial_sum_of_weights"]
-        self.weightFactor = crossSection * lumi / sum_of_weights
-
+        self.weightFactor = sigma * lumi * metaData["genFiltEff"] / sum_of_weights
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -130,7 +126,9 @@ class ObjectSelection:
             #     # should we actually throw away the whole event?
             #     continue
             self.weights[event] = (
-                self.vars_arr["mcEventWeights"][event][0] * self.weightFactor
+                self.weightFactor
+                * self.vars_arr["pileupWeight_NOSYS"][event]
+                * self.vars_arr["mcEventWeights"][event][0]
             )
             self.largeRSelectSort(event)
             self.getLeadingLargeR(event)
@@ -332,7 +330,7 @@ class ObjectSelection:
             "btagHigh_2b1b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b1b),
             "btagHigh_2b2b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
             "nTotalSelLargeR": self.resultTuple(self.nSelLargeRFlat, oneWeights=True),
-            "leadingLargeRpT": self.resultTuple(self.leadingLargeRpt, oneWeights=True),
+            "leadingLargeRpT": self.resultTuple(self.leadingLargeRpt),
             "leadingLargeRpT_trigger": self.resultTuple(
                 self.leadingLargeRpt, self.trigger
             ),

@@ -25,7 +25,6 @@ def getMetaData(file):
     for key in file.keys():
         if "CutBookkeeper" and "NOSYS" in key:
             cbk = file[key].to_numpy()
-            print(cbk[0])
             metaData["initial_events"] = cbk[0][0]
             metaData["initial_sum_of_weights"] = cbk[0][1]
             metaData["initial_sum_of_weights_squared"] = cbk[0][2]
@@ -41,15 +40,15 @@ def getMetaData(file):
     metaData["dataYears"] = mcCampaign[r_tag]
 
     # get actual datasetname from dataset number and ami tags
+    # % is wildcarding
     datasets = AtlasAPI.list_datasets(
         client, patterns=f"%{ds[0]}%{ami[0]}%", type="DAOD_PHYS"
     )
-    # use logical dataset name to get info from first dataset matching the
+    # use logical dataset name to get info from first [0] dataset matching the
     # pattern
     datasetName = datasets[0]["ldn"]
     ds_info = AtlasAPI.get_dataset_info(client, dataset=datasetName)
-    print(ds_info)
-    metaData["genFiltEff"] = ds_info[0]["genFiltEff"]
-    metaData["crossSection"] = ds_info[0]["crossSection"]
+    metaData["genFiltEff"] = float(ds_info[0]["genFiltEff"])
+    metaData["crossSection"] = float(ds_info[0]["crossSection"])
 
     return metaData

@@ -27,26 +27,22 @@ args = parser.parse_args()
 # files to load
 pattern = "*"
 
-# mc20 testfiles
-topPath = "/lustre/fs22/group/atlas/freder/hh/run/signal-test/"
-# topPath = "/lustre/fs22/group/atlas/freder/hh/run/bkg-test"
-
+topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 # mc21 signal
-# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE"
+# pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_30.801172.Py8EG_A14NNPDF23LO_jj_JZ7.e8453_s3873_r13829_p5278_TREE"
 
 # mc20 signal
 # 1cvv1cv1
-topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
+# pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+# histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
 # ttbar
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*ttbar*/*"
-# histOutFileName = "hists-MC20-bkg-ttbar.h5"
+topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+pattern = "*ttbar*/*"
+histOutFileName = "hists-MC20-bkg-ttbar.h5"
 
 
 # get all files also from subdirectories with wildcard
@@ -75,8 +71,8 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
 h1Binning = {"binrange": (0, 300_000), "bins": 100}
 hhbinning = {"binrange": (0, 500_000), "bins": 100}
-TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 100}
-TriggerEffm = {"binrange": (0, 300_000), "bins": 100}
+TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
+TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
 
 hists = [
     FloatHistogram(
@@ -231,7 +227,7 @@ with File(histOutFile, "w") as outfile:
                 batchSize = int(tree.num_entries)
                 metaData = {}
                 metaData["initial_sum_of_weights"] = 1e10
-                metaData["crossSection"] = 1e-3
+                metaData["crossSection"] = 1e-6
             else:
                 nEvents = None
                 cpus = multiprocessing.cpu_count() - 4

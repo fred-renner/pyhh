@@ -205,7 +205,7 @@ def accEff_mhh():
     hep.atlas.set_ylabel("Acc x Efficiency")
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
-    
+
     ax.set_ylim([0, 1.4])
     plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
     hep.rescale_to_axessize
@@ -263,16 +263,19 @@ def mhh():
         # label=["truth", "reco"]
         # alpha=0.75,
     )
-    hep.atlas.text(" Simulation", loc=1)
+    # hep.atlas.text(" Simulation", loc=1)
     hep.atlas.set_ylabel("Events")
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
     # ax.set_yscale("log")
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
-    ax.get_xaxis().get_offset_text().set_position((1.09, 0))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
+    hep.atlas.label(data=False, lumi="140", year=None, loc=0)
+
     plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+
     plt.savefig(plotPath + "mhh.pdf")
     plt.close()
 
@@ -405,7 +408,7 @@ def mh1_ratio():
     hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
-    rax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i",offset=False))
+    rax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i", offset=False))
     ax.legend(loc="upper right")
     plt.savefig(plotPath + "mh1_ratio.pdf")
     plt.close()
