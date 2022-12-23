@@ -315,7 +315,7 @@ class ObjectSelection:
         # print((self.h1_m, self.btagHigh_2b2b))
         results = {
             "truth_mhh": self.resultTuple(self.truth_m_hh),
-            "mhh": self.resultTuple(self.m_hh),
+            "mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
             "mh1": self.resultTuple(self.h1_m, self.btagHigh_2b2b),
             "mh2": self.resultTuple(self.h2_m, self.btagHigh_2b2b),
             "nTriggerPass_mhh": self.resultTuple(self.m_hh, self.trigger),

@@ -10,6 +10,7 @@ import os
 import logging
 import argparse
 import PlottingTools as tools
+import colors
 
 # quick and dirty color log
 # logging.basicConfig(level=logging.INFO)
@@ -26,11 +27,12 @@ parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
 
 # fmt: off
-histFileBkg = []
+withBackground=True
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
 histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
-# histFileBkg = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
+ttbarHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
+dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
 
 # fmt: on
 
@@ -271,7 +273,7 @@ def mhh():
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
-    hep.atlas.label(data=False, lumi="140", year=None, loc=0)
+    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
 
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
@@ -328,33 +330,37 @@ def vrJetEfficiencyBoosted():
     plt.close()
 
 
-def mh1_ratio():
-    signal, edges = getHist(file, "mh1")
-    ttbar, edges2 = getHist(fileBkg, "mh1")
-    bkg = np.array([ttbar])
-    bkg_total = np.sum(bkg, axis=0)
-    ratio = signal / bkg_total
+def mh_ratio(whichHiggs):
+    m_h = "m" + whichHiggs
+    signal, edges = getHist(file, m_h)
+    ttbar, edges2 = getHist(ttbarFile, m_h)
+    dijet, edges2 = getHist(dijetFile, m_h)
 
-    values_signal = np.repeat((edges[:-1] + edges[1:]) / 2.0, signal.astype(int))
-    values_bkg = np.repeat((edges[:-1] + edges[1:]) / 2.0, bkg_total.astype(int))
-    cumulative_signal = np.array(
-        plt.hist(
-            values_signal,
-            edges,
-            # density=True,
-            cumulative=True,
-        )[0],
-        dtype=float,
-    )
-    cumulative_bkg = np.array(
-        plt.hist(
-            values_bkg,
-            edges,
-            # density=True,
-            cumulative=True,
-        )[0],
-        dtype=float,
-    )
+    bkg = np.array([ttbar, dijet])
+    bkg_tot = np.sum(bkg, axis=0)
+    bkg_tot_err = np.sqrt(bkg_tot)
+    ratio = signal / np.sqrt(bkg_tot)
+
+    # values_signal = np.repeat((edges[:-1] + edges[1:]) / 2.0, signal.astype(int))
+    # values_bkg = np.repeat((edges[:-1] + edges[1:]) / 2.0, bkg_tot.astype(int))
+    # cumulative_signal = np.array(
+    #     plt.hist(
+    #         values_signal,
+    #         edges,
+    #         # density=True,
+    #         cumulative=True,
+    #     )[0],
+    #     dtype=float,
+    # )
+    # cumulative_bkg = np.array(
+    #     plt.hist(
+    #         values_bkg,
+    #         edges,
+    #         # density=True,
+    #         cumulative=True,
+    #     )[0],
+    #     dtype=float,
+    # )
 
     plt.figure()
 
@@ -365,52 +371,70 @@ def mh1_ratio():
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
+
     # stack plot
     hep.histplot(
-        ttbar,
+        [ttbar, dijet],
         edges,
         stack=True,
         histtype="fill",
         # yerr=True,
-        label="t$\overline{t}$",
+        label=["$t\overline{t}$", "Multijet"],
         ax=ax,
+        color=["hh:darkpink", "hh:medturquoise"],
         edgecolor="black",
+        linewidth=0.5,
+    )
+    # error stackplot
+    ax.fill_between(
+        edges,
+        np.append(bkg_tot - bkg_tot_err, 0),
+        np.append(bkg_tot + bkg_tot_err, 0),
+        hatch="\\\\\\\\",
+        facecolor="None",
+        edgecolor="dimgrey",
+        linewidth=0,
+        step="post",
+        zorder=1,
+        label="stat. uncertainty",
     )
     # signal
     hep.histplot(
-        signal,
+        signal * 10000,
         edges,
         histtype="step",
         # yerr=True,
-        label="SM Signal",
+        label="SM Signal x 10000",
         ax=ax,
-        color="orangered",
-        linewidth=1.5,
+        color="hh:darkyellow",  # "orangered",
+        linewidth=1.25,
     )
+
     # ratio plot
     hep.histplot(
         # cumulative_signal/cumulative_bkg,
         ratio,
         edges,
-        stack=True,
         histtype="errorbar",
-        yerr=np.sqrt(signal) / np.sqrt(bkg) + 1e-9,
-        label=["SM Signal", "$t\overline{t}$"],
+        yerr=True,
         ax=rax,
         color="Black",
     )
-    # hep.cms.label(data=True, lumi=59.97, year=2018, loc=0)
     fig.subplots_adjust(hspace=0.07)
     ax.set_ylabel("Events")
-    rax.set_ylabel("Signal/Bkg")
-    rax.set_ylim([0, 2])
+    rax.set_ylabel("$S/\sqrt{B}$")
+    rax.set_ylim([0, 0.001])
+    ax.set_yscale("log")
+    ax.set_ylim([0, 100_000])
 
-    hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
+    hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
+
+    hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
     rax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i", offset=False))
     ax.legend(loc="upper right")
-    plt.savefig(plotPath + "mh1_ratio.pdf")
+    plt.savefig(plotPath + f"{m_h}_ratio.pdf")
     plt.close()
 
 
@@ -421,6 +445,9 @@ with File(histFile, "r") as file:
     leadingLargeRpT()
     mhh()
     massplane_77()
-    if histFileBkg:
-        with File(histFileBkg, "r") as fileBkg:
-            mh1_ratio()
+    if withBackground:
+        with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
+            mh_ratio("h1")
+            mh_ratio("h2")
+            mh_ratio("hh")
+

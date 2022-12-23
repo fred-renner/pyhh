@@ -25,7 +25,6 @@ parser.add_argument("--debug", action="store_true")
 args = parser.parse_args()
 
 # files to load
-pattern = "*"
 
 topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 # mc21 signal
@@ -35,15 +34,18 @@ topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 
 # mc20 signal
 # 1cvv1cv1
-# pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-# histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
+pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
 # ttbar
-topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-pattern = "*ttbar*/*"
-histOutFileName = "hists-MC20-bkg-ttbar.h5"
-
+# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+# pattern = "*ttbar*/*"
+# histOutFileName = "hists-MC20-bkg-ttbar.h5"
+# dijet
+# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+# pattern = "*jetjet*/*"
+# histOutFileName = "hists-MC20-bkg-dijet.h5"
 
 # get all files also from subdirectories with wildcard
 filelist = []
@@ -205,7 +207,7 @@ def error_handler(e):
 # debugging settings
 if args.debug:
     filelist = filelist[:2]
-    histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug"
+    histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
 
 
 with File(histOutFile, "w") as outfile:
@@ -217,8 +219,6 @@ with File(histOutFile, "w") as outfile:
             tree = file["AnalysisMiniTree"]
             # take only vars that exist
             varsExist = set(tree.keys()).intersection(vars)
-            # progressbar
-            pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             # the auto batchSize setup could crash if you don't have enough
             # memory
             if args.debug:
@@ -231,6 +231,8 @@ with File(histOutFile, "w") as outfile:
             else:
                 nEvents = None
                 cpus = multiprocessing.cpu_count() - 4
+                if cpus > 32:
+                    cpus = 32
                 batchSize = int(tree.num_entries / cpus)
                 # get CutBookKeepers / weights info
                 metaData = tools.getMetaData(file)
@@ -242,6 +244,8 @@ with File(histOutFile, "w") as outfile:
             )
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
+            # progressbar
+            pbar = tqdm(total=tree.num_entries, position=0, leave=True)
             for batch in eventBatches:
                 pool.apply_async(
                     Analysis.Run,
