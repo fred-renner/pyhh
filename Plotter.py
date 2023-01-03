@@ -32,8 +32,7 @@ withBackground=True
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
 histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
 ttbarHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
-dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
-
+dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-dijet.h5"
 # fmt: on
 
 if args.histFile:
@@ -52,7 +51,8 @@ def getHist(file, name):
     # access [1:-1] to remove underflow and overflow bins
     h = file[name]["histogram"][1:-1]
     bins = file[name]["edges"]
-    return h, bins
+    err = file[name]["err"][1:-1]
+    return h, bins, err
 
 
 def trigger_leadingLargeRpT():
@@ -250,16 +250,16 @@ def leadingLargeRpT():
 
 def mhh():
     plt.figure()
-    mhh = file["mhh"]["histogram"][1:-1]
+    mhh, edges, err = getHist(file, "mhh")
     # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
     # trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
     #     passed=mhh, total=truth_mhh
     # )
     hep.histplot(
         mhh,  # / truth_mhh,
-        file["mhh"]["edges"],
+        edges,
         histtype="errorbar",
-        yerr=True,
+        yerr=err,
         solid_capstyle="projecting",
         capsize=3,
         # label=["truth", "reco"]
@@ -330,11 +330,10 @@ def vrJetEfficiencyBoosted():
     plt.close()
 
 
-def mh_ratio(whichHiggs):
-    m_h = "m" + whichHiggs
-    signal, edges = getHist(file, m_h)
-    ttbar, edges2 = getHist(ttbarFile, m_h)
-    dijet, edges2 = getHist(dijetFile, m_h)
+def mh_ratio(histKey):
+    signal, edges, signal_err = getHist(file, histKey)
+    ttbar, edges2, ttbar_err = getHist(ttbarFile, histKey)
+    dijet, edges2, dijet_err = getHist(dijetFile, histKey)
 
     bkg = np.array([ttbar, dijet])
     bkg_tot = np.sum(bkg, axis=0)
@@ -423,18 +422,23 @@ def mh_ratio(whichHiggs):
     fig.subplots_adjust(hspace=0.07)
     ax.set_ylabel("Events")
     rax.set_ylabel("$S/\sqrt{B}$")
-    rax.set_ylim([0, 0.001])
+    rax.set_ylim([0, 0.0001])
     ax.set_yscale("log")
-    ax.set_ylim([0, 100_000])
+    ax.set_ylim([0, 1_000_000])
 
     hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
-
+    if "mh1" in histKey:
+        whichHiggs = "H1"
+    if "mh2" in histKey:
+        whichHiggs = "H2"
+    if "hh" in histKey:
+        whichHiggs = "HH"
     hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
     rax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i", offset=False))
     ax.legend(loc="upper right")
-    plt.savefig(plotPath + f"{m_h}_ratio.pdf")
+    plt.savefig(plotPath + f"{histKey}_ratio.pdf")
     plt.close()
 
 
@@ -445,9 +449,8 @@ with File(histFile, "r") as file:
     leadingLargeRpT()
     mhh()
     massplane_77()
-    if withBackground:
-        with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
-            mh_ratio("h1")
-            mh_ratio("h2")
-            mh_ratio("hh")
-
+    # if withBackground:
+    #     with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
+    #         mh_ratio("mh1")
+    #         mh_ratio("mh2")
+    #         mh_ratio("btagHigh_2b2b_mhh")

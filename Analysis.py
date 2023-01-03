@@ -80,6 +80,7 @@ class ObjectSelection:
         self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
         self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
         self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
         # fmt: on
@@ -225,6 +226,7 @@ class ObjectSelection:
                 self.btagHigh_2b1b[event] = True
             if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
                 self.btagHigh_2b2b[event] = True
+                # print(self.vr_deltaR12[event])
             # print("self.btagLow_1b1j ", self.btagLow_1b1j[event])
             # print("self.btagLow_2b1j ", self.btagLow_2b1j[event])
             # print("self.btagLow_2b2j ", self.btagLow_2b2j[event])
@@ -312,7 +314,6 @@ class ObjectSelection:
     #     self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
 
     def returnResults(self):
-        # print((self.h1_m, self.btagHigh_2b2b))
         results = {
             "truth_mhh": self.resultTuple(self.truth_m_hh),
             "mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
@@ -357,20 +358,6 @@ class ObjectSelection:
             ),
         }
 
-        # np.array(
-        #         [
-        #             self.h1_m[self.btagHigh_2b2b],
-        #             self.h2_m[self.btagHigh_2b2b],
-        #         ]
-        #     ).T,
-
-        # blah= np.array(
-        #         [
-        #             self.h1_m[self.btagHigh_2b2b],
-        #             self.h2_m[self.btagHigh_2b2b],
-        #         ]
-        #     ).T,
-        # print("blah" ,blah)
         return results
 
     def resultTuple(self, var, sel=None, oneWeights=False):

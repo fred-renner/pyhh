@@ -13,7 +13,7 @@ def EfficiencyErrorBayesian(k, n, bUpper):
             return 1
 
     error = np.sqrt(
-        ((k + 1) * (k + 2)) / ((n + 2) * (n + 3)) - (pow(k + 1, 2) / pow(n + 2, 2))
+        ((k + 1) * (k + 2)) / ((n + 2) * (n + 3)) - (((k + 1) ** 2) / (n + 2) ** 2)
     )
     ratio = k / n
     if bUpper:

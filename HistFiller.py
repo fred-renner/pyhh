@@ -75,6 +75,7 @@ h1Binning = {"binrange": (0, 300_000), "bins": 100}
 hhbinning = {"binrange": (0, 500_000), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
+dRbins = {"binrange": (0, 4), "bins": 100}
 
 hists = [
     FloatHistogram(
@@ -178,6 +179,16 @@ hists = [
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
+    # FloatHistogram(
+    #     name="dR_h1",
+    #     binrange=dRbins["binrange"],
+    #     bins=dRbins["bins"],
+    # ),
+    # FloatHistogram(
+    #     name="dR_h2",
+    #     binrange=dRbins["binrange"],
+    #     bins=dRbins["bins"],
+    # ),
     FloatHistogram2D(
         name="massplane_77",
         binrange1=(50_000, 250_000),
@@ -192,8 +203,10 @@ hists = [
 
 # the filling is executed each time an Analysis.Run job finishes
 def filling_callback(results):
+    # update bin heights per iteration
     for hist in hists:
-        # update bin heights per iteration
+        if hist._name not in results.keys():
+            print(f"{hist._name} defined but not in results")
         res = results[hist._name]
         hist.fill(values=res[0], weights=res[1])
     pbar.update(batchSize)
@@ -222,12 +235,15 @@ with File(histOutFile, "w") as outfile:
             # the auto batchSize setup could crash if you don't have enough
             # memory
             if args.debug:
-                nEvents = 1000
+                nEvents = 10
                 cpus = 1
-                batchSize = int(tree.num_entries)
+                batchSize = int(tree.num_entries / cpus)
                 metaData = {}
                 metaData["initial_sum_of_weights"] = 1e10
                 metaData["crossSection"] = 1e-6
+                metaData["dataYears"] = ["2017"]
+                metaData["genFiltEff"] = 1.0
+
             else:
                 nEvents = None
                 cpus = multiprocessing.cpu_count() - 4
@@ -261,7 +277,7 @@ with File(histOutFile, "w") as outfile:
     for hist in hists:
         hist.write(outfile)
 
-# if you want to plot directly
+# if to plot directly
 if not args.debug:
     subprocess.call(
         "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"

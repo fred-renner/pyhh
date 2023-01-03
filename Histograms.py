@@ -15,18 +15,24 @@ class FloatHistogram:
         )
         # book hist
         self._hist = np.zeros(self._bins.size - 1, dtype=float)
-        self._w=np.ones(self._bins.size - 1, dtype=float)
+        self._w2sum = np.zeros(self._bins.size - 1, dtype=float)
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 
     def fill(self, values, weights):
         hist = np.histogramdd(values, bins=[self._bins], weights=weights)[0]
+        # find the bins of the weights
+        indices = np.digitize(values, self._bins) - 1
+        # sum them up squared
+        for k, ind in enumerate(indices):
+            self._w2sum[ind] += weights[k] ** 2
         self._hist += hist
 
     def write(self, file_):
         hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
+        hist = hgroup.create_dataset("err", data=np.sqrt(self._w2sum), **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins[1:-1], **self._compression)
         ax.make_scale("edges")
         hist.dims[0].attach_scale(ax)
