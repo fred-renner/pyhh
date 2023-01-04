@@ -8,7 +8,7 @@ from operator import xor
 np.set_printoptions(threshold=np.inf)
 
 
-def Run(batch, metaData, tree, vars):
+def  Run(batch, metaData, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
@@ -23,8 +23,8 @@ def get_lumi(years: list):
 
     Parameters
     ----------
-    yr: list
-        Year corresponding to desired lumi (15, 16, 17, 18, or all)
+    years: list
+        Years corresponding to desired lumi
 
     """
     lumi = {
@@ -44,13 +44,13 @@ def get_lumi(years: list):
 
 class ObjectSelection:
     def __init__(self, metaData, vars_arr):
-
-        # mcEventWeights[:][0] == generatorWeight_NOSYS
-        lumi = get_lumi(metaData["dataYears"])
-        # crosssection comes in nb-1 (* 1e6 = fb-1)
-        sigma = metaData["crossSection"] * 1e6
-        sum_of_weights = metaData["initial_sum_of_weights"]
-        self.weightFactor = sigma * lumi * metaData["genFiltEff"] / sum_of_weights
+        self.mc = True if len(metaData) != 0 else False
+        if self.mc:
+            lumi = get_lumi(metaData["dataYears"])
+            # crosssection comes in nb-1 (* 1e6 = fb-1)
+            sigma = metaData["crossSection"] * 1e6
+            sum_of_weights = metaData["initial_sum_of_weights"]
+            self.weightFactor = sigma * lumi * metaData["genFiltEff"] / sum_of_weights
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -116,6 +116,8 @@ class ObjectSelection:
         self.m_hh = np.copy(floatInitArray)
         self.h1_m = np.copy(floatInitArray)
         self.h2_m = np.copy(floatInitArray)
+        self.dR_h1 = np.copy(floatInitArray)
+        self.dR_h2 = np.copy(floatInitArray)
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
@@ -126,15 +128,17 @@ class ObjectSelection:
             # if not self.vr_dontOverlap[event]:
             #     # should we actually throw away the whole event?
             #     continue
-            self.weights[event] = (
-                self.weightFactor
-                * self.vars_arr["pileupWeight_NOSYS"][event]
-                * self.vars_arr["mcEventWeights"][event][0]
-            )
+            if self.mc:
+                self.weights[event] = (
+                    self.weightFactor
+                    * self.vars_arr["pileupWeight_NOSYS"][event]
+                    * self.vars_arr["mcEventWeights"][event][0]
+                    # mcEventWeights[:][0] == generatorWeight_NOSYS
+                )
             self.largeRSelectSort(event)
             self.getLeadingLargeR(event)
             self.getLeadingLargeRcuts(event)
-            self.getVRtags(event)
+            self.getVRs(event)
             self.hh_m_77(event)
             if self.hasTruth:
                 self.truth_mhh(event)
@@ -184,7 +188,7 @@ class ObjectSelection:
             binnedObject=self.m_hh, Counts=self.nLargeRSelected
         )
 
-    def getVRtags(self, event):
+    def getVRs(self, event):
         if self.selectedTwoLargeRevents[event]:
             # print(self.vr_btag_77[event]._values)
             # print(self.vr_btag_77[event]._values[0])
@@ -226,7 +230,10 @@ class ObjectSelection:
                 self.btagHigh_2b1b[event] = True
             if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
                 self.btagHigh_2b2b[event] = True
-                # print(self.vr_deltaR12[event])
+
+            self.dR_h1[event] = self.vr_deltaR12[event][j1_index]
+            self.dR_h2[event] = self.vr_deltaR12[event][j2_index]
+
             # print("self.btagLow_1b1j ", self.btagLow_1b1j[event])
             # print("self.btagLow_2b1j ", self.btagLow_2b1j[event])
             # print("self.btagLow_2b2j ", self.btagLow_2b2j[event])
@@ -313,12 +320,18 @@ class ObjectSelection:
     #     h2_m_selected = h2_m[selection]
     #     self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
 
+    # print(self.vr_deltaR12[event])
     def returnResults(self):
+
+        # lookup table for histname, vars/attr name, selection
+
         results = {
             "truth_mhh": self.resultTuple(self.truth_m_hh),
             "mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
             "mh1": self.resultTuple(self.h1_m, self.btagHigh_2b2b),
             "mh2": self.resultTuple(self.h2_m, self.btagHigh_2b2b),
+            "dR_h1": self.resultTuple(self.dR_h1, self.btagHigh_2b2b),
+            "dR_h2": self.resultTuple(self.dR_h2, self.btagHigh_2b2b),
             "nTriggerPass_mhh": self.resultTuple(self.m_hh, self.trigger),
             "nTwoLargeR_mhh": self.resultTuple(self.m_hh, self.nLargeR >= 2),
             "nTwoSelLargeR_mhh": self.resultTuple(

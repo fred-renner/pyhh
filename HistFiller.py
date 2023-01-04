@@ -7,8 +7,6 @@ import Loader
 from Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 from h5py import File
 import Analysis
-import yaml
-import os
 import multiprocessing
 import argparse
 import glob
@@ -47,6 +45,11 @@ histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 # pattern = "*jetjet*/*"
 # histOutFileName = "hists-MC20-bkg-dijet.h5"
 
+# data 17
+# topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
+# pattern = "data*"
+# histOutFileName = "hists-data17.h5"
+
 # get all files also from subdirectories with wildcard
 filelist = []
 for file in glob.iglob(topPath + "/" + pattern):
@@ -75,7 +78,7 @@ h1Binning = {"binrange": (0, 300_000), "bins": 100}
 hhbinning = {"binrange": (0, 500_000), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
-dRbins = {"binrange": (0, 4), "bins": 100}
+dRbins = {"binrange": (0, 1.2), "bins": 75}
 
 hists = [
     FloatHistogram(
@@ -179,16 +182,16 @@ hists = [
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
-    # FloatHistogram(
-    #     name="dR_h1",
-    #     binrange=dRbins["binrange"],
-    #     bins=dRbins["bins"],
-    # ),
-    # FloatHistogram(
-    #     name="dR_h2",
-    #     binrange=dRbins["binrange"],
-    #     bins=dRbins["bins"],
-    # ),
+    FloatHistogram(
+        name="dR_h1",
+        binrange=dRbins["binrange"],
+        bins=dRbins["bins"],
+    ),
+    FloatHistogram(
+        name="dR_h2",
+        binrange=dRbins["binrange"],
+        bins=dRbins["bins"],
+    ),
     FloatHistogram2D(
         name="massplane_77",
         binrange1=(50_000, 250_000),
@@ -226,7 +229,7 @@ if args.debug:
 with File(histOutFile, "w") as outfile:
     # loop over input files
     for i, file_ in enumerate(filelist):
-        print("Processing file " + str(i + 1) + "/" + str(len(filelist)))
+        print("\nProcessing file " + str(i + 1) + "/" + str(len(filelist)))
         with uproot.open(file_) as file:
             # access the tree
             tree = file["AnalysisMiniTree"]
@@ -235,7 +238,7 @@ with File(histOutFile, "w") as outfile:
             # the auto batchSize setup could crash if you don't have enough
             # memory
             if args.debug:
-                nEvents = 10
+                nEvents = 10000
                 cpus = 1
                 batchSize = int(tree.num_entries / cpus)
                 metaData = {}
@@ -254,7 +257,7 @@ with File(histOutFile, "w") as outfile:
                 metaData = tools.getMetaData(file)
                 if args.cpus:
                     cpus = args.cpus
-                    batchSize = 10_0000
+                    batchSize = 10_000
             eventBatches = Loader.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )

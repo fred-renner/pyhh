@@ -20,6 +20,11 @@ mcCampaign = {
 def getMetaData(file):
     metaData = {}
     filepath = file._file._file_path
+
+    # jump out if we have data
+    if "data" in filepath:
+        return metaData
+
     print(f"Get Meta-data for file: {filepath}")
     metaData["isSignal"] = True if "_hh_bbbb_" in filepath else False
     for key in file.keys():
@@ -28,7 +33,6 @@ def getMetaData(file):
             metaData["initial_events"] = cbk[0][0]
             metaData["initial_sum_of_weights"] = cbk[0][1]
             metaData["initial_sum_of_weights_squared"] = cbk[0][2]
-
     # get dataset number
     ds = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
     # get ami tags until r-tag as p always changes

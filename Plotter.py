@@ -50,9 +50,9 @@ if not os.path.isdir(plotPath):
 def getHist(file, name):
     # access [1:-1] to remove underflow and overflow bins
     h = file[name]["histogram"][1:-1]
-    bins = file[name]["edges"]
-    err = file[name]["err"][1:-1]
-    return h, bins, err
+    edges = file[name]["edges"][:]
+    err = np.sqrt(file[name]["w2sum"][1:-1])
+    return {"h": h, "edges": edges, "err": err}
 
 
 def trigger_leadingLargeRpT():
@@ -170,7 +170,6 @@ def accEff_mhh():
     ]
     hists = []
     for key in keys:
-        print(file[key]["histogram"][1:-1].shape)
         hists.append(file[key]["histogram"][1:-1])
     hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
         hists, baseline=mhh, stopCumulativeFrom=4
@@ -250,16 +249,15 @@ def leadingLargeRpT():
 
 def mhh():
     plt.figure()
-    mhh, edges, err = getHist(file, "mhh")
     # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
     # trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
     #     passed=mhh, total=truth_mhh
     # )
     hep.histplot(
-        mhh,  # / truth_mhh,
-        edges,
+        hists["mhh"]["h"],  # / truth_mhh,
+        hists["mhh"]["edges"],  # / truth_mhh,
         histtype="errorbar",
-        yerr=err,
+        yerr=hists["mhh"]["err"],  # / truth_mhh,
         solid_capstyle="projecting",
         capsize=3,
         # label=["truth", "reco"]
@@ -279,6 +277,41 @@ def mhh():
     ax.get_xaxis().get_offset_text().set_position((2, 0))
 
     plt.savefig(plotPath + "mhh.pdf")
+    plt.close()
+
+
+def dRs():
+    plt.figure()
+    dR_h1 = getHist(file, "dR_h1")
+    dR_h2 = getHist(file, "dR_h2")
+    # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
+    # trigger_leadingLargeRm_err = tools.getEfficiencyErrors(
+    #     passed=mhh, total=truth_mhh
+    # )
+    hep.histplot(
+        [dR_h1["h"], dR_h2["h"]],
+        dR_h1["edges"],
+        histtype="errorbar",
+        yerr=[dR_h1["err"], dR_h2["err"]],
+        solid_capstyle="projecting",
+        capsize=3,
+        label=["H1", "H2"],
+        alpha=0.75,
+    )
+    # hep.atlas.text(" Simulation", loc=1)
+    hep.atlas.set_ylabel("Events")
+    hep.atlas.set_xlabel("DeltaR leading VR jets")
+    ax = plt.gca()
+    # ax.set_yscale("log")
+    # ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+    plt.legend(loc="upper right")
+    # hep.yscale_legend()
+    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
+
+    plt.tight_layout()
+    # ax.get_xaxis().get_offset_text().set_position((2, 0))
+
+    plt.savefig(plotPath + "VR_dR.pdf")
     plt.close()
 
 
@@ -443,11 +476,15 @@ def mh_ratio(histKey):
 
 
 with File(histFile, "r") as file:
+    hists = {}
+    for key in file.keys():
+        hists[key] = getHist(file, key)
     trigger_leadingLargeRpT()
     trigger_leadingLargeRm()
     accEff_mhh()
     leadingLargeRpT()
     mhh()
+    dRs()
     massplane_77()
     # if withBackground:
     #     with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
