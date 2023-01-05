@@ -303,8 +303,8 @@ with File(histOutFile, "w") as outfile:
                 )
             pool.close()
             pool.join()
-
             pbar.close()
+            print("Done")
 
     # write histograms to file
     for hist in hists:

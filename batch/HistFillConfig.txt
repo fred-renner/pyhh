@@ -1,7 +1,7 @@
 Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
 cpus = 1
 
-executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sh
+executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sh
 log                     = log_$(Process).log
 output                  = outfile_$(Process).txt
 error                   = errors_$(Process).txt

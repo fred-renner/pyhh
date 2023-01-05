@@ -11,8 +11,8 @@ import glob
 
 # mc20 signal
 # 1cvv1cv1
-# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-# pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
 
 # mc20 bkg
 # # ttbar
@@ -22,7 +22,6 @@ pattern = "*ttbar*/*"
 # # dijet
 # topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
 # pattern = "*jetjet*/*"
-# histOutFileName = "hists-MC20-bkg-dijet.h5"
 
 # data 17
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
@@ -35,13 +34,15 @@ for file in glob.iglob(topPath + "/" + pattern):
 
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
-    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillConfig.txt"
-    " /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sub",
+    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillConfig.txt"
+    " /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub",
     shell=True,
 )
 
+# filelist=[filelist[-1]]
+
 # write jobs per line
-with open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sub", "a") as f:
+with open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub", "a") as f:
     k = 0
     limit = 100
     waitTime = 10
@@ -54,6 +55,10 @@ with open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sub", "a"
         f.write(f"arguments = $(Proxy_path) $(cpus) {file}")
         f.write("\n")
         f.write(f"deferral_time = (CurrentTime + {delay})")
+        f.write("\n")
+        f.write(f"deferral_prep_time = (CurrentTime + {delay-20})")
+        f.write("\n")
+        f.write(f"deferral_window = 100000000")
         f.write("\n")
         f.write("queue")
         f.write("\n")

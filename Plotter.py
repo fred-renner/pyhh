@@ -42,7 +42,7 @@ if args.histFile:
 filename = histFile.split("/")
 filename = str(filename[-1]).replace(".h5", "")
 logging.info("make plots for " + filename)
-plotPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/plots-" + filename + "/"
+plotPath = "/lustre/fs22/group/atlas/freder/hh/run/plots/" + filename + "/"
 if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
 

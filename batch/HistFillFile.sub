@@ -1,7 +1,7 @@
 Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
 cpus = 1
 
-executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sh
+executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sh
 log                     = log_$(Process).log
 output                  = outfile_$(Process).txt
 error                   = errors_$(Process).txt
@@ -14,184 +14,306 @@ getenv = True
 
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000020.output-hh4b.root
 deferral_time = (CurrentTime + 10)
+deferral_prep_time = (CurrentTime + -10)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000015.output-hh4b.root
 deferral_time = (CurrentTime + 20)
+deferral_prep_time = (CurrentTime + 0)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000007.output-hh4b.root
 deferral_time = (CurrentTime + 30)
+deferral_prep_time = (CurrentTime + 10)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000002.output-hh4b.root
 deferral_time = (CurrentTime + 40)
+deferral_prep_time = (CurrentTime + 20)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000003.output-hh4b.root
 deferral_time = (CurrentTime + 50)
+deferral_prep_time = (CurrentTime + 30)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000014.output-hh4b.root
 deferral_time = (CurrentTime + 60)
+deferral_prep_time = (CurrentTime + 40)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000019.output-hh4b.root
 deferral_time = (CurrentTime + 70)
+deferral_prep_time = (CurrentTime + 50)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000013.output-hh4b.root
 deferral_time = (CurrentTime + 80)
+deferral_prep_time = (CurrentTime + 60)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000005.output-hh4b.root
 deferral_time = (CurrentTime + 90)
+deferral_prep_time = (CurrentTime + 70)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000006.output-hh4b.root
 deferral_time = (CurrentTime + 100)
+deferral_prep_time = (CurrentTime + 80)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000022.output-hh4b.root
 deferral_time = (CurrentTime + 110)
+deferral_prep_time = (CurrentTime + 90)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000021.output-hh4b.root
 deferral_time = (CurrentTime + 120)
+deferral_prep_time = (CurrentTime + 100)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000004.output-hh4b.root
 deferral_time = (CurrentTime + 130)
+deferral_prep_time = (CurrentTime + 110)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000017.output-hh4b.root
 deferral_time = (CurrentTime + 140)
+deferral_prep_time = (CurrentTime + 120)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000016.output-hh4b.root
 deferral_time = (CurrentTime + 150)
+deferral_prep_time = (CurrentTime + 130)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000001.output-hh4b.root
 deferral_time = (CurrentTime + 160)
+deferral_prep_time = (CurrentTime + 140)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000018.output-hh4b.root
 deferral_time = (CurrentTime + 170)
+deferral_prep_time = (CurrentTime + 150)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000011.output-hh4b.root
 deferral_time = (CurrentTime + 180)
+deferral_prep_time = (CurrentTime + 160)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000009.output-hh4b.root
 deferral_time = (CurrentTime + 190)
+deferral_prep_time = (CurrentTime + 170)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000010.output-hh4b.root
 deferral_time = (CurrentTime + 200)
+deferral_prep_time = (CurrentTime + 180)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000008.output-hh4b.root
 deferral_time = (CurrentTime + 210)
+deferral_prep_time = (CurrentTime + 190)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000017.output-hh4b.root
 deferral_time = (CurrentTime + 220)
+deferral_prep_time = (CurrentTime + 200)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000027.output-hh4b.root
 deferral_time = (CurrentTime + 230)
+deferral_prep_time = (CurrentTime + 210)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000029.output-hh4b.root
 deferral_time = (CurrentTime + 240)
+deferral_prep_time = (CurrentTime + 220)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000026.output-hh4b.root
 deferral_time = (CurrentTime + 250)
+deferral_prep_time = (CurrentTime + 230)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000012.output-hh4b.root
 deferral_time = (CurrentTime + 260)
+deferral_prep_time = (CurrentTime + 240)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000005.output-hh4b.root
 deferral_time = (CurrentTime + 270)
+deferral_prep_time = (CurrentTime + 250)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000018.output-hh4b.root
 deferral_time = (CurrentTime + 280)
+deferral_prep_time = (CurrentTime + 260)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000016.output-hh4b.root
 deferral_time = (CurrentTime + 290)
+deferral_prep_time = (CurrentTime + 270)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000019.output-hh4b.root
 deferral_time = (CurrentTime + 300)
+deferral_prep_time = (CurrentTime + 280)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000013.output-hh4b.root
 deferral_time = (CurrentTime + 310)
+deferral_prep_time = (CurrentTime + 290)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000021.output-hh4b.root
 deferral_time = (CurrentTime + 320)
+deferral_prep_time = (CurrentTime + 300)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000003.output-hh4b.root
 deferral_time = (CurrentTime + 330)
+deferral_prep_time = (CurrentTime + 310)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000025.output-hh4b.root
 deferral_time = (CurrentTime + 340)
+deferral_prep_time = (CurrentTime + 320)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000020.output-hh4b.root
 deferral_time = (CurrentTime + 350)
+deferral_prep_time = (CurrentTime + 330)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000001.output-hh4b.root
 deferral_time = (CurrentTime + 360)
+deferral_prep_time = (CurrentTime + 340)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000028.output-hh4b.root
 deferral_time = (CurrentTime + 370)
+deferral_prep_time = (CurrentTime + 350)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000014.output-hh4b.root
 deferral_time = (CurrentTime + 380)
+deferral_prep_time = (CurrentTime + 360)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000011.output-hh4b.root
 deferral_time = (CurrentTime + 390)
+deferral_prep_time = (CurrentTime + 370)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000009.output-hh4b.root
 deferral_time = (CurrentTime + 400)
+deferral_prep_time = (CurrentTime + 380)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000010.output-hh4b.root
 deferral_time = (CurrentTime + 410)
+deferral_prep_time = (CurrentTime + 390)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000015.output-hh4b.root
 deferral_time = (CurrentTime + 420)
+deferral_prep_time = (CurrentTime + 400)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000002.output-hh4b.root
 deferral_time = (CurrentTime + 430)
+deferral_prep_time = (CurrentTime + 410)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000024.output-hh4b.root
 deferral_time = (CurrentTime + 440)
+deferral_prep_time = (CurrentTime + 420)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000007.output-hh4b.root
 deferral_time = (CurrentTime + 450)
+deferral_prep_time = (CurrentTime + 430)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000006.output-hh4b.root
 deferral_time = (CurrentTime + 460)
+deferral_prep_time = (CurrentTime + 440)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000008.output-hh4b.root
 deferral_time = (CurrentTime + 470)
+deferral_prep_time = (CurrentTime + 450)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000004.output-hh4b.root
 deferral_time = (CurrentTime + 480)
+deferral_prep_time = (CurrentTime + 460)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000023.output-hh4b.root
 deferral_time = (CurrentTime + 490)
+deferral_prep_time = (CurrentTime + 470)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000002.output-hh4b.root
 deferral_time = (CurrentTime + 500)
+deferral_prep_time = (CurrentTime + 480)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000005.output-hh4b.root
 deferral_time = (CurrentTime + 510)
+deferral_prep_time = (CurrentTime + 490)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000003.output-hh4b.root
 deferral_time = (CurrentTime + 520)
+deferral_prep_time = (CurrentTime + 500)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000012.output-hh4b.root
 deferral_time = (CurrentTime + 530)
+deferral_prep_time = (CurrentTime + 510)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000007.output-hh4b.root
 deferral_time = (CurrentTime + 540)
+deferral_prep_time = (CurrentTime + 520)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000008.output-hh4b.root
 deferral_time = (CurrentTime + 550)
+deferral_prep_time = (CurrentTime + 530)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000011.output-hh4b.root
 deferral_time = (CurrentTime + 560)
+deferral_prep_time = (CurrentTime + 540)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000006.output-hh4b.root
 deferral_time = (CurrentTime + 570)
+deferral_prep_time = (CurrentTime + 550)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000001.output-hh4b.root
 deferral_time = (CurrentTime + 580)
+deferral_prep_time = (CurrentTime + 560)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000004.output-hh4b.root
 deferral_time = (CurrentTime + 590)
+deferral_prep_time = (CurrentTime + 570)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000010.output-hh4b.root
 deferral_time = (CurrentTime + 600)
+deferral_prep_time = (CurrentTime + 580)
+deferral_window = 100000000
 queue
 arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000009.output-hh4b.root
 deferral_time = (CurrentTime + 610)
+deferral_prep_time = (CurrentTime + 590)
+deferral_window = 100000000
 queue
