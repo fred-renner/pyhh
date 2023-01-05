@@ -1,6 +1,6 @@
 Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
 cpus = 16
-sample = dijet 
+sample = dijet   
 
 
 arguments = $(Proxy_path) $(cpus)
@@ -11,7 +11,7 @@ error                   = errors_$(sample).txt
 should_transfer_files   = No
 # when_to_transfer_output = ON_EXIT
 request_cpus = $(cpus)
-# request_memory = 8G
+request_memory = 8G
 # request_disk = 20G
 getenv = True
 notification = Always

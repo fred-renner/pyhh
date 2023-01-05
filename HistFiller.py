@@ -12,6 +12,10 @@ import argparse
 import glob
 import subprocess
 import HistFillerTools as tools
+import os
+import time
+import random
+
 
 # TODO
 # make yaml config
@@ -19,6 +23,8 @@ import HistFillerTools as tools
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)
 parser.add_argument("--debug", action="store_true")
+parser.add_argument("--file", type=str, default=None)
+parser.add_argument("--batchMode", action="store_true")
 
 args = parser.parse_args()
 
@@ -33,14 +39,13 @@ topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 # mc20 signal
 # 1cvv1cv1
 pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-histOutFileName = "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
-# ttbar
+# # ttbar
 # topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
 # pattern = "*ttbar*/*"
 # histOutFileName = "hists-MC20-bkg-ttbar.h5"
-# dijet
+# # dijet
 # topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
 # pattern = "*jetjet*/*"
 # histOutFileName = "hists-MC20-bkg-dijet.h5"
@@ -55,12 +60,31 @@ filelist = []
 for file in glob.iglob(topPath + "/" + pattern):
     filelist += [file]
 
-# make hist out file name from filename
-if "histOutFileName" not in locals():
-    dataset = filelist[0].split("/")
-    histOutFileName = "hists-" + dataset[-2] + ".h5"
 
-histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName
+if args.file:
+    filelist = [args.file]
+    fileParts = filelist[0].split("/")
+    dataset = fileParts[-2]
+    datasetPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + dataset
+    file = fileParts[-1]
+    if not os.path.isdir(datasetPath):
+        os.makedirs(datasetPath)
+
+    histOutFile = (
+        "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
+        + dataset
+        + "/"
+        + file
+        + ".h5"
+    )
+else:
+    # make hist out file name from filename
+    if "histOutFileName" not in locals():
+        dataset = filelist[0].split("/")
+        histOutFileName = "hists-" + dataset[-2] + ".h5"
+
+    histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName
+
 
 # figure out which vars to load from analysis script
 start = 'vars_arr["'
@@ -253,8 +277,13 @@ with File(histOutFile, "w") as outfile:
                 if cpus > 32:
                     cpus = 32
                 batchSize = int(tree.num_entries / cpus)
-                # get CutBookKeepers / weights info
-                metaData = tools.getMetaData(file)
+                metaData = {}
+                if "data" not in file_:
+                    while len(metaData) == 0:
+                        try:
+                            metaData = tools.getMetaData(file)
+                        except:
+                            time.sleep(random.randrange(20, 60))
                 if args.cpus:
                     cpus = args.cpus
                     batchSize = 10_000
@@ -274,16 +303,17 @@ with File(histOutFile, "w") as outfile:
                 )
             pool.close()
             pool.join()
+
             pbar.close()
 
     # write histograms to file
     for hist in hists:
         hist.write(outfile)
 
-# if to plot directly
-if not args.debug:
-    subprocess.call(
-        "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
-        f" {histOutFile}",
-        shell=True,
-    )
+# # if to plot directly
+# if not args.debug:
+#     subprocess.call(
+#         "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
+#         f" {histOutFile}",
+#         shell=True,
+#     )

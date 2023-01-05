@@ -1,0 +1,14 @@
+Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
+cpus = 1
+
+executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/HistFillFile.sh
+log                     = log_$(Process).log
+output                  = outfile_$(Process).txt
+error                   = errors_$(Process).txt
+should_transfer_files   = No
+# when_to_transfer_output = ON_EXIT
+request_cpus = $(cpus)
+# request_memory = 8G
+# request_disk = 20G
+getenv = True
+

@@ -21,10 +21,6 @@ def getMetaData(file):
     metaData = {}
     filepath = file._file._file_path
 
-    # jump out if we have data
-    if "data" in filepath:
-        return metaData
-
     print(f"Get Meta-data for file: {filepath}")
     metaData["isSignal"] = True if "_hh_bbbb_" in filepath else False
     for key in file.keys():

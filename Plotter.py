@@ -207,7 +207,7 @@ def accEff_mhh():
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
 
-    ax.set_ylim([0, 1.4])
+    ax.set_ylim([0, 0.1e7])
     plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
     hep.rescale_to_axessize
     plt.tight_layout()
