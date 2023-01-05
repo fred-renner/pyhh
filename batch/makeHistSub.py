@@ -20,8 +20,8 @@ topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
 pattern = "*ttbar*/*"
 
 # # dijet
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*jetjet*/*"
+topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+pattern = "*jetjet*/*"
 
 # data 17
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
@@ -39,19 +39,17 @@ subprocess.call(
     shell=True,
 )
 
-# filelist=[filelist[-1]]
+# filelist=filelist[:50]
 
 # write jobs per line
-with open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub", "a") as f:
+with open(
+    "/lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub", "a"
+) as f:
     k = 0
-    limit = 100
     waitTime = 10
     for i, file in enumerate(filelist):
-        if k < limit:
-            k += 1
-            delay = k * waitTime
-        else:
-            k = 0
+        k += 1
+        delay = k * waitTime
         f.write(f"arguments = $(Proxy_path) $(cpus) {file}")
         f.write("\n")
         f.write(f"deferral_time = (CurrentTime + {delay})")
