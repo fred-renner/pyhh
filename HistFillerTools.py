@@ -20,33 +20,35 @@ mcCampaign = {
 def getMetaData(file):
     metaData = {}
     filepath = file._file._file_path
-
     print(f"Get Meta-data for file: {filepath}")
     metaData["isSignal"] = True if "_hh_bbbb_" in filepath else False
+
+    # cut book keeping
     for key in file.keys():
         if "CutBookkeeper" and "NOSYS" in key:
             cbk = file[key].to_numpy()
             metaData["initial_events"] = cbk[0][0]
             metaData["initial_sum_of_weights"] = cbk[0][1]
             metaData["initial_sum_of_weights_squared"] = cbk[0][2]
+
     # get dataset number
     ds = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
     # get ami tags until r-tag as p always changes
     ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", filepath)
-    print("dataset number: ", ds[0])
-    print("partial AMI-tag: ", ami[0])
+    # print("dataset number: ", ds[0])
+    # print("partial AMI-tag: ", ami[0])
     r_tag = ami[0][-6:]
+    # if r_tag in
     print("dataYears: ", mcCampaign[r_tag])
     metaData["dataYears"] = mcCampaign[r_tag]
 
-    # get actual datasetname from dataset number and ami tags
-    # % is wildcarding
-    datasets = AtlasAPI.list_datasets(
-        client, patterns=f"%{ds[0]}%{ami[0]}%", type="DAOD_PHYS"
-    )
-    # use logical dataset name to get info from first [0] dataset matching the
-    # pattern
-    datasetName = datasets[0]["ldn"]
+    # construct logical dataset name from ntuple name
+    ds_parts = filepath.split(".")[4:7]
+    ds = ["mc20_13TeV"] + ds_parts
+    ds.insert(-1, "deriv.DAOD_PHYS")
+    datasetName = ".".join([str(x) for x in ds])[:-10]
+    print("Original Dataset Name: " + datasetName)
+    # query info
     ds_info = AtlasAPI.get_dataset_info(client, dataset=datasetName)
     metaData["genFiltEff"] = float(ds_info[0]["genFiltEff"])
     metaData["crossSection"] = float(ds_info[0]["crossSection"])
