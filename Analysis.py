@@ -8,7 +8,7 @@ from operator import xor
 np.set_printoptions(threshold=np.inf)
 
 
-def  Run(batch, metaData, tree, vars):
+def Run(batch, metaData, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
@@ -107,6 +107,9 @@ class ObjectSelection:
         self.btagHigh_1b1b = np.copy(boolInitArray)
         self.btagHigh_2b1b = np.copy(boolInitArray)
         self.btagHigh_2b2b = np.copy(boolInitArray)
+        self.SR = np.copy(boolInitArray)
+        self.CR = np.copy(boolInitArray)
+        self.VR = np.copy(boolInitArray)
         self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
         self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
 
@@ -114,10 +117,16 @@ class ObjectSelection:
         self.weights = np.full(self.nEvents, 1.0, dtype=float)
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
         self.m_hh = np.copy(floatInitArray)
-        self.h1_m = np.copy(floatInitArray)
-        self.h2_m = np.copy(floatInitArray)
+        self.m_h1 = np.copy(floatInitArray)
+        self.m_h2 = np.copy(floatInitArray)
+        self.pt_h1 = np.copy(floatInitArray)
+        self.pt_h2 = np.copy(floatInitArray)
         self.dR_h1 = np.copy(floatInitArray)
         self.dR_h2 = np.copy(floatInitArray)
+        self.X_HH = np.copy(floatInitArray)
+        self.R_VR = np.copy(floatInitArray)
+        self.R_CR = np.copy(floatInitArray)
+
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
@@ -126,7 +135,6 @@ class ObjectSelection:
         for event in self.eventRange:
             # order matters!
             # if not self.vr_dontOverlap[event]:
-            #     # should we actually throw away the whole event?
             #     continue
             if self.mc:
                 self.weights[event] = (
@@ -139,17 +147,18 @@ class ObjectSelection:
             self.getLeadingLargeR(event)
             self.getLeadingLargeRcuts(event)
             self.getVRs(event)
-            self.hh_m_77(event)
+            self.hh_p4(event)
+            self.hh_regions(event)
             if self.hasTruth:
                 self.truth_mhh(event)
-
         self.nTotalSelLargeR()
 
     def largeRSelectSort(self, event):
         # pt, eta cuts and sort
         ptMin = self.lrj_pt[event] > 250_000.0
+        mMin = self.lrj_m[event] > 50_000.0
         etaMin = np.abs(self.lrj_eta[event]) < 2.0
-        selected = np.array((ptMin & etaMin), dtype=bool)
+        selected = np.array((ptMin & mMin & etaMin), dtype=bool)
         # counting
         nJetsSelected = np.count_nonzero(selected)
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
@@ -161,9 +170,12 @@ class ObjectSelection:
             self.selectedTwoLargeRevents[event] = True
             # selected is a bool array for lrj_pt[event]
             # now sort by getting jet indices in decreasing order of pt
-            self.selPtSort_lrj[event] = np.flip(
-                np.argsort(self.lrj_pt[event][selected])
-            )[0:2]
+            ptOrder = np.flip(np.argsort(self.lrj_pt[event]))
+            # now choose the according bools from selected in pt order
+            selectedInPtOrder = selected[ptOrder]
+            # applying these bools back on ptOrder gives the corresponding
+            # Indices of the jets that come from self.lrj_pt[event]
+            self.selPtSort_lrj[event] = ptOrder[selectedInPtOrder]
 
     def getLeadingLargeR(self, event):
         # check which event has at least one Large R
@@ -290,9 +302,7 @@ class ObjectSelection:
         )
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
-    def hh_m_77(self, event):
-        # hh_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_hh_m"]
-        # self.hh_m_selected = hh_m[hh_m > 0]
+    def hh_p4(self, event):
         if self.selectedTwoLargeRevents[event]:
             leadingLargeRindex = self.selPtSort_lrj[event][0]
             subleadingLargeRindex = self.selPtSort_lrj[event][1]
@@ -308,100 +318,185 @@ class ObjectSelection:
                 phi=self.lrj_phi[event][subleadingLargeRindex],
                 m=self.lrj_m[event][subleadingLargeRindex],
             )
-            self.h1_m[event] = self.lrj_m[event][leadingLargeRindex]
-            self.h2_m[event] = self.lrj_m[event][subleadingLargeRindex]
+            self.m_h1[event] = self.lrj_m[event][leadingLargeRindex]
+            self.m_h2[event] = self.lrj_m[event][subleadingLargeRindex]
             self.m_hh[event] = (h1_p4 + h2_p4).mass
+            self.pt_h1[event] = self.lrj_pt[event][leadingLargeRindex]
+            self.pt_h2[event] = self.lrj_pt[event][subleadingLargeRindex]
 
-    # def massplane_77(self):
-    #     h1_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h1_m"]
-    #     h2_m = self.vars_arr["boosted_DL1r_FixedCutBEff_77_h2_m"]
-    #     selection = (h1_m > 0) & (h2_m > 0)
-    #     h1_m_selected = h1_m[selection]
-    #     h2_m_selected = h2_m[selection]
-    #     self.m_h1h2 = np.array([h1_m_selected, h2_m_selected]).T
+    def hh_regions(self, event):
+        # from roosted branch
+        validation_shift = 1.03
+        control_shift = 1.05
+        Xhh_cut = 1.6
+        validation_cut = 30.0
+        control_cut = 45.0
+        m_h1_center = 124.0
+        m_h2_center = 117.0
+        # fm_h1 from signal region optimization:
+        # https://indico.cern.ch/event/1191598/contributions/5009137/attachments/2494578/4284249/HH4b20220818.pdf
+        fm_h1 = 1500.0
+        fm_h2 = 1900.0
+        # calculate region variables
+        if self.selectedTwoLargeRevents[event]:
+            self.X_HH[event] = np.sqrt(
+                np.power(
+                    (self.m_h1[event] - m_h1_center) / (fm_h1 / self.m_h1[event]), 2
+                )
+                + np.power(
+                    (self.m_h2[event] - m_h2_center) / (fm_h2 / self.m_h2[event]), 2
+                )
+            )
 
-    # print(self.vr_deltaR12[event])
+            self.R_VR[event] = np.sqrt(
+                np.power((self.m_h1[event] - m_h1_center) * validation_shift, 2)
+                + np.power((self.m_h2[event] - m_h2_center) * validation_shift, 2)
+            )
+            self.R_CR[event] = np.sqrt(
+                np.power((self.m_h1[event] - m_h1_center) * control_shift, 2)
+                + np.power((self.m_h2[event] - m_h2_center) * control_shift, 2)
+            )
+
+            self.SR[event] = self.X_HH[event] < Xhh_cut
+            self.VR[event] = (self.X_HH[event] > 1.6) & (
+                self.R_VR[event] < validation_cut
+            )
+            self.CR[event] = (
+                (self.X_HH[event] > 1.6)
+                & (self.R_VR[event] > validation_cut)
+                & (self.R_CR[event] < control_cut)
+            )
+
     def returnResults(self):
-
-        # lookup table for histname, vars/attr name, selection
-
-        results = {
-            "truth_mhh": self.resultTuple(self.truth_m_hh),
-            "mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
-            "mh1": self.resultTuple(self.h1_m, self.btagHigh_2b2b),
-            "mh2": self.resultTuple(self.h2_m, self.btagHigh_2b2b),
-            "dR_h1": self.resultTuple(self.dR_h1, self.btagHigh_2b2b),
-            "dR_h2": self.resultTuple(self.dR_h2, self.btagHigh_2b2b),
-            "nTriggerPass_mhh": self.resultTuple(self.m_hh, self.trigger),
-            "nTwoLargeR_mhh": self.resultTuple(self.m_hh, self.nLargeR >= 2),
-            "nTwoSelLargeR_mhh": self.resultTuple(
-                self.m_hh, self.selectedTwoLargeRevents
-            ),
-            "btagLow_1b1j_mhh": self.resultTuple(self.m_hh, self.btagLow_1b1j),
-            "btagLow_2b1j_mhh": self.resultTuple(self.m_hh, self.btagLow_2b1j),
-            "btagLow_2b2j_mhh": self.resultTuple(self.m_hh, self.btagLow_2b2j),
-            "btagHigh_1b1b_mhh": self.resultTuple(self.m_hh, self.btagHigh_1b1b),
-            "btagHigh_2b1b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b1b),
-            "btagHigh_2b2b_mhh": self.resultTuple(self.m_hh, self.btagHigh_2b2b),
-            "nTotalSelLargeR": self.resultTuple(self.nSelLargeRFlat, oneWeights=True),
-            "leadingLargeRpT": self.resultTuple(self.leadingLargeRpt),
-            "leadingLargeRpT_trigger": self.resultTuple(
-                self.leadingLargeRpt, self.trigger
-            ),
-            "trigger_leadingLargeRpT": self.resultTuple(
-                self.leadingLargeRpt, self.trigger & self.leadingLargeRmassGreater100
-            ),
-            "triggerRef_leadingLargeRpT": self.resultTuple(
-                self.leadingLargeRpt, self.triggerRef & self.leadingLargeRmassGreater100
-            ),
-            "trigger_leadingLargeRm": self.resultTuple(
-                self.leadingLargeRm, self.trigger & self.leadingLargeRpTGreater500
-            ),
-            "triggerRef_leadingLargeRm": self.resultTuple(
-                self.leadingLargeRm, self.triggerRef & self.leadingLargeRpTGreater500
-            ),
-            "massplane_77": (
-                np.array(
-                    [
-                        self.h1_m[self.btagHigh_2b2b],
-                        self.h2_m[self.btagHigh_2b2b],
-                    ]
-                ).T,
-                np.array(self.weights[self.btagHigh_2b2b]),
-            ),
+        # lookup table for histname, variable to write, selection to apply
+        finalSel = {
+            "truth_mhh": {
+                "var": self.truth_m_hh,
+                "sel": None,
+            },
+            "mhh": {
+                "var": self.m_hh,
+                "sel": self.btagHigh_2b2b,
+            },
+            "mh1": {
+                "var": self.m_h1,
+                "sel": self.btagHigh_2b2b,
+            },
+            "mh2": {
+                "var": self.m_h2,
+                "sel": self.btagHigh_2b2b,
+            },
+            "pt_h1": {
+                "var": self.pt_h1,
+                "sel": self.btagHigh_2b2b,
+            },
+            "pt_h2": {
+                "var": self.pt_h2,
+                "sel": self.btagHigh_2b2b,
+            },
+            # selct self.selectedTwoLargeRevents[event]:
+            #             self.pt_h1
+            # self.pt_h2
+            "dR_h1": {
+                "var": self.dR_h1,
+                "sel": self.btagHigh_2b2b,
+            },
+            "dR_h2": {
+                "var": self.dR_h2,
+                "sel": self.btagHigh_2b2b,
+            },
+            "nTriggerPass_mhh": {
+                "var": self.m_hh,
+                "sel": self.trigger,
+            },
+            "nTwoLargeR_mhh": {
+                "var": self.m_hh,
+                "sel": self.nLargeR >= 2,
+            },
+            "nTwoSelLargeR_mhh": {
+                "var": self.m_hh,
+                "sel": self.selectedTwoLargeRevents,
+            },
+            "btagLow_1b1j_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagLow_1b1j,
+            },
+            "btagLow_2b1j_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagLow_2b1j,
+            },
+            "btagLow_2b2j_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagLow_2b2j,
+            },
+            "btagHigh_1b1b_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagHigh_1b1b,
+            },
+            "btagHigh_2b1b_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagHigh_2b1b,
+            },
+            "btagHigh_2b2b_mhh": {
+                "var": self.m_hh,
+                "sel": self.btagHigh_2b2b,
+            },
+            "nTotalSelLargeR": {
+                "var": self.nSelLargeRFlat,
+                "sel": "ones",
+            },
+            "leadingLargeRpT": {
+                "var": self.leadingLargeRpt,
+                "sel": None,
+            },
+            "leadingLargeRpT_trigger": {
+                "var": self.leadingLargeRpt,
+                "sel": self.trigger,
+            },
+            "trigger_leadingLargeRpT": {
+                "var": self.leadingLargeRpt,
+                "sel": (self.trigger & self.leadingLargeRmassGreater100),
+            },
+            "triggerRef_leadingLargeRpT": {
+                "var": self.leadingLargeRpt,
+                "sel": (self.triggerRef & self.leadingLargeRmassGreater100),
+            },
+            "trigger_leadingLargeRm": {
+                "var": self.leadingLargeRm,
+                "sel": (self.trigger & self.leadingLargeRpTGreater500),
+            },
+            "triggerRef_leadingLargeRm": {
+                "var": self.leadingLargeRm,
+                "sel": (self.triggerRef & self.leadingLargeRpTGreater500),
+            },
         }
+
+        results = {}
+        for hist in finalSel.keys():
+            results[hist] = self.resultWithWeights(
+                finalSel[hist]["var"], finalSel[hist]["sel"]
+            )
+
+        # 2D by hand
+        results["massplane_77"] = (
+            np.array(
+                [
+                    self.m_h1[self.btagHigh_2b2b],
+                    self.m_h2[self.btagHigh_2b2b],
+                ]
+            ).T,
+            np.array(self.weights[self.btagHigh_2b2b]),
+        )
 
         return results
 
-    def resultTuple(self, var, sel=None, oneWeights=False):
-        if oneWeights:
-            return (var, np.ones(var.shape))
+    def resultWithWeights(self, var, sel=None):
         if sel is None:
             return (var, self.weights)
+        if sel is "ones":
+            return (var, np.ones(var.shape))
         else:
-            return (var[sel], self.weights[sel])
-
-    # if histkey == "pairingEfficiencyResolved":
-    #     matchCriterion = 0.2
-    #     # fmt: off
-    #     # remove defaults
-    #     nonDefaults = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-    #     h1_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-    #     h2_sameInitial = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-    #     h1_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h1_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h2_dR_lead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h2_dR_sublead = vars_arr["resolved_DL1dv00_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     # fmt: on
-    #     # add  s/h
-    #     # this works because of numpy
-    #     matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
-    #     matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
-
-    #     # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
-    #     matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
-
-    #     return matched
+            return [var[sel], self.weights[sel]]
 
     # if histkey == "vrJetEfficiencyBoosted":
     #     matchCriterion = 0.2

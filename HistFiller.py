@@ -14,7 +14,6 @@ import subprocess
 import HistFillerTools as tools
 import os
 import time
-import random
 
 
 # TODO
@@ -98,7 +97,8 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
-h1Binning = {"binrange": (0, 300_000), "bins": 100}
+m_hBinning = {"binrange": (0, 300_000), "bins": 100}
+pt_hBinning = {"binrange": (0, 2_500_000), "bins": 100}
 hhbinning = {"binrange": (0, 500_000), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
@@ -118,13 +118,23 @@ hists = [
     ),
     FloatHistogram(
         name="mh1",
-        binrange=h1Binning["binrange"],
-        bins=h1Binning["bins"],
+        binrange=m_hBinning["binrange"],
+        bins=m_hBinning["bins"],
     ),
     FloatHistogram(
         name="mh2",
-        binrange=h1Binning["binrange"],
-        bins=h1Binning["bins"],
+        binrange=m_hBinning["binrange"],
+        bins=m_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_h1",
+        binrange=pt_hBinning["binrange"],
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_h2",
+        binrange=pt_hBinning["binrange"],
+        bins=pt_hBinning["bins"],
     ),
     FloatHistogram(
         name="nTriggerPass_mhh",
@@ -262,7 +272,7 @@ with File(histOutFile, "w") as outfile:
             # the auto batchSize setup could crash if you don't have enough
             # memory
             if args.debug:
-                nEvents = 10000
+                nEvents = 100
                 cpus = 1
                 batchSize = int(tree.num_entries / cpus)
                 metaData = {}
@@ -279,11 +289,15 @@ with File(histOutFile, "w") as outfile:
                 batchSize = int(tree.num_entries / cpus)
                 metaData = {}
                 if "data" not in file_:
-                    while len(metaData) == 0:
+                    attempts = 0
+                    while attempts < 5 and len(metaData) == 0:
+                        attempts += 1
                         try:
                             metaData = tools.getMetaData(file)
                         except:
-                            time.sleep(random.randrange(20, 60))
+                            time.sleep(5)
+                            if attempts == 4:
+                                raise ConnectionError("couldn't connect to AMI servers")
                 if args.cpus:
                     cpus = args.cpus
                     batchSize = 10_000

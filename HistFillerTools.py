@@ -44,7 +44,11 @@ def getMetaData(file):
 
     # construct logical dataset name from ntuple name
     ds_parts = filepath.split(".")[4:7]
-    ds = ["mc20_13TeV"] + ds_parts
+    if int(r_tag[1:]) < 13829:
+        project=["mc20_13TeV"]
+    else:
+        project=["mc21_13p6TeV"]
+    ds = project + ds_parts
     ds.insert(-1, "deriv.DAOD_PHYS")
     datasetName = ".".join([str(x) for x in ds])[:-10]
     print("Original Dataset Name: " + datasetName)

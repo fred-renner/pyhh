@@ -16,12 +16,12 @@ pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1c
 
 # mc20 bkg
 # # ttbar
-topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-pattern = "*ttbar*/*"
+# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+# pattern = "*ttbar*/*"
 
 # # dijet
-topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-pattern = "*jetjet*/*"
+# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+# pattern = "*jetjet*/*"
 
 # data 17
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
@@ -46,7 +46,7 @@ with open(
     "/lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub", "a"
 ) as f:
     k = 0
-    waitTime = 10
+    waitTime = 2
     for i, file in enumerate(filelist):
         k += 1
         delay = k * waitTime

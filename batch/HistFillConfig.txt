@@ -8,7 +8,5 @@ error                   = errors_$(Process).txt
 should_transfer_files   = No
 # when_to_transfer_output = ON_EXIT
 request_cpus = $(cpus)
-# request_memory = 8G
-# request_disk = 20G
 getenv = True
 
