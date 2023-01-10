@@ -1,10 +1,8 @@
 import re
-import pyAMI.client
-import pyAMI_atlas.api as AtlasAPI
-from enum import Enum
+import json
+from tools.MetaData import ConstructDatasetName
 
-client = pyAMI.client.Client("atlas")
-AtlasAPI.init()
+mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/metaData.json"
 
 
 mcCampaign = {
@@ -18,9 +16,9 @@ mcCampaign = {
 
 
 def getMetaData(file):
+
     metaData = {}
     filepath = file._file._file_path
-    print(f"Get Meta-data for file: {filepath}")
     metaData["isSignal"] = True if "_hh_bbbb_" in filepath else False
 
     # cut book keeping
@@ -31,30 +29,22 @@ def getMetaData(file):
             metaData["initial_sum_of_weights"] = cbk[0][1]
             metaData["initial_sum_of_weights_squared"] = cbk[0][2]
 
-    # get dataset number
-    ds = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
-    # get ami tags until r-tag as p always changes
+    # get r-tag for datayears
     ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", filepath)
-    # print("dataset number: ", ds[0])
-    # print("partial AMI-tag: ", ami[0])
     r_tag = ami[0][-6:]
-    # if r_tag in
-    print("dataYears: ", mcCampaign[r_tag])
     metaData["dataYears"] = mcCampaign[r_tag]
 
-    # construct logical dataset name from ntuple name
-    ds_parts = filepath.split(".")[4:7]
-    if int(r_tag[1:]) < 13829:
-        project=["mc20_13TeV"]
-    else:
-        project=["mc21_13p6TeV"]
-    ds = project + ds_parts
-    ds.insert(-1, "deriv.DAOD_PHYS")
-    datasetName = ".".join([str(x) for x in ds])[:-10]
+    # get logical dataset name from ntuple name
+    datasetName = ConstructDatasetName(filepath)
     print("Original Dataset Name: " + datasetName)
-    # query info
-    ds_info = AtlasAPI.get_dataset_info(client, dataset=datasetName)
-    metaData["genFiltEff"] = float(ds_info[0]["genFiltEff"])
-    metaData["crossSection"] = float(ds_info[0]["crossSection"])
+    md = json.load(open(mdFile))
+    if datasetName not in md:
+        print("metaData not in json yet, will query from ami")
+        import tools.MetaData
+        tools.MetaData.get(filepath)
+
+    ds_info = md[datasetName]
+    metaData["genFiltEff"] = float(ds_info["genFiltEff"])
+    metaData["crossSection"] = float(ds_info["crossSection"])
 
     return metaData

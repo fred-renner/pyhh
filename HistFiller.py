@@ -289,15 +289,7 @@ with File(histOutFile, "w") as outfile:
                 batchSize = int(tree.num_entries / cpus)
                 metaData = {}
                 if "data" not in file_:
-                    attempts = 0
-                    while attempts < 5 and len(metaData) == 0:
-                        attempts += 1
-                        try:
-                            metaData = tools.getMetaData(file)
-                        except:
-                            time.sleep(5)
-                            if attempts == 4:
-                                raise ConnectionError("couldn't connect to AMI servers")
+                    metaData = tools.getMetaData(file)
                 if args.cpus:
                     cpus = args.cpus
                     batchSize = 10_000

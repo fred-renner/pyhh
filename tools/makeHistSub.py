@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 import glob
-
-
+import getMetaData
 # mc21 signal
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 # pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
@@ -31,11 +30,11 @@ pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1c
 filelist = []
 for file in glob.iglob(topPath + "/" + pattern):
     filelist += [file]
-
+    getMetaData.do(file)
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
-    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillConfig.txt"
-    " /lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub",
+    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/HistFillConfig.txt"
+    " /lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/HistFill.sub",
     shell=True,
 )
 
@@ -43,7 +42,7 @@ subprocess.call(
 
 # write jobs per line
 with open(
-    "/lustre/fs22/group/atlas/freder/hh/hh-analysis/batch/HistFillFile.sub", "a"
+    "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/HistFill.sub", "a"
 ) as f:
     k = 0
     waitTime = 2
@@ -52,11 +51,11 @@ with open(
         delay = k * waitTime
         f.write(f"arguments = $(Proxy_path) $(cpus) {file}")
         f.write("\n")
-        f.write(f"deferral_time = (CurrentTime + {delay})")
-        f.write("\n")
-        f.write(f"deferral_prep_time = (CurrentTime + {delay-20})")
-        f.write("\n")
-        f.write(f"deferral_window = 100000000")
+        # f.write(f"deferral_time = (CurrentTime + {delay})")
+        # f.write("\n")
+        # f.write(f"deferral_prep_time = (CurrentTime + {delay-20})")
+        # f.write("\n")
+        # f.write(f"deferral_window = 100000000")
         f.write("\n")
         f.write("queue")
         f.write("\n")
