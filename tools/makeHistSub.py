@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 import subprocess
 import glob
-import getMetaData
+import MetaData
+import time
 # mc21 signal
 # topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 # pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
@@ -14,13 +15,13 @@ topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
 pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
 
 # mc20 bkg
-# # ttbar
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*ttbar*/*"
+# ttbar
+topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+pattern = "*ttbar*/*"
 
 # # dijet
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*jetjet*/*"
+topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+pattern = "*jetjet*/*"
 
 # data 17
 # topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
@@ -30,7 +31,8 @@ pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1c
 filelist = []
 for file in glob.iglob(topPath + "/" + pattern):
     filelist += [file]
-    getMetaData.do(file)
+    MetaData.get(file)
+
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
     "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/HistFillConfig.txt"

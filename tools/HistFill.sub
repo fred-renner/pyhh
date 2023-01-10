@@ -10,9 +10,186 @@ should_transfer_files   = No
 request_cpus = $(cpus)
 getenv = True
 
-arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE/user.frenner.31601111._000001.output-hh4b.root
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000020.output-hh4b.root
 
 queue
-arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13167_p5440_TREE/user.frenner.31601113._000001.output-hh4b.root
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000015.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000007.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000002.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000003.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000014.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000019.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000013.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000005.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000006.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000022.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000021.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000004.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000017.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000016.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000001.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000018.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000011.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000009.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000010.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13144_p5057_TREE/user.dabattul.31380309._000008.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000017.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000027.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000029.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000026.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000012.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000005.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000018.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000016.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000019.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000013.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000021.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000003.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000025.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000020.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000001.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000028.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000014.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000011.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000009.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000010.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000015.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000002.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000024.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000007.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000006.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000008.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000004.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13145_p5057_TREE/user.dabattul.31380312._000023.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000002.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000005.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000003.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000012.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000007.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000008.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000011.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000006.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000001.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000004.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000010.output-hh4b.root
+
+queue
+arguments = $(Proxy_path) $(cpus) /lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/user.dabattul.ntup_251122.410471.PhPy8EG_A14_ttbar_hdamp258p75_allhad.e6337_s3681_r13167_p5057_TREE/user.dabattul.31380314._000009.output-hh4b.root
 
 queue

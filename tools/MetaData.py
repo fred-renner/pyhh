@@ -29,8 +29,9 @@ def get(filepath):
     """
 
     datasetName = ConstructDatasetName(filepath)
-    print(f"Get Meta-data for file: {filepath}")
-    print("Original Dataset Name: " + datasetName)
+
+    # print(f"Get Meta-data for file: {filepath}")
+    # print("Original Dataset Name: " + datasetName)
     # query info
     # make sure file is not empty
     if os.stat(mdFile).st_size == 0:
@@ -39,7 +40,13 @@ def get(filepath):
         data = json.load(open(mdFile))
 
     if datasetName not in data:
-        ds_info = AtlasAPI.get_dataset_info(client, dataset=datasetName)
+        print(f"query metadata for: {datasetName}")
+        # need to do p wildcard search as too old ones get deleted
+        datasetNames = datasetName[:-4] + "%"
+        datasets = AtlasAPI.list_datasets(
+            client, patterns=datasetNames, type="DAOD_PHYS"
+        )
+        ds_info = AtlasAPI.get_dataset_info(client, dataset=datasets[0]["ldn"])
         data[datasetName] = ds_info[0]
     json.dump(data, open(mdFile, "w"))
 
@@ -56,24 +63,30 @@ def ConstructDatasetName(filepath):
     -------
     datasetName : str
     """
+    folder = filepath.split("/")[-2]
     # get dataset number
-    ds = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
+    ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", folder)
     # get ami tags until r-tag as p always changes
-    ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", filepath)
-    # print("dataset number: ", ds[0])
+    ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", folder)
+    # print("dataset number: ", ds_nr[0])
     # print("partial AMI-tag: ", ami[0])
     r_tag = ami[0][-6:]
     # if r_tag in
-    print("dataYears: ", mcCampaign[r_tag])
+    # print("dataYears: ", mcCampaign[r_tag])
 
     # construct logical dataset name from ntuple name
-    ds_parts = filepath.split(".")[4:7]
+    ds_parts = folder.split(".")
+    ds_parts = ds_parts[-3:]
+    # print(ds_parts)
+
+    # remove TREE
+    ds_parts[-1] = ds_parts[-1][:-5]
     if int(r_tag[1:]) < 13829:
         project = ["mc20_13TeV"]
     else:
         project = ["mc21_13p6TeV"]
     ds = project + ds_parts
     ds.insert(-1, "deriv.DAOD_PHYS")
-    datasetName = ".".join([str(x) for x in ds])[:-10]
+    datasetName = ".".join([str(x) for x in ds])
 
     return datasetName
