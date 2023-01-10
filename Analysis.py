@@ -44,6 +44,16 @@ def get_lumi(years: list):
 
 class ObjectSelection:
     def __init__(self, metaData, vars_arr):
+        """
+        initializing all vars and reserving memory
+
+        Parameters
+        ----------
+        metaData : dict
+            mainly info for weights
+        vars_arr : dict
+            holding vars loaded with uproot 
+        """
         self.mc = True if len(metaData) != 0 else False
         if self.mc:
             lumi = get_lumi(metaData["dataYears"])
@@ -121,12 +131,13 @@ class ObjectSelection:
         self.m_h2 = np.copy(floatInitArray)
         self.pt_h1 = np.copy(floatInitArray)
         self.pt_h2 = np.copy(floatInitArray)
+        self.pt_hh = np.copy(floatInitArray)
+        self.pt_hh_scalar = np.copy(floatInitArray)
         self.dR_h1 = np.copy(floatInitArray)
         self.dR_h2 = np.copy(floatInitArray)
         self.X_HH = np.copy(floatInitArray)
         self.R_VR = np.copy(floatInitArray)
         self.R_CR = np.copy(floatInitArray)
-
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
@@ -323,6 +334,8 @@ class ObjectSelection:
             self.m_hh[event] = (h1_p4 + h2_p4).mass
             self.pt_h1[event] = self.lrj_pt[event][leadingLargeRindex]
             self.pt_h2[event] = self.lrj_pt[event][subleadingLargeRindex]
+            self.pt_hh[event] = (h1_p4 + h2_p4).pt
+            self.pt_hh_scalar[event] = h1_p4.pt + h2_p4.pt
 
     def hh_regions(self, event):
         # from roosted branch
@@ -368,7 +381,14 @@ class ObjectSelection:
             )
 
     def returnResults(self):
-        # lookup table for histname, variable to write, selection to apply
+        """
+        lookup table for histname, variable to write, selection to apply
+
+        Returns
+        -------
+        result : dict
+            key: hist, holding tuple: (values, weights)
+        """
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
@@ -394,9 +414,14 @@ class ObjectSelection:
                 "var": self.pt_h2,
                 "sel": self.btagHigh_2b2b,
             },
-            # selct self.selectedTwoLargeRevents[event]:
-            #             self.pt_h1
-            # self.pt_h2
+            "pt_hh": {
+                "var": self.pt_hh,
+                "sel": self.btagHigh_2b2b,
+            },
+            "pt_hh_scalar": {
+                "var": self.pt_hh_scalar,
+                "sel": self.btagHigh_2b2b,
+            },
             "dR_h1": {
                 "var": self.dR_h1,
                 "sel": self.btagHigh_2b2b,
@@ -491,10 +516,26 @@ class ObjectSelection:
         return results
 
     def resultWithWeights(self, var, sel=None):
+        """
+        select values of vars and attach weights
+        
+        Parameters
+        ----------
+        var : np.ndarray
+            array with values 
+
+        sel : np.ndarray, optional
+            array holding a booleans to select on var , by default None
+
+        Returns
+        -------
+        out : list
+            selected vars with weights
+        """
         if sel is None:
-            return (var, self.weights)
+            return [var, self.weights]
         if sel is "ones":
-            return (var, np.ones(var.shape))
+            return [var, np.ones(var.shape)]
         else:
             return [var[sel], self.weights[sel]]
 

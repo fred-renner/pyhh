@@ -30,7 +30,8 @@ args = parser.parse_args()
 withBackground=True
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
-histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
+histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
+# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
 ttbarHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
 dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-dijet.h5"
 # fmt: on
@@ -280,6 +281,35 @@ def mhh():
     plt.close()
 
 
+def pts(name):
+    plt.figure()
+    hep.histplot(
+        hists[name]["h"],  # / truth_mhh,
+        hists[name]["edges"],  # / truth_mhh,
+        histtype="errorbar",
+        yerr=hists[name]["err"],  # / truth_mhh,
+        solid_capstyle="projecting",
+        capsize=3,
+        # label=["truth", "reco"]
+        # alpha=0.75,
+    )
+    # hep.atlas.text(" Simulation", loc=1)
+    hep.atlas.set_ylabel("Events")
+    hep.atlas.set_xlabel(f"{name} $[GeV]$ ")
+    ax = plt.gca()
+    # ax.set_yscale("log")
+    ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
+    plt.legend(loc="upper right")
+    # hep.yscale_legend()
+    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
+
+    plt.tight_layout()
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+
+    plt.savefig(plotPath + f"{name}.pdf")
+    plt.close()
+
+
 def dRs():
     plt.figure()
     dR_h1 = getHist(file, "dR_h1")
@@ -484,6 +514,8 @@ with File(histFile, "r") as file:
     accEff_mhh()
     leadingLargeRpT()
     mhh()
+    for name in ["pt_h1","pt_h2","pt_hh","pt_hh_scalar"]:
+        pts(name)
     dRs()
     massplane_77()
     # if withBackground:

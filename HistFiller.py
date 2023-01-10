@@ -98,8 +98,7 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
 m_hBinning = {"binrange": (0, 300_000), "bins": 100}
-pt_hBinning = {"binrange": (0, 2_500_000), "bins": 100}
-hhbinning = {"binrange": (0, 500_000), "bins": 100}
+pt_hBinning = {"binrange": (0.2e6, 1e6), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
 dRbins = {"binrange": (0, 1.2), "bins": 75}
@@ -134,6 +133,16 @@ hists = [
     FloatHistogram(
         name="pt_h2",
         binrange=pt_hBinning["binrange"],
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_hh",
+        binrange=(0, 1e6),
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_hh_scalar",
+        binrange=(0.4e6, 1.5e6),
         bins=pt_hBinning["bins"],
     ),
     FloatHistogram(

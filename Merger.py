@@ -9,7 +9,7 @@ topPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
 # mc20 signal
 # 1cvv1cv1
 pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-mergedFile = topPath + "hists-MC20-1cvv1cv1.h5"
+mergedFile = topPath + "hists-MC20-signal-1cvv1cv1.h5"
 
 # mc20 bkg
 # # ttbar
