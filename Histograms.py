@@ -15,6 +15,7 @@ class FloatHistogram:
             ]
         )
         # book hist
+        self._histRaw = np.zeros(self._bins.size - 1, dtype=float)
         self._hist = np.zeros(self._bins.size - 1, dtype=float)
         self._w2sum = np.zeros(self._bins.size - 1, dtype=float)
         # compression for h5 file
@@ -22,17 +23,22 @@ class FloatHistogram:
 
     def fill(self, values, weights):
         hist = np.histogramdd(values, bins=[self._bins], weights=weights)[0]
+        histRaw = np.histogramdd(values, bins=[self._bins])[0]
         # find the bins of the weights
         indices = np.digitize(values, self._bins) - 1
         # sum them up squared
         for k, ind in enumerate(indices):
             self._w2sum[ind] += weights[k] ** 2
         self._hist += hist
+        self._histRaw += histRaw
 
     def write(self, file_):
         hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
+        histRaw = hgroup.create_dataset(
+            "histogramRaw", data=self._histRaw, **self._compression
+        )
         w2sum = hgroup.create_dataset("w2sum", data=self._w2sum, **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins[1:-1], **self._compression)
         ax.make_scale("edges")
@@ -61,6 +67,9 @@ class FloatHistogram2D:
         self._bins = np.array([self._bins1, self._bins2])
         # book hist
         self._hist = np.zeros((self._bins1.size - 1, self._bins2.size - 1), dtype=float)
+        self._histRaw = np.zeros(
+            (self._bins1.size - 1, self._bins2.size - 1), dtype=float
+        )
         self._w2sum = np.zeros(
             (self._bins1.size - 1, self._bins2.size - 1), dtype=float
         )
@@ -70,6 +79,7 @@ class FloatHistogram2D:
     def fill(self, values, weights):
         if values.shape[0] != 0:
             hist = np.histogramdd(values, weights=weights, bins=self._bins)[0]
+            histRaw = np.histogramdd(values, bins=self._bins)[0]
             ret = stats.binned_statistic_2d(
                 values[:, 0],
                 values[:, 1],
@@ -82,14 +92,16 @@ class FloatHistogram2D:
             for k, indices in enumerate(binIndices.T):
                 self._w2sum[indices[0], indices[1]] += weights[k] ** 2
             self._hist += hist
+            self._histRaw += histRaw
 
     def write(self, file_):
         hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
-        w2sum = hgroup.create_dataset(
-            "w2sum", data=self._w2sum, **self._compression
+        histRaw = hgroup.create_dataset(
+            "histogramRaw", data=self._histRaw, **self._compression
         )
+        w2sum = hgroup.create_dataset("w2sum", data=self._w2sum, **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins, **self._compression)
         ax.make_scale("edges")
         hist.dims[0].attach_scale(ax)

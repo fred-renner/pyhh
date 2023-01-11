@@ -51,12 +51,13 @@ if not os.path.isdir(plotPath):
 def getHist(file, name):
     # access [1:-1] to remove underflow and overflow bins
     h = file[name]["histogram"][1:-1]
+    hRaw = file[name]["histogramRaw"][1:-1]
     edges = file[name]["edges"][:]
     err = np.sqrt(file[name]["w2sum"][1:-1])
-    return {"h": h, "edges": edges, "err": err}
+    return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
 
 
-def trigger_leadingLargeRpT():
+def triggerRef_leadingLargeRpT():
     triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1]
     trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
     trigger_leadingLargeRpT_err = tools.getEfficiencyErrors(
@@ -102,11 +103,11 @@ def trigger_leadingLargeRpT():
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
-    plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
+    plt.savefig(plotPath + "triggerRef_leadingLargeRpT.pdf")
     plt.close()
 
 
-def trigger_leadingLargeRm():
+def triggerRef_leadingLargeRm():
     # normalize + cumulative
     triggerRef_leadingLargeRm = file["triggerRef_leadingLargeRm"]["histogram"][1:-1]
     trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
@@ -152,7 +153,7 @@ def trigger_leadingLargeRm():
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
-    plt.savefig(plotPath + "trigger_leadingLargeRm.pdf")
+    plt.savefig(plotPath + "triggerRef_leadingLargeRm.pdf")
     plt.close()
 
 
@@ -169,11 +170,11 @@ def accEff_mhh():
         "btagHigh_2b1b_mhh",
         "btagHigh_2b2b_mhh",
     ]
-    hists = []
+    hists_ = []
     for key in keys:
-        hists.append(file[key]["histogram"][1:-1])
+        hists_.append(hists[key]["hRaw"])
     hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
-        hists, baseline=mhh, stopCumulativeFrom=4
+        hists_, baseline=hists["mhh"]["hRaw"], stopCumulativeFrom=4
     )
     labels = [
         "passed Trigger",
@@ -208,7 +209,7 @@ def accEff_mhh():
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
 
-    ax.set_ylim([0, 0.1e7])
+    ax.set_ylim([0, 1.2])
     plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
     hep.rescale_to_axessize
     plt.tight_layout()
@@ -218,15 +219,14 @@ def accEff_mhh():
     plt.close()
 
 
-def leadingLargeRpT():
+def trigger_leadingLargeRpT():
     plt.figure()
-    leadingLargeRpT = file["leadingLargeRpT"]["histogram"][1:-1]
-    leadingLargeRpT_trigger = file["leadingLargeRpT_trigger"]["histogram"][1:-1]
     err = tools.getEfficiencyErrors(
-        passed=leadingLargeRpT_trigger, total=leadingLargeRpT
+        passed=hists["leadingLargeRpT_trigger"]["hRaw"],
+        total=hists["leadingLargeRpT"]["hRaw"],
     )
     hep.histplot(
-        leadingLargeRpT_trigger / leadingLargeRpT,
+        hists["leadingLargeRpT_trigger"]["h"] / hists["leadingLargeRpT"]["h"],
         file["leadingLargeRpT"]["edges"],
         histtype="errorbar",
         yerr=err,
@@ -244,7 +244,7 @@ def leadingLargeRpT():
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="lower right")
-    plt.savefig(plotPath + "leadingLargeRpT.pdf")
+    plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
     plt.close()
 
 
@@ -403,6 +403,9 @@ def mh_ratio(histKey):
     bkg_tot_err = np.sqrt(bkg_tot)
     ratio = signal / np.sqrt(bkg_tot)
 
+    # B = Q + T
+    # Berr = sqrt(Qerr^2 + Terr^2)
+
     # values_signal = np.repeat((edges[:-1] + edges[1:]) / 2.0, signal.astype(int))
     # values_bkg = np.repeat((edges[:-1] + edges[1:]) / 2.0, bkg_tot.astype(int))
     # cumulative_signal = np.array(
@@ -510,11 +513,11 @@ with File(histFile, "r") as file:
     for key in file.keys():
         hists[key] = getHist(file, key)
     trigger_leadingLargeRpT()
-    trigger_leadingLargeRm()
+    triggerRef_leadingLargeRpT()
+    triggerRef_leadingLargeRm()
     accEff_mhh()
-    leadingLargeRpT()
     mhh()
-    for name in ["pt_h1","pt_h2","pt_hh","pt_hh_scalar"]:
+    for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
         pts(name)
     dRs()
     massplane_77()

@@ -52,7 +52,7 @@ class ObjectSelection:
         metaData : dict
             mainly info for weights
         vars_arr : dict
-            holding vars loaded with uproot 
+            holding vars loaded with uproot
         """
         self.mc = True if len(metaData) != 0 else False
         if self.mc:
@@ -89,6 +89,10 @@ class ObjectSelection:
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
         self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
         self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
+        self.srj_pt = vars_arr["recojet_antikt4_NOSYS_pt"]
+        self.srj_eta = vars_arr["recojet_antikt4_NOSYS_eta"]
+        self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
+        self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
         self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
@@ -106,6 +110,7 @@ class ObjectSelection:
         self.nLargeR = np.copy(intInitArray)
         self.nLargeRSelected = np.copy(intInitArray)
         self.leadingLargeRindex = np.copy(intInitArray)
+        self.subleadingLargeRindex = np.copy(intInitArray)
 
         # bool init
         boolInitArray = np.zeros(self.nEvents, dtype=bool)
@@ -159,6 +164,7 @@ class ObjectSelection:
             self.getLeadingLargeRcuts(event)
             self.getVRs(event)
             self.hh_p4(event)
+            # self.vbfSelect(event)
             self.hh_regions(event)
             if self.hasTruth:
                 self.truth_mhh(event)
@@ -166,10 +172,11 @@ class ObjectSelection:
 
     def largeRSelectSort(self, event):
         # pt, eta cuts and sort
-        ptMin = self.lrj_pt[event] > 250_000.0
-        mMin = self.lrj_m[event] > 50_000.0
-        etaMin = np.abs(self.lrj_eta[event]) < 2.0
-        selected = np.array((ptMin & mMin & etaMin), dtype=bool)
+        # Jet/ETmiss recommendation 200 < pT < 3000 GeV, 50 < m < 600 GeV
+        ptCuts = (self.lrj_pt[event] > 0.2e6) & (self.lrj_pt[event] < 3e6)
+        mCuts = (self.lrj_m[event] > 0.05e6) & (self.lrj_m[event] < 0.6e6)
+        etaCut = np.abs(self.lrj_eta[event]) < 2.0
+        selected = np.array((ptCuts & mCuts & etaCut), dtype=bool)
         # counting
         nJetsSelected = np.count_nonzero(selected)
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
@@ -187,14 +194,15 @@ class ObjectSelection:
             # applying these bools back on ptOrder gives the corresponding
             # Indices of the jets that come from self.lrj_pt[event]
             self.selPtSort_lrj[event] = ptOrder[selectedInPtOrder]
+            self.leadingLargeRindex[event] = self.selPtSort_lrj[event][0]
+            self.subleadingLargeRindex[event] = self.selPtSort_lrj[event][1]
 
     def getLeadingLargeR(self, event):
         # check which event has at least one Large R
         if self.nLargeR[event] > 0:
             self.atLeastOneLargeR[event] = True
             # cannot use selPtSort as they are selected!
-            maxPtIndex = np.argmax(self.lrj_pt[event])
-            self.leadingLargeRindex[event] = maxPtIndex
+            maxPtIndex = self.leadingLargeRindex[event]
             self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]
             maxMIndex = np.argmax(self.lrj_m[event])
             self.leadingLargeRm[event] = self.lrj_m[event][maxMIndex]
@@ -216,8 +224,8 @@ class ObjectSelection:
             # print(self.vr_btag_77[event]._values)
             # print(self.vr_btag_77[event]._values[0])
             # get leading jets
-            j1_index = self.selPtSort_lrj[event][0]
-            j2_index = self.selPtSort_lrj[event][1]
+            j1_index = self.leadingLargeRindex[event]
+            j2_index = self.subleadingLargeRindex[event]
             # get their corresponding vr jets
             j1_VRs = self.vr_btag_77[event]._values[j1_index]
             j2_VRs = self.vr_btag_77[event]._values[j2_index]
@@ -336,6 +344,25 @@ class ObjectSelection:
             self.pt_h2[event] = self.lrj_pt[event][subleadingLargeRindex]
             self.pt_hh[event] = (h1_p4 + h2_p4).pt
             self.pt_hh_scalar[event] = h1_p4.pt + h2_p4.pt
+
+    def vbfSelect(self, event):
+        if self.selectedTwoLargeRevents[event]:
+            etaCut = np.abs(self.srj_eta[event]) < 4.5
+            # I dont understand this one, also misses jvt pass tight
+            someCut = (self.srj_pt[event] > 60) & (np.abs(self.srj_eta[event]) > 2.4)
+            print(range(self.srj_pt[event].shape[0]))
+            print(self.srj_pt[event])
+            # task is to find two then make bool true for this event and write them
+            # could throw away event indices that doesnt pass cuts
+            for jet in range(self.srj_pt[event].shape[0]):
+                srj_p4 = vector.obj(
+                    pt=self.srj_pt[event][jet],
+                    eta=self.srj_eta[event][jet],
+                    phi=self.srj_phi[event][jet],
+                    m=self.srj_m[event][jet],
+                )
+            # breakpoint
+            # they also write dRmin per jet to both H_p4
 
     def hh_regions(self, event):
         # from roosted branch
@@ -518,11 +545,11 @@ class ObjectSelection:
     def resultWithWeights(self, var, sel=None):
         """
         select values of vars and attach weights
-        
+
         Parameters
         ----------
         var : np.ndarray
-            array with values 
+            array with values
 
         sel : np.ndarray, optional
             array holding a booleans to select on var , by default None
