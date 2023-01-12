@@ -355,7 +355,7 @@ class ObjectSelection:
                 # get the indices of the selected ones
                 selectedIndices = np.nonzero(selected)[0]
                 for i in selectedIndices:
-                    # check if they are outside of the large R
+                    # check if they are outside of the large R's
                     jet_p4 = vector.obj(
                         pt=self.srj_pt[event][i],
                         eta=self.srj_eta[event][i],
@@ -376,17 +376,17 @@ class ObjectSelection:
 
     def hh_regions(self, event):
         # from roosted branch
-        validation_shift = 1.03
-        control_shift = 1.05
+        validation_shift = 1.03e3
+        control_shift = 1.05e3
         Xhh_cut = 1.6
-        validation_cut = 30.0
-        control_cut = 45.0
-        m_h1_center = 124.0
-        m_h2_center = 117.0
+        validation_cut = 30.0e3
+        control_cut = 45.0e3
+        m_h1_center = 124.0e3
+        m_h2_center = 117.0e3
         # fm_h1 from signal region optimization:
         # https://indico.cern.ch/event/1191598/contributions/5009137/attachments/2494578/4284249/HH4b20220818.pdf
-        fm_h1 = 1500.0
-        fm_h2 = 1900.0
+        fm_h1 = 1500.0e6
+        fm_h2 = 1900.0e6
         # calculate region variables
         if self.selectedTwoLargeRevents[event]:
             self.X_HH[event] = np.sqrt(
@@ -406,7 +406,6 @@ class ObjectSelection:
                 np.power((self.m_h1[event] - m_h1_center) * control_shift, 2)
                 + np.power((self.m_h2[event] - m_h2_center) * control_shift, 2)
             )
-
             self.SR[event] = self.X_HH[event] < Xhh_cut
             self.VR[event] = (self.X_HH[event] > 1.6) & (
                 self.R_VR[event] < validation_cut
@@ -426,6 +425,9 @@ class ObjectSelection:
         result : dict
             key: hist, holding tuple: (values, weights)
         """
+
+        signalSelection = self.SR & self.twoVBFjets & self.btagHigh_2b2b 
+
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
@@ -433,39 +435,39 @@ class ObjectSelection:
             },
             "mhh": {
                 "var": self.m_hh,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "mh1": {
                 "var": self.m_h1,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "mh2": {
                 "var": self.m_h2,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "pt_h1": {
                 "var": self.pt_h1,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "pt_h2": {
                 "var": self.pt_h2,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "pt_hh": {
                 "var": self.pt_hh,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "pt_hh_scalar": {
                 "var": self.pt_hh_scalar,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "dR_h1": {
                 "var": self.dR_h1,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "dR_h2": {
                 "var": self.dR_h2,
-                "sel": self.btagHigh_2b2b,
+                "sel": signalSelection,
             },
             "nTriggerPass_mhh": {
                 "var": self.m_hh,
@@ -543,11 +545,11 @@ class ObjectSelection:
         results["massplane_77"] = (
             np.array(
                 [
-                    self.m_h1[self.btagHigh_2b2b],
-                    self.m_h2[self.btagHigh_2b2b],
+                    self.m_h1[signalSelection],
+                    self.m_h2[signalSelection],
                 ]
             ).T,
-            np.array(self.weights[self.btagHigh_2b2b]),
+            np.array(self.weights[signalSelection]),
         )
 
         return results
