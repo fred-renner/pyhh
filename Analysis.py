@@ -1,9 +1,8 @@
 import numpy as np
 import vector
 import time
-import awkward as ak
-import uproot
 from operator import xor
+import itertools
 
 np.set_printoptions(threshold=np.inf)
 
@@ -345,6 +344,7 @@ class ObjectSelection:
             self.pt_hh_scalar[event] = self.h1_p4.pt + self.h2_p4.pt
 
     def vbfSelect(self, event):
+        # https://indico.cern.ch/event/1184186/contributions/4974848/attachments/2483923/4264523/2022-07-21%20Introduction.pdf
         if self.selectedTwoLargeRevents[event]:
             etaCut = np.abs(self.srj_eta[event]) < 4.5
             # someCut = (self.srj_pt[event] > 60e3) & (np.abs(self.srj_eta[event]) > 2.4)
@@ -362,17 +362,39 @@ class ObjectSelection:
                         phi=self.srj_phi[event][i],
                         m=self.srj_m[event][i],
                     )
-                    if (jet_p4.deltaR(self.h1_p4) > 1.4) & (
-                        jet_p4.deltaR(self.h2_p4) > 1.4
+                    if (
+                        (jet_p4.deltaR(self.h1_p4) > 1.4)
+                        & (jet_p4.deltaR(self.h2_p4) > 1.4)
+                        & (jet_p4.pt > 20e3)
                     ):
                         passedJets_p4.append(jet_p4)
-            # save two leading vbf jets
+            # save two leading vbf jets if the pass further cuts
             if len(passedJets_p4) >= 2:
-                self.twoVBFjets[event] = True
-                jet_pts = [jet_p4.pt for jet_p4 in passedJets_p4]
-                ptOrder = np.flip(np.argsort(jet_pts))
-                self.vbfjet1_p4 = passedJets_p4[ptOrder[0]]
-                self.vbfjet2_p4 = passedJets_p4[ptOrder[1]]
+                # calc mass and eta of all jet jet combinations
+                # e.g. [(0, 1), (0, 2), (1, 2)] to cut
+                jet_combinations = np.array(
+                    list(itertools.combinations(range(len(passedJets_p4)), 2))
+                )
+                m_jjs = np.ndarray(jet_combinations.shape[0], dtype=bool)
+                eta_jjs = np.ndarray(jet_combinations.shape[0], dtype=bool)
+                for i, twoIndices in enumerate(jet_combinations):
+                    jetX = passedJets_p4[twoIndices[0]]
+                    jetY = passedJets_p4[twoIndices[1]]
+                    m_jjs[i] = (jetX + jetY).mass > 1e6
+                    eta_jjs[i] = np.abs(jetX.eta - jetY.eta) > 3
+                passMassEta = m_jjs & eta_jjs
+                if np.count_nonzero(passMassEta) >= 1:
+                    largesPtSum = 0
+                    for twoIndices in jet_combinations[passMassEta]:
+                        jet1Pt = passedJets_p4[twoIndices[0]].pt
+                        jet2Pt = passedJets_p4[twoIndices[1]].pt
+                        PtSum = jet1Pt + jet2Pt
+                        if largesPtSum < PtSum:
+                            if jet1Pt < jet2Pt:
+                                twoIndices = twoIndices[::-1]
+                            self.twoVBFjets[event] = True
+                            self.vbfjet1_p4 = passedJets_p4[twoIndices[0]]
+                            self.vbfjet2_p4 = passedJets_p4[twoIndices[1]]
 
     def hh_regions(self, event):
         # from roosted branch
@@ -426,8 +448,12 @@ class ObjectSelection:
             key: hist, holding tuple: (values, weights)
         """
 
-        signalSelection = self.SR & self.twoVBFjets & self.btagHigh_2b2b 
-
+        # signalSelection = self.SR & self.twoVBFjets & self.btagHigh_2b2b
+        signalSelection = (
+            self.SR
+            & self.twoVBFjets
+            & (self.btagHigh_2b2b | self.btagHigh_2b1b | self.btagHigh_1b1b)
+        )
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
