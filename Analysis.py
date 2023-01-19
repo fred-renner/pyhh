@@ -399,13 +399,11 @@ class ObjectSelection:
         #     & (self.btagHigh_2b2b | self.btagHigh_2b1b | self.btagHigh_1b1b)
         # )
 
-
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
                 "sel": None,
             },
-
             "mhh": {
                 "var": self.m_hh,
                 "sel": signalSelection,
