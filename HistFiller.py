@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 from tqdm.auto import tqdm
-import numpy as np
 import uproot
-import numpy as np
 import Loader
 import HistDefs
 from h5py import File
 import Analysis
 import multiprocessing
 import argparse
-import glob
-import subprocess
 import HistFillerTools as tools
 import os
 import time
@@ -26,39 +22,6 @@ parser.add_argument("--file", type=str, default=None)
 parser.add_argument("--batchMode", action="store_true")
 
 args = parser.parse_args()
-
-# files to load
-
-topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-# mc21 signal
-# pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
-# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE"
-# topPath = "/lustre/fs22/group/atlas/freder/hh/samples/user.frenner.HH4b.2022_11_30.801172.Py8EG_A14NNPDF23LO_jj_JZ7.e8453_s3873_r13829_p5278_TREE"
-
-# mc20 signal
-# 1cvv1cv1
-pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-
-# mc20 bkg
-# # ttbar
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*ttbar*/*"
-# histOutFileName = "hists-MC20-bkg-ttbar.h5"
-# # dijet
-# topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
-# pattern = "*jetjet*/*"
-# histOutFileName = "hists-MC20-bkg-dijet.h5"
-
-# data 17
-# topPath = "/lustre/fs22/group/atlas/freder/hh/run/testfiles/"
-# pattern = "data*"
-# histOutFileName = "hists-data17.h5"
-
-# get all files also from subdirectories with wildcard
-filelist = []
-for file in glob.iglob(topPath + "/" + pattern):
-    filelist += [file]
-
 
 if args.file:
     filelist = [args.file]
@@ -77,6 +40,8 @@ if args.file:
         + ".h5"
     )
 else:
+    # default to mc 20 signal
+    filelist = tools.ConstructFilelist("mc20_signal")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
         dataset = filelist[0].split("/")
@@ -93,7 +58,6 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
     if "vars_arr[" in line:
         if "#" not in line:
             vars.append((line.split(start))[1].split(end)[0])
-
 
 
 # the filling is executed each time an Analysis.Run job finishes
@@ -116,7 +80,15 @@ def error_handler(e):
 if args.debug:
     filelist = filelist[:2]
     histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
-
+    nEvents = 1000
+    cpus = 1
+    batchSize = 1000
+    metaData = {}
+    metaData["initial_sum_of_weights"] = 1e10
+    metaData["crossSection"] = 1e-6
+    metaData["dataYears"] = ["2017"]
+    metaData["genFiltEff"] = 1.0
+    metaData["isMC"] = True
 # init hists
 hists = HistDefs.hists
 
@@ -128,31 +100,24 @@ with File(histOutFile, "w") as outfile:
             # access the tree
             tree = file["AnalysisMiniTree"]
             # take only vars that exist
-            varsExist = set(tree.keys()).intersection(vars)
-            # the auto batchSize setup could crash if you don't have enough
-            # memory
-            if args.debug:
-                nEvents = 1000
-                cpus = 1
-                batchSize = int(tree.num_entries / cpus)
-                metaData = {}
-                metaData["initial_sum_of_weights"] = 1e10
-                metaData["crossSection"] = 1e-6
-                metaData["dataYears"] = ["2017"]
-                metaData["genFiltEff"] = 1.0
-
-            else:
-                nEvents = None
-                cpus = multiprocessing.cpu_count() - 4
-                if cpus > 32:
-                    cpus = 32
-                batchSize = int(tree.num_entries / cpus)
+            existingVars = set(tree.keys()).intersection(vars)
+            if not args.debug:
+                nEvents = "All"
+                batchSize = 20_000
+                if args.cpus:
+                    cpus = args.cpus
+                else:
+                    cpus = multiprocessing.cpu_count() - 4
                 metaData = {}
                 if "data" not in file_:
                     metaData = tools.getMetaData(file)
-                if args.cpus:
-                    cpus = args.cpus
-                    batchSize = 10_000
+                    metaData["isMC"] = True
+                else:
+                    substrings = file_.split(".")
+                    dataCampaign = [s for s in substrings if "data" in s]
+                    metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
+                    metaData["isMC"] = False
+
             eventBatches = Loader.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
@@ -163,7 +128,7 @@ with File(histOutFile, "w") as outfile:
             for batch in eventBatches:
                 pool.apply_async(
                     Analysis.Run,
-                    (batch, metaData, tree, varsExist),
+                    (batch, metaData, tree, existingVars),
                     callback=filling_callback,
                     error_callback=error_handler,
                 )
@@ -175,11 +140,3 @@ with File(histOutFile, "w") as outfile:
     # write histograms to file
     for hist in hists:
         hist.write(outfile)
-
-# # if to plot directly
-# if not args.debug:
-#     subprocess.call(
-#         "python3 /lustre/fs22/group/atlas/freder/hh/hh-analysis/Plotter.py --histFile"
-#         f" {histOutFile}",
-#         shell=True,
-#     )

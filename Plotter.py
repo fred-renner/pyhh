@@ -34,6 +34,7 @@ histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner
 # histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
 ttbarHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
 dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-dijet.h5"
+histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/user.frenner.HH4b.2023_01_05.data15_13TeV.periodAllYear_TREE/user.frenner.31794013._000001.output-hh4b.root.h5"
 # fmt: on
 
 if args.histFile:
@@ -431,6 +432,7 @@ def vrJetEfficiencyBoosted():
 
 
 def mh_ratio(histKey):
+    # need to correct error
     signal, edges, signal_err = getHist(file, histKey)
     ttbar, edges2, ttbar_err = getHist(ttbarFile, histKey)
     dijet, edges2, dijet_err = getHist(dijetFile, histKey)
@@ -552,13 +554,13 @@ with File(histFile, "r") as file:
     # trigger_leadingLargeRpT()
     # triggerRef_leadingLargeRpT()
     # triggerRef_leadingLargeRm()
-    accEff_mhh()
+    # accEff_mhh()
     # mhh()
     # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
     #     pts(name)
     # dRs()
     CountBackground()
-    massplane_77()
+    # massplane_77()
     # if withBackground:
     #     with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
     #         mh_ratio("mh1")

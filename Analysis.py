@@ -54,7 +54,14 @@ class ObjectSelection:
         vars_arr : dict
             holding vars loaded with uproot
         """
-        self.mc = True if len(metaData) != 0 else False
+
+        if metaData["isMC"]:
+            self.mc = True
+            self.data = False
+        else:
+            self.mc = False
+            self.data = True
+
         if self.mc:
             lumi = get_lumi(metaData["dataYears"])
             # crosssection comes in nb-1 (* 1e6 = fb-1)
@@ -66,25 +73,8 @@ class ObjectSelection:
         else:
             self.hasTruth = False
         # fmt: off
+        
         self.vars_arr = vars_arr
-        # mc21
-        if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
-            self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
-            self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
-        # mc20 
-        # r13144
-        elif "trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100" in vars_arr: 
-            self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100"]
-            self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
-        # r13145
-        elif "trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100" in vars_arr:
-            self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100"]
-            self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
-        # r13167
-        elif "trigPassed_HLT_j420_a10_lcw_L1J100" in vars_arr:
-            self.trigger = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
-            self.triggerRef = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
-
         self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
         self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
@@ -96,7 +86,41 @@ class ObjectSelection:
         self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
-
+        
+        # don't refactor as this file is read to load the vars
+        # mc21
+        if self.mc:
+            if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
+                self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
+            # mc20 
+            # r13144
+            elif "trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100" in vars_arr: 
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
+            # r13145
+            elif "trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100" in vars_arr:
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
+            # r13167
+            elif "trigPassed_HLT_j420_a10_lcw_L1J100" in vars_arr:
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
+        if self.data:
+            yr = metaData["dataYear"]
+            # same trigger as reference for 2015 and 2016
+            if yr == "2015": 
+                self.trigger = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j360_a10_lcw_sub_L1J100"]
+            if yr == "2016": 
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j420_a10_lcw_L1J100"]
+            if yr == "2017": 
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
+            if yr == "2018": 
+                self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100"]
+                self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
         # fmt: on
         # event amount per iteration
         self.nEvents = len(self.lrj_pt)
@@ -160,7 +184,7 @@ class ObjectSelection:
                     # mcEventWeights[:][0] == generatorWeight_NOSYS
                 )
             self.largeRSelect(event)
-            self.TriggerReference(event)
+            self.TriggerReference(event) 
             self.getVRs(event)
             self.hh_p4(event)
             self.vbfSelect(event)

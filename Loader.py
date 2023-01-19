@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
 
-def EventRanges(
-    tree,
-    batch_size=1_000,
-    nEvents=None
-):
+
+def EventRanges(tree, batch_size=10_000, nEvents="All"):
     # construct ranges, batch_size=1000 gives e.g.
     # [[0, 999], [1000, 1999], [2000, 2999],...]
     ranges = []
     batch_ranges = []
-    if nEvents is None:
+    if nEvents is "All":
         nEvents = tree.num_entries
     for i in range(0, nEvents, batch_size):
         ranges += [i]
@@ -18,7 +15,6 @@ def EventRanges(
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j - 1]]
     return batch_ranges
-
 
 
 def GetGenerators(tree, vars, nEvents=-1):
