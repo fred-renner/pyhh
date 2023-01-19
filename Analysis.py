@@ -3,6 +3,7 @@ import vector
 import time
 from operator import xor
 import itertools
+from PlottingTools import Xhh, CR_hh
 
 np.set_printoptions(threshold=np.inf)
 
@@ -124,7 +125,7 @@ class ObjectSelection:
         self.SR = np.copy(boolInitArray)
         self.CR = np.copy(boolInitArray)
         self.VR = np.copy(boolInitArray)
-        self.twoVBFjets = np.copy(boolInitArray)
+        self.VBFjetsPass = np.copy(boolInitArray)
         self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
         self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
 
@@ -141,8 +142,7 @@ class ObjectSelection:
         self.dR_h1 = np.copy(floatInitArray)
         self.dR_h2 = np.copy(floatInitArray)
         self.X_HH = np.copy(floatInitArray)
-        self.R_VR = np.copy(floatInitArray)
-        self.R_CR = np.copy(floatInitArray)
+        self.CR_hh = np.copy(floatInitArray)
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
@@ -159,9 +159,8 @@ class ObjectSelection:
                     * self.vars_arr["mcEventWeights"][event][0]
                     # mcEventWeights[:][0] == generatorWeight_NOSYS
                 )
-            self.largeRSelectSort(event)
-            self.getLeadingLargeR(event)
-            self.getLeadingLargeRcuts(event)
+            self.largeRSelect(event)
+            self.TriggerReference(event)
             self.getVRs(event)
             self.hh_p4(event)
             self.vbfSelect(event)
@@ -170,7 +169,7 @@ class ObjectSelection:
                 self.truth_mhh(event)
         self.nTotalSelLargeR()
 
-    def largeRSelectSort(self, event):
+    def largeRSelect(self, event):
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
         # pt, eta cuts and sort
         # Jet/ETmiss recommendation 200 < pT < 3000 GeV, 50 < m < 600 GeV
@@ -200,8 +199,8 @@ class ObjectSelection:
                 self.selLargeR1Index[event] = self.selPtSort_lrjIndices[event][0]
                 self.selLargeR2Index[event] = self.selPtSort_lrjIndices[event][1]
 
-    def getLeadingLargeR(self, event):
-        # check which event has at least one Large R
+    def TriggerReference(self, event):
+        # check if event has at least one Large R
         if self.nLargeR[event] > 0:
             self.atLeastOneLargeR[event] = True
             # cannot use selPtSort as they are selected!
@@ -209,9 +208,6 @@ class ObjectSelection:
             self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]
             maxMIndex = np.argmax(self.lrj_m[event])
             self.leadingLargeRm[event] = self.lrj_m[event][maxMIndex]
-
-    def getLeadingLargeRcuts(self, event):
-        if self.atLeastOneLargeR[event]:
             if self.leadingLargeRm[event] > 100_000.0:
                 self.leadingLargeRmassGreater100[event] = True
             if self.leadingLargeRpt[event] > 500_000.0:
@@ -265,35 +261,6 @@ class ObjectSelection:
             self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
             self.dR_h2[event] = self.vr_deltaR12[event][self.selLargeR2Index[event]]
 
-            # print("self.btagLow_1b1j ", self.btagLow_1b1j[event])
-            # print("self.btagLow_2b1j ", self.btagLow_2b1j[event])
-            # print("self.btagLow_2b2j ", self.btagLow_2b2j[event])
-            # print("self.btagHigh_1b1b ", self.btagHigh_1b1b[event])
-            # print("self.btagHigh_2b1b ", self.btagHigh_2b1b[event])
-            # print("self.btagHigh_2b2b ", self.btagHigh_2b2b[event])
-
-    # //.Define("passBJetSkimBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] > 0 : false")
-    # //.Define("passBJetSkim_min2bsBoosted","passTwoFatJets ? ntagsBoosted[0] >= 1 && ntagsBoosted[1] >= 1 : false")
-    # //.Define("pass4TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 4 : false")
-    # //.Define("pass3TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 3 : false")
-    # //.Define("pass2TagSplitBoosted","passTwoFatJets ? ntagsBoosted[0] == 1 && ntagsBoosted[1] == 1 : false")
-    # //.Define("pass2TagBoosted","passTwoFatJets ? (ntagsBoosted[0] == 2 && ntagsBoosted[1] == 0)||(ntagsBoosted[0] == 0 && ntagsBoosted[1] == 2) : false")
-    # //.Define("pass1TagBoosted","passTwoFatJets ? ntagsBoosted[0] + ntagsBoosted[1] == 1 : false")
-    # //.Define("pass4Trk","passTwoFatJets ? trks[0] + trks[1] == 4 : false")
-    # //.Define("pass3Trk","passTwoFatJets ? trks[0] + trks[1] == 3 : false")
-    # //.Define("pass2Trk","passTwoFatJets ? trks[0] >= 1 && trks[1] >= 1 : false")
-    # // Use eventNumber to randomize events for background sharing.
-    # // To reserve the last bit for similar randomization in reweighting procedure,
-    # // do this randomization on (eventNumber>>1).
-    # //.Define("eventRand","(eventNumber)%5")
-    # // tag region definitions
-    # //.Define("is_4bBoosted","pass4TagBoosted")
-    # //.Define("is_3bBoosted","pass3TagBoosted")
-    # //.Define("is_2bsBoosted","pass2TagSplitBoosted")
-    # //.Define("is_4b_bkgmodelBoosted","pass2TagBoosted && pass4Trk && eventRand < "+std::to_string(bkgShareBoosted))
-    # //.Define("is_3b_bkgmodelBoosted","pass2TagBoosted && (pass3Trk || (pass4Trk && eventRand >= "+std::to_string(bkgShareBoosted)+"))")
-    # //.Define("is_2bs_bkgmodelBoosted","pass1TagBoosted && pass2Trk")
-
     def ReplicateBins(self, binnedObject, Counts):
         # duplicate the binnedObject bin value with the given Counts per event
         replicatedBins = np.full((self.nEvents, np.max(Counts)), -np.inf)
@@ -322,6 +289,7 @@ class ObjectSelection:
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
     def hh_p4(self, event):
+        ######## just look if we have two for baseline acc eff
         if self.selectedTwoLargeRevents[event]:
             self.h1_p4 = vector.obj(
                 pt=self.lrj_pt[event][self.selLargeR1Index[event]],
@@ -392,51 +360,27 @@ class ObjectSelection:
                         if largesPtSum < PtSum:
                             if jet1Pt < jet2Pt:
                                 twoIndices = twoIndices[::-1]
-                            self.twoVBFjets[event] = True
+                            self.VBFjetsPass[event] = True
                             self.vbfjet1_p4 = passedJets_p4[twoIndices[0]]
                             self.vbfjet2_p4 = passedJets_p4[twoIndices[1]]
 
     def hh_regions(self, event):
-        # from roosted branch
-        validation_shift = 1.03e3
-        control_shift = 1.05e3
-        Xhh_cut = 1.6
-        validation_cut = 30.0e3
-        control_cut = 45.0e3
-        m_h1_center = 124.0e3
-        m_h2_center = 117.0e3
-        # fm_h1 from signal region optimization:
-        # https://indico.cern.ch/event/1191598/contributions/5009137/attachments/2494578/4284249/HH4b20220818.pdf
-        fm_h1 = 1500.0e6
-        fm_h2 = 1900.0e6
         # calculate region variables
         if self.selectedTwoLargeRevents[event]:
-            self.X_HH[event] = np.sqrt(
-                np.power(
-                    (self.m_h1[event] - m_h1_center) / (fm_h1 / self.m_h1[event]), 2
-                )
-                + np.power(
-                    (self.m_h2[event] - m_h2_center) / (fm_h2 / self.m_h2[event]), 2
-                )
+            self.X_HH[event] = Xhh(self.m_h1[event], self.m_h2[event])
+            self.CR_hh[event] = CR_hh(self.m_h1[event], self.m_h2[event])
+
+            self.SR[event] = self.X_HH[event] < 1.6
+            self.VR[event] = (self.X_HH[event] > 1.6) & (self.CR_hh[event] < 100.0e3)
+            self.CR[event] = (self.CR_hh[event] > 100e3) & (
+                (self.m_h1[event] + self.m_h2[event]) > 130e3
             )
 
-            self.R_VR[event] = np.sqrt(
-                np.power((self.m_h1[event] - m_h1_center) * validation_shift, 2)
-                + np.power((self.m_h2[event] - m_h2_center) * validation_shift, 2)
-            )
-            self.R_CR[event] = np.sqrt(
-                np.power((self.m_h1[event] - m_h1_center) * control_shift, 2)
-                + np.power((self.m_h2[event] - m_h2_center) * control_shift, 2)
-            )
-            self.SR[event] = self.X_HH[event] < Xhh_cut
-            self.VR[event] = (self.X_HH[event] > 1.6) & (
-                self.R_VR[event] < validation_cut
-            )
-            self.CR[event] = (
-                (self.X_HH[event] > 1.6)
-                & (self.R_VR[event] > validation_cut)
-                & (self.R_CR[event] < control_cut)
-            )
+            # CR VR overlap for stats
+            # https://indico.cern.ch/event/1239101/contributions/5216057/attachments/2575156/4440353/hh4b_230112.pdf
+            # self.CR[event] = (self.CR_hh[event] > 100e3) & (
+            #     (self.m_h1[event] + self.m_h2[event]) > 130e3
+            # )
 
     def returnResults(self):
         """
@@ -448,17 +392,20 @@ class ObjectSelection:
             key: hist, holding tuple: (values, weights)
         """
 
-        # signalSelection = self.SR & self.twoVBFjets & self.btagHigh_2b2b
-        signalSelection = (
-            self.SR
-            & self.twoVBFjets
-            & (self.btagHigh_2b2b | self.btagHigh_2b1b | self.btagHigh_1b1b)
-        )
+        signalSelection = self.SR & self.VBFjetsPass & self.btagHigh_2b2b
+        # signalSelection = (
+        #     self.SR
+        #     & self.VBFjetsPass
+        #     & (self.btagHigh_2b2b | self.btagHigh_2b1b | self.btagHigh_1b1b)
+        # )
+
+
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
                 "sel": None,
             },
+
             "mhh": {
                 "var": self.m_hh,
                 "sel": signalSelection,
@@ -494,6 +441,27 @@ class ObjectSelection:
             "dR_h2": {
                 "var": self.dR_h2,
                 "sel": signalSelection,
+            },
+            # bkg counting
+            "N_CR_4b": {
+                "var": (self.CR & self.btagHigh_2b2b),
+                "sel": (self.CR & self.btagHigh_2b2b),
+            },
+            "N_CR_2b": {
+                "var": (self.CR & self.btagHigh_1b1b),
+                "sel": (self.CR & self.btagHigh_1b1b),
+            },
+            "N_VR_4b": {
+                "var": (self.VR & self.btagHigh_2b2b),
+                "sel": (self.VR & self.btagHigh_2b2b),
+            },
+            "N_VR_2b": {
+                "var": (self.VR & self.btagHigh_1b1b),
+                "sel": (self.VR & self.btagHigh_1b1b),
+            },
+            "N_SR_2b": {
+                "var": (self.SR & self.btagHigh_1b1b),
+                "sel": (self.SR & self.btagHigh_1b1b),
             },
             "nTriggerPass_mhh": {
                 "var": self.m_hh,

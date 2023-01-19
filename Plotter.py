@@ -57,6 +57,13 @@ def getHist(file, name):
     return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
 
 
+def CountBackground():
+    print("N_CR_4b", hists["N_CR_4b"]["hRaw"])
+    w_CR = hists["N_CR_4b"]["hRaw"] / hists["N_CR_2b"]["hRaw"]
+    w_VR = hists["N_VR_4b"]["hRaw"] / hists["N_VR_2b"]["hRaw"]
+    print(locals())
+
+
 def triggerRef_leadingLargeRpT():
     triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1]
     trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
@@ -158,35 +165,39 @@ def triggerRef_leadingLargeRm():
 
 
 def accEff_mhh():
-    mhh = file["mhh"]["histogram"][1:-1]
     keys = [
         "nTriggerPass_mhh",
         "nTwoLargeR_mhh",
         "nTwoSelLargeR_mhh",
-        "btagLow_1b1j_mhh",
-        "btagLow_2b1j_mhh",
-        "btagLow_2b2j_mhh",
-        "btagHigh_1b1b_mhh",
-        "btagHigh_2b1b_mhh",
-        "btagHigh_2b2b_mhh",
+        # "btagLow_1b1j_mhh",
+        # "btagLow_2b1j_mhh",
+        # "btagLow_2b2j_mhh",
+        # "btagHigh_1b1b_mhh",
+        # "btagHigh_2b1b_mhh",
+        # "btagHigh_2b2b_mhh",
     ]
     hists_ = []
     for key in keys:
+        print(key)
         hists_.append(hists[key]["hRaw"])
+        print(hists[key]["hRaw"])
+    print(hists["mhh"]["hRaw"])
     hists_cumulative, hists_cumulative_err = tools.CumulativeEfficiencies(
-        hists_, baseline=hists["mhh"]["hRaw"], stopCumulativeFrom=4
+        hists_, baseline=hists["mhh_twoLargeR"]["hRaw"], stopCumulativeFrom=4
     )
     labels = [
         "passed Trigger",
         "≥2 LargeR",
-        "$p_T$>250 GeV, $|\eta\| < 2.0$",
-        "btagLow 1b1j",
-        "btagLow 2b1j",
-        "btagLow 2b2j",
-        "btagHigh 1b1b",
-        "btagHigh 2b1b",
-        "btagHigh 2b2b",
+        "Kinematic Selection"
+        # "btagLow 1b1j",
+        # "btagLow 2b1j",
+        # "btagLow 2b2j",
+        # "btagHigh 1b1b",
+        # "btagHigh 2b1b",
+        # "btagHigh 2b2b",
     ]
+    #         "$p_T(H1)$>450 GeV, $p_T(H2)$>250 GeV, $|\eta\| < 2.0$",
+
     plt.figure()
 
     for i, (h, err, label) in enumerate(
@@ -209,7 +220,7 @@ def accEff_mhh():
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
 
-    ax.set_ylim([0, 1.2])
+    # ax.set_ylim([0, 1.2])
     plt.legend(loc="upper left", bbox_to_anchor=(0.01, 0.9))
     hep.rescale_to_axessize
     plt.tight_layout()
@@ -347,24 +358,50 @@ def dRs():
 
 def massplane_77():
     plt.figure()
+    xbins = file["massplane_77"]["edges"][0][1:-1]
+    ybins = file["massplane_77"]["edges"][1][1:-1]
     histValues = file["massplane_77"]["histogram"][1:-1, 1:-1]
     hep.hist2dplot(
         histValues,
-        xbins=file["massplane_77"]["edges"][0][1:-1],
-        ybins=file["massplane_77"]["edges"][1][1:-1],
+        xbins=xbins,
+        ybins=ybins,
     )
     txt = hep.atlas.text(" Simulation", loc=1)
     txt[0]._color = "white"
     txt[1]._color = "white"
-    hep.atlas.set_ylabel("$m_{h2}$ $[GeV]$ ")
-    hep.atlas.set_xlabel("$m_{h1}$ $[GeV]$ ")
+    hep.atlas.set_ylabel("$m_{H2}$ $[GeV]$ ")
+    hep.atlas.set_xlabel("$m_{H1}$ $[GeV]$ ")
     ax = plt.gca()
+
+    X, Y = np.meshgrid(xbins, ybins)
+    CS1 = plt.contour(X, Y, tools.Xhh(X, Y), [1.6], colors="white", linewidths=1)
+    fmt = {}
+    strs = ["SR"]
+    for l, s in zip(CS1.levels, strs):
+        fmt[l] = s
+    ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+
+    CS1 = plt.contour(X, Y, tools.CR_hh(X, Y), [100e3], colors="white", linewidths=1)
+    fmt = {}
+    strs = ["VR"]
+    for l, s in zip(CS1.levels, strs):
+        fmt[l] = s
+    ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+
+    CS1 = plt.contour(X, Y, X + Y, [130e3], colors="white", linewidths=1)
+    fmt = {}
+    strs = ["CR"]
+    for l, s in zip(CS1.levels, strs):
+        fmt[l] = s
+    ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.get_yaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     ax.yaxis.set_major_formatter(tools.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
+
     # plt.legend(loc="upper right")
     plt.savefig(plotPath + "massplane.pdf")
     plt.close()
@@ -512,14 +549,15 @@ with File(histFile, "r") as file:
     hists = {}
     for key in file.keys():
         hists[key] = getHist(file, key)
-    trigger_leadingLargeRpT()
-    triggerRef_leadingLargeRpT()
-    triggerRef_leadingLargeRm()
+    # trigger_leadingLargeRpT()
+    # triggerRef_leadingLargeRpT()
+    # triggerRef_leadingLargeRm()
     accEff_mhh()
-    mhh()
-    for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
-        pts(name)
-    dRs()
+    # mhh()
+    # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
+    #     pts(name)
+    # dRs()
+    CountBackground()
     massplane_77()
     # if withBackground:
     #     with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:

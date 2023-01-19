@@ -77,6 +77,7 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
 
     for i in range(len(hists)):
         ratio.append(hists[i] / baseline)
+        print(ratio)
         if i == 0:
             cumulatives.append(ratio[0])
         elif i >= stopCumulativeFrom:
@@ -138,4 +139,30 @@ def poisson_err(dh, col, bins):
 
     return np.sqrt(
         np.histogram(dh.nom_df[col], weights=dh.nom_weights**2, bins=bins)[0]
+    )
+
+
+m_h1_center = 124.0e3
+m_h2_center = 117.0e3
+# fm_h1 from signal region optimization:
+# https://indico.cern.ch/event/1191598/contributions/5009137/attachments/2494578/4284249/HH4b20220818.pdf
+fm_h1 = 1500.0e6
+fm_h2 = 1900.0e6
+# SR variable (1.6 is the nominal cutoff)
+def Xhh(m_h1, m_h2):
+    return np.sqrt(
+        np.power((m_h1 - m_h1_center) / (fm_h1 / m_h1), 2)
+        + np.power((m_h2 - m_h2_center) / (fm_h2 / m_h2), 2)
+    )
+
+
+# https://indico.cern.ch/event/1239101/contributions/5216057/attachments/2575156/4440353/hh4b_230112.pdf
+def CR_hh(m_h1, m_h2):
+    # need to make in GeV to work with the log function
+    return (
+        np.sqrt(
+            np.power((m_h1 - m_h1_center) * 1e-3 / (0.1 * np.log(m_h1 * 1e-3)), 2)
+            + np.power((m_h2 - m_h2_center) * 1e-3 / (0.1 * np.log(m_h2 * 1e-3)), 2)
+        )
+        * 1e3
     )

@@ -7,6 +7,7 @@ pt_hBinning = {"binrange": (0.2e6, 1e6), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
 dRbins = {"binrange": (0, 1.2), "bins": 75}
+count = {"binrange": (0, 2), "bins": 2}
 
 hists = [
     FloatHistogram(
@@ -49,6 +50,31 @@ hists = [
         name="pt_hh_scalar",
         binrange=(0.4e6, 1.5e6),
         bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="N_CR_4b",
+        binrange=count["binrange"],
+        bins=count["bins"],
+    ),
+    FloatHistogram(
+        name="N_CR_2b",
+        binrange=count["binrange"],
+        bins=count["bins"],
+    ),
+    FloatHistogram(
+        name="N_VR_4b",
+        binrange=count["binrange"],
+        bins=count["bins"],
+    ),
+    FloatHistogram(
+        name="N_VR_2b",
+        binrange=count["binrange"],
+        bins=count["bins"],
+    ),
+    FloatHistogram(
+        name="N_SR_2b",
+        binrange=count["binrange"],
+        bins=count["bins"],
     ),
     FloatHistogram(
         name="nTriggerPass_mhh",

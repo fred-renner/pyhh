@@ -4,6 +4,7 @@ from scipy import stats
 
 class FloatHistogram:
     def __init__(self, name, binrange, bins=100, compress=True):
+        # bins translates as number of bin edges though
         self._name = name
         # add overflow and underflow bins
         infvar = np.array([np.inf])
@@ -47,6 +48,7 @@ class FloatHistogram:
 
 class FloatHistogram2D:
     def __init__(self, name, binrange1, binrange2, bins=100, compress=True):
+        # bins translates as number of bin edges though
         self._name = name
         # add overflow and underflow bins
         infvar = np.array([np.inf])
