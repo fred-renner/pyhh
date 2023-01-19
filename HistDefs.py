@@ -1,4 +1,4 @@
-from Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
+from tools.Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}

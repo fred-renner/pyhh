@@ -9,14 +9,8 @@ from h5py import File, Group, Dataset
 import os
 import logging
 import argparse
-import PlottingTools as tools
-import colors
-
-# quick and dirty color log
-# logging.basicConfig(level=logging.INFO)
-# logging.addLevelName(
-#     logging.INFO, "\033[1;32m%s\033[1;0m" % logging.getLevelName(logging.INFO)
-# )
+import tools.PlottingTools as tools
+import tools.colors
 
 matplotlib.font_manager._rebuild()
 plt.style.use(hep.style.ATLAS)

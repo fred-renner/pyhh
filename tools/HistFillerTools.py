@@ -3,7 +3,7 @@ import json
 from tools.MetaData import ConstructDatasetName
 import glob
 
-mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/metaData.json"
+mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
 
 
 mcCampaign = {
@@ -53,7 +53,18 @@ def getMetaData(file):
 
 
 def ConstructFilelist(sampleName):
-    
+    """_summary_
+
+    Parameters
+    ----------
+    sampleName : str
+        options : mc21_signal, mc20_signal, m20_ttbar, mc20_dijet, run2
+
+    Returns
+    -------
+    filelist : list
+        list of strings with full samplepaths
+    """
     if sampleName == "mc21_signal":
         topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
@@ -63,11 +74,11 @@ def ConstructFilelist(sampleName):
         pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
 
     # mc20 bkg
-    if sampleName == "m20_ttbar":
+    if sampleName == "mc20_ttbar":
         topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
         pattern = "*ttbar*/*"
 
-    if sampleName == "m20_dijet":
+    if sampleName == "mc20_dijet":
         topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
         pattern = "*jetjet*/*"
 
@@ -78,4 +89,5 @@ def ConstructFilelist(sampleName):
     filelist = []
     for file in glob.iglob(topPath + "/" + pattern):
         filelist += [file]
+
     return filelist

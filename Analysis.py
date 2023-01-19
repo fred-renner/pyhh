@@ -1,9 +1,8 @@
 import numpy as np
 import vector
-import time
 from operator import xor
 import itertools
-from PlottingTools import Xhh, CR_hh
+from tools.PlottingTools import Xhh, CR_hh
 
 np.set_printoptions(threshold=np.inf)
 

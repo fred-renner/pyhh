@@ -16,7 +16,7 @@ mcCampaign = {
     # mc20 = "p5057"
 }
 
-mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/metaData.json"
+mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
 
 
 def get(filepath):

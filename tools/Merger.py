@@ -3,28 +3,9 @@ import numpy as np
 import h5py
 import glob
 from tqdm.auto import tqdm
+from HistFillerTools import ConstructFilelist
 
-topPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
-
-# mc20 signal
-# 1cvv1cv1
-pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-mergedFile = topPath + "hists-MC20-signal-1cvv1cv1.h5"
-
-# mc20 bkg
-# # ttbar
-# pattern = "*ttbar*/*"
-# mergedFile = topPath + "hists-MC20-ttbar.h5"
-
-# # dijet
-# pattern = "*jetjet*/*"
-
-# data 17
-# pattern = "data*"
-
-filelist = []
-for file in glob.iglob(topPath + "/" + pattern):
-    filelist += [file]
+filelist = ConstructFilelist("mc20_signal")
 
 # get hist names
 hists = []

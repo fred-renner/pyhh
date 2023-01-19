@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
 from tqdm.auto import tqdm
 import uproot
-import Loader
 import HistDefs
+import tools.HistFillerTools
+import tools.MetaData
+import tools.Loader
 from h5py import File
 import Analysis
 import multiprocessing
 import argparse
-import HistFillerTools as tools
 import os
-import time
 
 
 # TODO
@@ -41,7 +41,7 @@ if args.file:
     )
 else:
     # default to mc 20 signal
-    filelist = tools.ConstructFilelist("mc20_signal")
+    filelist = tools.HistFillerTools.ConstructFilelist("mc20_signal")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
         dataset = filelist[0].split("/")
@@ -110,7 +110,7 @@ with File(histOutFile, "w") as outfile:
                     cpus = multiprocessing.cpu_count() - 4
                 metaData = {}
                 if "data" not in file_:
-                    metaData = tools.getMetaData(file)
+                    metaData = tools.HistFillerTools.getMetaData(file)
                     metaData["isMC"] = True
                 else:
                     substrings = file_.split(".")
@@ -118,7 +118,7 @@ with File(histOutFile, "w") as outfile:
                     metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
                     metaData["isMC"] = False
 
-            eventBatches = Loader.EventRanges(
+            eventBatches = tools.Loader.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
             # a pool objects can start child processes on different cpus
