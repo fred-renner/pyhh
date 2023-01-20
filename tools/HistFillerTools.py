@@ -52,19 +52,22 @@ def getMetaData(file):
     return metaData
 
 
-def ConstructFilelist(sampleName):
-    """_summary_
+def ConstructFilelist(sampleName, toMerge=False):
+    """
 
     Parameters
     ----------
     sampleName : str
         options : mc21_signal, mc20_signal, m20_ttbar, mc20_dijet, run2
+    toMerge : bool, optional
+        to construct filelist for processed files to merge, by default False
 
     Returns
     -------
     filelist : list
         list of strings with full samplepaths
     """
+
     if sampleName == "mc21_signal":
         topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
@@ -85,6 +88,9 @@ def ConstructFilelist(sampleName):
     if sampleName == "run2":
         topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.2023_01_05.data*/*"
+
+    if toMerge:
+        topPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
 
     filelist = []
     for file in glob.iglob(topPath + "/" + pattern):

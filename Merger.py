@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import numpy as np
 import h5py
-import glob
 from tqdm.auto import tqdm
-from HistFillerTools import ConstructFilelist
+from tools.HistFillerTools import ConstructFilelist
 
-filelist = ConstructFilelist("mc20_signal")
+sample = "run2"
+filelist = ConstructFilelist(sample, toMerge=True)
+mergedFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + sample + ".h5"
 
 # get hist names
 hists = []
@@ -13,7 +14,7 @@ with h5py.File(filelist[0], "r") as readFile:
     histKeys = list(readFile.keys())
 
 with h5py.File(mergedFile, "w") as mergeFile:
-    # copy some file and init datastructure values to 0
+    # copy some file
     with h5py.File(filelist[0], "r") as readFile:
         for group in readFile.keys():
             readFile.copy(group, mergeFile)
