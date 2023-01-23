@@ -1,4 +1,5 @@
 from tools.Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
+import copy
 
 # define hists
 accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
@@ -14,42 +15,6 @@ hists = [
         name="truth_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
-    ),
-    # needs to be the same binning as accEff for plot
-    FloatHistogram(
-        name="mhh",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
-    ),
-    FloatHistogram(
-        name="mh1",
-        binrange=m_hBinning["binrange"],
-        bins=m_hBinning["bins"],
-    ),
-    FloatHistogram(
-        name="mh2",
-        binrange=m_hBinning["binrange"],
-        bins=m_hBinning["bins"],
-    ),
-    FloatHistogram(
-        name="pt_h1",
-        binrange=pt_hBinning["binrange"],
-        bins=pt_hBinning["bins"],
-    ),
-    FloatHistogram(
-        name="pt_h2",
-        binrange=pt_hBinning["binrange"],
-        bins=pt_hBinning["bins"],
-    ),
-    FloatHistogram(
-        name="pt_hh",
-        binrange=(0, 1e6),
-        bins=pt_hBinning["bins"],
-    ),
-    FloatHistogram(
-        name="pt_hh_scalar",
-        binrange=(0.4e6, 1.5e6),
-        bins=pt_hBinning["bins"],
     ),
     FloatHistogram(
         name="N_CR_4b",
@@ -90,11 +55,6 @@ hists = [
         name="nTwoSelLargeR_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
-    ),
-    FloatHistogram(
-        name="nTotalSelLargeR",
-        binrange=(0, 2_500_000),
-        bins=100,
     ),
     FloatHistogram(
         name="leadingLargeRpT",
@@ -172,8 +132,65 @@ hists = [
         binrange2=(50_000, 250_000),
         bins=100,
     ),
-    # "vrJetEfficiencyBoosted": IntHistogram(
-    #     name="vrJetEfficiencyBoosted",
-    #     binrange=(0, 3),
-    # ),
 ]
+
+
+# just use kinematicHists as template to construct further down for all regions
+kinematicHists = [
+    # needs to be the same binning as accEff plot
+    FloatHistogram(
+        name="mhh",
+        binrange=accEffBinning["binrange"],
+        bins=accEffBinning["bins"],
+    ),
+    FloatHistogram(
+        name="mh1",
+        binrange=m_hBinning["binrange"],
+        bins=m_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="mh2",
+        binrange=m_hBinning["binrange"],
+        bins=m_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_h1",
+        binrange=pt_hBinning["binrange"],
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_h2",
+        binrange=pt_hBinning["binrange"],
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_hh",
+        binrange=(0, 1e6),
+        bins=pt_hBinning["bins"],
+    ),
+    FloatHistogram(
+        name="pt_hh_scalar",
+        binrange=(0.4e6, 1.5e6),
+        bins=pt_hBinning["bins"],
+    ),
+]
+
+# construct hists for all regions and kinematic vars
+regions = [
+    "SR_4b",
+    "SR_2b",
+    "SR_2b_weights",
+    "VR_4b",
+    "VR_2b",
+    "VR_2b_weights",
+    "CR_4b",
+    "CR_2b",
+]
+
+for hist in kinematicHists:
+    kinVar = getattr(hist, "_name")
+    for reg in regions:
+        var = kinVar + "_" + reg
+        newHist = copy.deepcopy(hist)
+        newHist._name = var
+        hists.append(newHist)

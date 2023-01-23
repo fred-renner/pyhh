@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.ticker
 
 # https://indico.cern.ch/event/66256/contributions/2071577/attachments/1017176/1447814/EfficiencyErrors.pdf
 # https://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2286-cd.pdf
@@ -46,9 +47,6 @@ def getEfficiencyErrors(passed, total):
     value_position = passed / total
     relative_errors = np.array([value_position - lower_err, upper_err - value_position])
     return relative_errors
-
-
-import matplotlib.ticker
 
 
 class OOMFormatter(matplotlib.ticker.ScalarFormatter):

@@ -80,7 +80,7 @@ def error_handler(e):
 if args.debug:
     filelist = filelist[:2]
     histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
-    nEvents = 1000
+    nEvents = 10
     cpus = 1
     batchSize = 1000
     metaData = {}
@@ -89,6 +89,7 @@ if args.debug:
     metaData["dataYears"] = ["2017"]
     metaData["genFiltEff"] = 1.0
     metaData["isMC"] = True
+
 # init hists
 hists = HistDefs.hists
 

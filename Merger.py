@@ -4,7 +4,7 @@ import h5py
 from tqdm.auto import tqdm
 from tools.HistFillerTools import ConstructFilelist
 
-sample = "run2"
+sample = "mc20_ttbar"
 filelist = ConstructFilelist(sample, toMerge=True)
 mergedFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + sample + ".h5"
 

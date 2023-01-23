@@ -3,6 +3,7 @@ import vector
 from operator import xor
 import itertools
 from tools.PlottingTools import Xhh, CR_hh
+import copy
 
 np.set_printoptions(threshold=np.inf)
 
@@ -86,7 +87,7 @@ class ObjectSelection:
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
         
-        # don't refactor as this file is read to load the vars
+        # don't refactor for now as this file is read to load the vars
         # mc21
         if self.mc:
             if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
@@ -121,6 +122,7 @@ class ObjectSelection:
                 self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_35smcINF_L1J100"]
                 self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
         # fmt: on
+
         # event amount per iteration
         self.nEvents = len(self.lrj_pt)
         self.eventRange = range(self.nEvents)
@@ -183,14 +185,13 @@ class ObjectSelection:
                     # mcEventWeights[:][0] == generatorWeight_NOSYS
                 )
             self.largeRSelect(event)
-            self.TriggerReference(event) 
+            self.TriggerReference(event)
             self.getVRs(event)
             self.hh_p4(event)
             self.vbfSelect(event)
             self.hh_regions(event)
             if self.hasTruth:
                 self.truth_mhh(event)
-        self.nTotalSelLargeR()
 
     def largeRSelect(self, event):
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
@@ -236,15 +237,8 @@ class ObjectSelection:
             if self.leadingLargeRpt[event] > 500_000.0:
                 self.leadingLargeRpTGreater500[event] = True
 
-    def nTotalSelLargeR(self):
-        self.nSelLargeRFlat = self.ReplicateBins(
-            binnedObject=self.m_hh, Counts=self.nLargeRBasicSelected
-        )
-
     def getVRs(self, event):
         if self.selectedTwoLargeRevents[event]:
-            # print(self.vr_btag_77[event]._values)
-            # print(self.vr_btag_77[event]._values[0])
             # get their corresponding vr jets
             j1_VRs = self.vr_btag_77[event]._values[self.selLargeR1Index[event]]
             j2_VRs = self.vr_btag_77[event]._values[self.selLargeR2Index[event]]
@@ -283,18 +277,6 @@ class ObjectSelection:
 
             self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
             self.dR_h2[event] = self.vr_deltaR12[event][self.selLargeR2Index[event]]
-
-    def ReplicateBins(self, binnedObject, Counts):
-        # duplicate the binnedObject bin value with the given Counts per event
-        replicatedBins = np.full((self.nEvents, np.max(Counts)), -np.inf)
-        for event in self.eventRange:
-            n = Counts[event]
-            # account for skipped events/defaults
-            if n == -1:
-                continue
-            else:
-                replicatedBins[event, :n] = np.full(n, binnedObject[event])
-        return replicatedBins.flatten()
 
     def truth_mhh(self, event):
         truth_h1_p4 = vector.obj(
@@ -407,82 +389,57 @@ class ObjectSelection:
 
     def returnResults(self):
         """
-        lookup table for histname, variable to write, selection to apply
+        lookup table for histname, variable to write, selection and weights to apply
 
         Returns
         -------
         result : dict
-            key: hist, holding tuple: (values, weights)
+            key: hist, list: [values, weights]
         """
 
-        signalSelection = self.SR & self.VBFjetsPass & self.btagHigh_2b2b
-        # signalSelection = (
-        #     self.SR
-        #     & self.VBFjetsPass
-        #     & (self.btagHigh_2b2b | self.btagHigh_2b1b | self.btagHigh_1b1b)
-        # )
+        regions = {
+            "SR_4b": self.SR & self.VBFjetsPass & self.btagHigh_2b2b,
+            "SR_2b": self.SR & self.VBFjetsPass & self.btagHigh_1b1b,
+            "VR_4b": self.VR & self.VBFjetsPass & self.btagHigh_2b2b,
+            "VR_2b": self.VR & self.VBFjetsPass & self.btagHigh_1b1b,
+            "CR_4b": self.CR & self.VBFjetsPass & self.btagHigh_2b2b,
+            "CR_2b": self.CR & self.VBFjetsPass & self.btagHigh_1b1b,
+        }
 
+        # singular vars
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
                 "sel": None,
             },
-            "mhh": {
-                "var": self.m_hh,
-                "sel": signalSelection,
-            },
-            "mh1": {
-                "var": self.m_h1,
-                "sel": signalSelection,
-            },
-            "mh2": {
-                "var": self.m_h2,
-                "sel": signalSelection,
-            },
-            "pt_h1": {
-                "var": self.pt_h1,
-                "sel": signalSelection,
-            },
-            "pt_h2": {
-                "var": self.pt_h2,
-                "sel": signalSelection,
-            },
-            "pt_hh": {
-                "var": self.pt_hh,
-                "sel": signalSelection,
-            },
-            "pt_hh_scalar": {
-                "var": self.pt_hh_scalar,
-                "sel": signalSelection,
-            },
             "dR_h1": {
                 "var": self.dR_h1,
-                "sel": signalSelection,
+                "sel": regions["SR_4b"],
             },
             "dR_h2": {
                 "var": self.dR_h2,
-                "sel": signalSelection,
+                "sel": regions["SR_4b"],
             },
             # bkg counting
             "N_CR_4b": {
-                "var": (self.CR & self.btagHigh_2b2b),
-                "sel": (self.CR & self.btagHigh_2b2b),
+                "var": regions["CR_4b"],
+                "sel": regions["CR_4b"],
             },
             "N_CR_2b": {
-                "var": (self.CR & self.btagHigh_1b1b),
-                "sel": (self.CR & self.btagHigh_1b1b),
+                "var": regions["CR_2b"],
+                "sel": regions["CR_2b"],
             },
             "N_VR_4b": {
-                "var": (self.VR & self.btagHigh_2b2b),
-                "sel": (self.VR & self.btagHigh_2b2b),
+                "var": regions["VR_4b"],
+                "sel": regions["VR_4b"],
             },
             "N_VR_2b": {
-                "var": (self.VR & self.btagHigh_1b1b),
-                "sel": (self.VR & self.btagHigh_1b1b),
+                "var": regions["VR_2b"],
+                "sel": regions["VR_2b"],
             },
             "N_SR_2b": {
-                "var": (self.SR & self.btagHigh_1b1b),
-                "sel": (self.SR & self.btagHigh_1b1b),
+                "var": regions["SR_2b"],
+                "sel": regions["SR_2b"],
             },
             "nTriggerPass_mhh": {
                 "var": self.m_hh,
@@ -520,10 +477,6 @@ class ObjectSelection:
                 "var": self.m_hh,
                 "sel": self.btagHigh_2b2b,
             },
-            "nTotalSelLargeR": {
-                "var": self.nSelLargeRFlat,
-                "sel": "ones",
-            },
             "leadingLargeRpT": {
                 "var": self.leadingLargeRpt,
                 "sel": None,
@@ -550,66 +503,115 @@ class ObjectSelection:
             },
         }
 
+        kinematics = {
+            "mhh": {
+                "var": self.m_hh,
+                "sel": None,
+            },
+            "mh1": {
+                "var": self.m_h1,
+                "sel": None,
+            },
+            "mh2": {
+                "var": self.m_h2,
+                "sel": None,
+            },
+            "pt_h1": {
+                "var": self.pt_h1,
+                "sel": None,
+            },
+            "pt_h2": {
+                "var": self.pt_h2,
+                "sel": None,
+            },
+            "pt_hh": {
+                "var": self.pt_hh,
+                "sel": None,
+            },
+            "pt_hh_scalar": {
+                "var": self.pt_hh_scalar,
+                "sel": None,
+            },
+        }
+
+        bkgWeightsCR = 0.025380
+        bkgWeightsVR = 0.049299
+        # make kinematics vars for all regions, e.g. mhh_CR_4b, mhh_CR_2b, etc.
+        # and write to finalSel
+        for kinVar, kinVarDict in kinematics.items():
+            # e.g. region==CR_2b, selectionBool==boolArray_CR_2b
+            for region, selectionBool in regions.items():
+                # write selectionBool e.g. SR_4b
+                kinVarDict["sel"] = selectionBool
+                # need to make a deep copy as dict assignments just creates references
+                finalSel[kinVar + "_" + region] = copy.deepcopy(kinVarDict)
+                # some with weights for bkg estimation
+                if region == "VR_2b":
+                    varWithWeight = kinVar + "_" + region + "_weights"
+                    finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
+                    finalSel[varWithWeight]["weight"] = bkgWeightsCR
+                if region == "SR_2b":
+                    varWithWeight = kinVar + "_" + region + "_weights"
+                    finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
+                    finalSel[varWithWeight]["weight"] = bkgWeightsVR
+
+        # go over all defined hists, apply additional weights if exist and return
         results = {}
         for hist in finalSel.keys():
+            # if self-defined weight value
+            if "weight" in finalSel[hist]:
+                w = finalSel[hist]["weight"]
+            else:
+                w = None
+
             results[hist] = self.resultWithWeights(
-                finalSel[hist]["var"], finalSel[hist]["sel"]
+                var=finalSel[hist]["var"],
+                sel=finalSel[hist]["sel"],
+                weight=w,
             )
 
-        # 2D by hand
+        # massplane by hand
         results["massplane_77"] = (
             np.array(
                 [
-                    self.m_h1[signalSelection],
-                    self.m_h2[signalSelection],
+                    self.m_h1[regions["SR_4b"]],
+                    self.m_h2[regions["SR_4b"]],
                 ]
             ).T,
-            np.array(self.weights[signalSelection]),
+            np.array(self.weights[regions["SR_4b"]]),
         )
 
         return results
 
-    def resultWithWeights(self, var, sel=None):
+    def resultWithWeights(self, var, sel=None, weight=None):
+
         """
-        select values of vars and attach weights
+        select varSelDicts of vars and attach weights
 
         Parameters
         ----------
         var : np.ndarray
-            array with values
-
+            array with varSelDicts
         sel : np.ndarray, optional
             array holding a booleans to select on var , by default None
+        weight : float, optional
+            weights for the hists, by default None
 
         Returns
         -------
-        out : list
+        varWithWeights : list
             selected vars with weights
         """
+
         if sel is None:
-            return [var, self.weights]
-        if sel is "ones":
-            return [var, np.ones(var.shape)]
+            if weight is None:
+                varWithWeights = [var, self.weights]
+            else:
+                varWithWeights = [var, np.ones(var.shape) * weight]
         else:
-            return [var[sel], self.weights[sel]]
+            if weight is None:
+                varWithWeights = [var[sel], self.weights[sel]]
+            else:
+                varWithWeights = [var[sel], np.ones(var[sel].shape) * weight]
 
-    # if histkey == "vrJetEfficiencyBoosted":
-    #     matchCriterion = 0.2
-    #     # fmt: off
-    #     # remove defaults
-    #     nonDefaults = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"] != -1
-    #     h1_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-    #     h2_sameInitial = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_closestTruthBsHaveSameInitialParticle"][nonDefaults] > 0
-    #     h1_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h1_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h1_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h2_dR_lead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_leadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     h2_dR_sublead = vars_arr["boosted_DL1r_FixedCutBEff_85_h2_dR_subleadingJet_closestTruthB"][nonDefaults] < matchCriterion
-    #     # fmt: on
-
-    #     matched_h1 = h1_sameInitial & h1_dR_lead & h1_dR_sublead
-    #     matched_h2 = h2_sameInitial & h2_dR_lead & h2_dR_sublead
-
-    #     # encode h1 match with 1 and h2 match with 2, remove zeros for h2 otherwise double count total dihiggs
-    #     matched = np.concatenate([matched_h1 * 1, (matched_h2 + 2)])
-
-    #     return matched
+        return varWithWeights
