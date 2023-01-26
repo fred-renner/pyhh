@@ -41,7 +41,8 @@ if args.file:
     )
 else:
     # default to mc 20 signal
-    filelist = tools.HistFillerTools.ConstructFilelist("mc20_signal")
+    # filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
+    filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
         dataset = filelist[0].split("/")
@@ -88,6 +89,7 @@ if args.debug:
     metaData["crossSection"] = 1e-6
     metaData["dataYears"] = ["2017"]
     metaData["genFiltEff"] = 1.0
+    metaData["kFactor"] = 1.0
     metaData["isMC"] = True
 
 # init hists
@@ -118,7 +120,6 @@ with File(histOutFile, "w") as outfile:
                     dataCampaign = [s for s in substrings if "data" in s]
                     metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
                     metaData["isMC"] = False
-
             eventBatches = tools.Loader.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )

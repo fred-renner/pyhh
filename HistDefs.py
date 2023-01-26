@@ -127,7 +127,7 @@ hists = [
         bins=dRbins["bins"],
     ),
     FloatHistogram2D(
-        name="massplane_77",
+        name="massplane",
         binrange1=(50_000, 250_000),
         binrange2=(50_000, 250_000),
         bins=100,
@@ -177,17 +177,22 @@ kinematicHists = [
 
 # construct hists for all regions and kinematic vars
 regions = [
-    "SR_4b",
+    # "SR_4b",
     "SR_2b",
-    "SR_2b_weights",
     "VR_4b",
     "VR_2b",
-    "VR_2b_weights",
     "CR_4b",
     "CR_2b",
+    "SR_2b_noVBF",
+    "VR_4b_noVBF",
+    "VR_2b_noVBF",
+    "CR_4b_noVBF",
+    "CR_2b_noVBF",
 ]
 
 for hist in kinematicHists:
+    # without selection
+    hists.append(copy.deepcopy(hist))
     kinVar = getattr(hist, "_name")
     for reg in regions:
         var = kinVar + "_" + reg

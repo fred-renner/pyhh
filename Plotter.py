@@ -3,12 +3,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
-from matplotlib import ticker
 import mplhep as hep
 from h5py import File, Group, Dataset
 import os
 import logging
 import argparse
+import matplotlib.ticker
 
 from tools.PlottingTools import OOMFormatter
 import tools.PlottingTools
@@ -23,42 +23,47 @@ parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
 
 # fmt: off
-withBackground=True
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_11_25_.601480.PhPy8EG_HH4b_cHHH10d0.e8472_s3873_r13829_p5440_TREE.h5"
-histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-signal-1cvv1cv1.h5"
-ttbarHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-ttbar.h5"
-dijetHists = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-MC20-bkg-dijet.h5"
+SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
+SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_1cvv1cv1.h5"
+ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
+dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
+run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
 
-# histFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
 # fmt: on
-if "run2" in histFile or "data" in histFile:
-    blind = True
-else:
-    blind = False
-
-print(blind)
+blind = True
 
 if args.histFile:
     histFile = args.histFile
 
+
 # make plot directory
-filename = histFile.split("/")
-filename = str(filename[-1]).replace(".h5", "")
+if "histFile" in locals():
+    filename = histFile.split("/")
+    filename = str(filename[-1]).replace(".h5", "")
+else:
+    filename = "run2"
+
 logging.info("make plots for " + filename)
 plotPath = "/lustre/fs22/group/atlas/freder/hh/run/plots/" + filename + "/"
+
 if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
 
 
 def getHist(file, name):
     # access [1:-1] to remove underflow and overflow bins
-    h = file[name]["histogram"][1:-1]
-    hRaw = file[name]["histogramRaw"][1:-1]
-    edges = file[name]["edges"][:]
-    err = np.sqrt(file[name]["w2sum"][1:-1])
+    h = np.array(file[name]["histogram"][1:-1])
+    hRaw = np.array(file[name]["histogramRaw"][1:-1])
+    edges = np.array(file[name]["edges"][:])
+    err = np.sqrt(hRaw)
     return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
+
+
+def load(file):
+    hists = {}
+    for key in file.keys():
+        hists[key] = getHist(file, key)
+    return hists
 
 
 def triggerRef_leadingLargeRpT():
@@ -353,11 +358,12 @@ def dRs():
     plt.close()
 
 
-def massplane_77():
+def massplane(dataType):
     plt.figure()
-    xbins = file["massplane_77"]["edges"][0][1:-1]
-    ybins = file["massplane_77"]["edges"][1][1:-1]
-    histValues = file["massplane_77"]["histogram"][1:-1, 1:-1]
+    h_file = globals()[dataType]
+    xbins = h_file["massplane"]["edges"][0][1:-1]
+    ybins = h_file["massplane"]["edges"][1][1:-1]
+    histValues = h_file["massplane"]["histogram"][1:-1, 1:-1]
     hep.hist2dplot(
         histValues,
         xbins=xbins,
@@ -395,7 +401,7 @@ def massplane_77():
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
-    if blind:
+    if dataType == "f_run2":
         CS1 = plt.contourf(
             X, Y, tools.PlottingTools.Xhh(X, Y), [0, 1.6], colors="black"
         )
@@ -403,24 +409,26 @@ def massplane_77():
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.get_yaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
-    ax.yaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(tools.PlottingTools.OOMFormatter(3, "%1.1i"))
+    ax.yaxis.set_major_formatter(tools.PlottingTools.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
 
     # plt.legend(loc="upper right")
-    plt.savefig(plotPath + "massplane.pdf")
+    plt.savefig(plotPath + "massplane_" + dataType + ".pdf")
     plt.close()
 
 
-def mh_ratio(histKey):
-    # need to correct error
-    signal, edges, signal_err = getHist(file, histKey)
-    ttbar, edges2, ttbar_err = getHist(ttbarFile, histKey)
-    dijet, edges2, dijet_err = getHist(dijetFile, histKey)
+def mh_SB_ratio(histKey):
 
-    bkg = np.array([ttbar, dijet])
-    bkg_tot = np.sum(bkg, axis=0)
-    bkg_tot_err = np.sqrt(bkg_tot)
+    # make both ratios, s/sqrt(B) and over Data
+    signal = SMsignal[histKey]["h"]
+    tt = ttbar[histKey]["h"]
+    jj = dijet[histKey]["h"]
+    edges = SMsignal[histKey]["edges"]
+    # need to correct error
+
+    bkg_tot = tt + jj
+    bkg_tot_err = np.sqrt(ttbar[histKey]["err"] ** 2 + dijet[histKey]["err"] ** 2)
     ratio = signal / np.sqrt(bkg_tot)
 
     # B = Q + T
@@ -456,10 +464,12 @@ def mh_ratio(histKey):
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
-
-    # stack plot
+    # print(tt.shape)
+    # print(jj.shape)
+    # print(edges.shape)
+    # # stack plot
     hep.histplot(
-        [ttbar, dijet],
+        [tt, jj],
         edges,
         stack=True,
         histtype="fill",
@@ -475,12 +485,10 @@ def mh_ratio(histKey):
         edges,
         np.append(bkg_tot - bkg_tot_err, 0),
         np.append(bkg_tot + bkg_tot_err, 0),
-        hatch="\\\\\\\\",
-        facecolor="None",
-        edgecolor="dimgrey",
+        color="dimgrey",
         linewidth=0,
+        alpha=0.5,
         step="post",
-        zorder=1,
         label="stat. uncertainty",
     )
     # signal
@@ -522,18 +530,184 @@ def mh_ratio(histKey):
     hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
-    rax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i", offset=False))
+    # rax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i", offset=False))
     ax.legend(loc="upper right")
+    plt.savefig(plotPath + f"SB_{histKey}_ratio.pdf")
+    plt.close()
+
+
+def mh_data_ratio(histKey):
+
+    # wollen VR_4b ansehsen
+
+    # wir wollen verschieden regionen, mh1 mh2 mhh,
+
+    # would like datapoints in VR_4b für m_hh
+    # bkg estimate dazu: data_VR_2b_weights-ttbar_VR_4b, ttbar_VR_4b
+
+    # # sm = SMsignal[histKey + "VR_4b"]["h"]
+    # tt = ttbar[histKey + "VR_4b"]["h"]
+    # jj = (run2[histKey + "VR_2b"]["h"] - ttbar[histKey + "VR_2b"]["h"]) * 0.000561456456456456
+    # r2= jj+tt
+    # # pred = jj + tt == r2
+    # ratio = (run2[histKey + "VR_4b"]["h"] - r2) / r2
+    # # need to correct error
+    # edges = ttbar[histKey + "VR_2b"]["edges"]
+    # # bkg = np.array([ttbar[histKey]["hRaw"], bkgEstimate])
+    # # bkg_err = np.sqrt(bkg_tot)
+
+    # B = Q + T
+    # Berr = sqrt(Qerr^2 + Terr^2)
+
+    tt = ttbar[histKey]["h"]#*2e-2
+    jj = dijet[histKey]["h"]#*2e-2
+    data = run2[histKey]["h"]
+    edges = dijet[histKey]["edges"]
+
+    plt.figure()
+
+    fig, (ax, rax) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(8, 8),
+        gridspec_kw={"height_ratios": (3, 1)},
+        sharex=True,
+    )
+
+    #  stack plot
+    hep.histplot(
+        [tt, jj],
+        edges,
+        stack=True,
+        histtype="fill",
+        # yerr=True,
+        label=["$t\overline{t}$", "Multijet"],#"run2_VR_2b_weighted"],
+        ax=ax,
+        color=["hh:darkpink", "hh:medturquoise"],
+        edgecolor="black",
+        linewidth=0.5,
+    )
+    # error stackplot
+    # ax.fill_between(
+    #     edges,
+    #     np.append(bkg_tot - bkg_tot_err, 0),
+    #     np.append(bkg_tot + bkg_tot_err, 0),
+    #     color="dimgrey",
+    #     linewidth=0,
+    #     alpha=0.5,
+    #     step="post",
+    #     label="stat. uncertainty",
+    # )
+    # data
+    hep.histplot(
+        data,
+        edges,
+        histtype="errorbar",
+        yerr=True,
+        color="Black",
+        label="data",
+        ax=ax,
+    )
+    # ratio plot
+    hep.histplot(
+        data / (tt + jj),
+        edges,
+        histtype="errorbar",
+        yerr=True,
+        ax=rax,
+        color="Black",
+    )
+    fig.subplots_adjust(hspace=0.07)
+    ax.set_ylabel("Events")
+    rax.set_ylabel(r"$ \frac{\mathrm{Data}}{\mathrm{Pred}}$",horizontalalignment="center")
+    # rax.set_ylim([0, 0.0001])
+    ax.set_yscale("log")
+    # ax.set_ylim([0, 1_000_000])
+
+    hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
+    if "mh1" in histKey:
+        whichHiggs = "H1"
+    if "mh2" in histKey:
+        whichHiggs = "H2"
+    if "hh" in histKey:
+        whichHiggs = "HH"
+    hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
+    plt.tight_layout()
+    rax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.legend(loc="upper right")
+    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+
     plt.savefig(plotPath + f"{histKey}_ratio.pdf")
     plt.close()
 
 
-with File(histFile, "r") as file:
-    hists = {}
-    for key in file.keys():
-        if blind and "SR_4b" in key:
-            continue
-        hists[key] = getHist(file, key)
+def compareABCD(histKey):
+    r2 = run2[histKey + "_VR_4b"]["h"]
+    tt = ttbar[histKey + "_VR_2b"]["h"] * 0.0005614624912816201
+    jj = dijet[histKey + "_VR_4b"]["h"]
+    bkgEstimate = run2[histKey + "_VR_2b"]["h"] * 0.0005614624912816201 - tt
+    edges = run2[histKey + "_VR_4b"]["edges"]
+
+    bkg_tot = bkgEstimate + tt
+    bkg_tot_err = np.sqrt(run2[histKey + "_VR_2b_weights"]["h"])
+    plt.figure()
+    hep.histplot(
+        [tt, bkgEstimate],
+        edges,
+        stack=True,
+        histtype="fill",
+        # yerr=True,
+        label=["$t\overline{t}$", "Bkg estimate"],  # , "Multijet"],
+        color=["hh:darkpink", "hh:medturquoise"],
+        edgecolor="black",
+        linewidth=0.5,
+    )
+    hep.histplot(
+        # cumulative_signal/cumulative_bkg,
+        r2,
+        edges,
+        histtype="errorbar",
+        yerr=True,
+        color="Black",
+        label="data",
+    )
+    ax = plt.gca()
+    ax.fill_between(
+        edges,
+        np.append(bkg_tot + bkg_tot_err, 0),
+        np.append(bkg_tot - bkg_tot_err, 0),
+        hatch="\\\\\\\\",
+        facecolor="None",
+        edgecolor="dimgrey",
+        linewidth=0,
+        step="post",
+        zorder=1,
+        label="stat. uncertainty",
+    )
+    # hep.atlas.text(" Simulation", loc=1)
+    hep.atlas.set_ylabel("Events")
+    hep.atlas.set_xlabel(f"{histKey}")
+    ax = plt.gca()
+    # ax.set_yscale("log")
+    # ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    plt.legend(loc="upper right")
+    # hep.yscale_legend()
+    hep.atlas.label(data=False, lumi="140", year=None, loc=0)
+
+    plt.tight_layout()
+    # ax.get_xaxis().get_offset_text().set_position((2, 0))
+
+    plt.savefig(plotPath + histKey + "_BkgEstimate.pdf")
+    plt.close()
+
+
+with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
+    ttbarFile, "r"
+) as f_ttbar, File(dijetFile, "r") as f_dijet:
+    SMsignal = load(f_SMsignal)
+    run2 = load(f_run2)
+    ttbar = load(f_ttbar)
+    dijet = load(f_dijet)
     # trigger_leadingLargeRpT()
     # triggerRef_leadingLargeRpT()
     # triggerRef_leadingLargeRm()
@@ -542,10 +716,19 @@ with File(histFile, "r") as file:
     # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
     #     pts(name)
     # dRs()
-    massplane_77()
+    # massplane("f_SMsignal")
+    # massplane("f_run2")
+    # massplane("f_ttbar")
+    # mh_SB_ratio("mh1_VR_")
+    # mh_SB_ratio("mh2")
+    # mh_data_ratio("mhh_")
 
-    # if withBackground:
-    #     with File(ttbarHists, "r") as ttbarFile, File(dijetHists, "r") as dijetFile:
-    #         mh_ratio("mh1")
-    #         mh_ratio("mh2")
-    #         mh_ratio("btagHigh_2b2b_mhh")
+    # for region in ["SR_2b", "VR_4b", "VR_2b", "CR_4b", "CR_2b"]:
+    #     # mh_SB_ratio("mh1_" + region)
+    #     # mh_SB_ratio("mh2_" + region)
+    #     mh_SB_ratio("mhh_" + region)
+    mh_data_ratio("mhh_CR_2b")
+    mh_data_ratio("mhh_CR_2b_noVBF")   
+    mh_data_ratio("mhh_CR_4b")
+    mh_data_ratio("mhh_CR_4b_noVBF")
+    # compareABCD("mhh")

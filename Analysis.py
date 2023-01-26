@@ -65,9 +65,21 @@ class ObjectSelection:
         if self.mc:
             lumi = get_lumi(metaData["dataYears"])
             # crosssection comes in nb-1 (* 1e6 = fb-1)
-            sigma = metaData["crossSection"] * 1e6
+            xsec = metaData["crossSection"] * 1e6
             sum_of_weights = metaData["initial_sum_of_weights"]
-            self.weightFactor = sigma * lumi * metaData["genFiltEff"] / sum_of_weights
+            # mc.lumi * (db_entry.xsec * db_entry.k_factor * db_entry.gen_filt_eff) / weight;
+            self.weightFactor = (
+                xsec
+                * lumi
+                * metaData["kFactor"]
+                * metaData["genFiltEff"]
+                / sum_of_weights
+            )
+            print("xsec",xsec)
+            print("lumi",lumi)
+            print("metaData['kFactor']",metaData["kFactor"])
+            print("metaData['genFiltEff']",metaData["genFiltEff"])
+            print("sum_of_weights",sum_of_weights)
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -192,7 +204,8 @@ class ObjectSelection:
             self.hh_regions(event)
             if self.hasTruth:
                 self.truth_mhh(event)
-
+        # print(self.vars_arr["mcEventWeights"][:][0])
+        print(self.weights)
     def largeRSelect(self, event):
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
         # pt, eta cuts and sort
@@ -320,7 +333,6 @@ class ObjectSelection:
         # https://indico.cern.ch/event/1184186/contributions/4974848/attachments/2483923/4264523/2022-07-21%20Introduction.pdf
         if self.selectedTwoLargeRevents[event]:
             etaCut = np.abs(self.srj_eta[event]) < 4.5
-            # someCut = (self.srj_pt[event] > 60e3) & (np.abs(self.srj_eta[event]) > 2.4)
             selected = np.array((etaCut), dtype=bool)
             nJetsSelected = np.count_nonzero(selected)
             passedJets_p4 = []
@@ -357,12 +369,13 @@ class ObjectSelection:
                     eta_jjs[i] = np.abs(jetX.eta - jetY.eta) > 3
                 passMassEta = m_jjs & eta_jjs
                 if np.count_nonzero(passMassEta) >= 1:
-                    largesPtSum = 0
+                    largestPtSum = 0
                     for twoIndices in jet_combinations[passMassEta]:
                         jet1Pt = passedJets_p4[twoIndices[0]].pt
                         jet2Pt = passedJets_p4[twoIndices[1]].pt
                         PtSum = jet1Pt + jet2Pt
-                        if largesPtSum < PtSum:
+                        if largestPtSum < PtSum:
+                            largestPtSum = PtSum
                             if jet1Pt < jet2Pt:
                                 twoIndices = twoIndices[::-1]
                             self.VBFjetsPass[event] = True
@@ -398,12 +411,17 @@ class ObjectSelection:
         """
 
         regions = {
-            "SR_4b": self.SR & self.VBFjetsPass & self.btagHigh_2b2b,
-            "SR_2b": self.SR & self.VBFjetsPass & self.btagHigh_1b1b,
-            "VR_4b": self.VR & self.VBFjetsPass & self.btagHigh_2b2b,
-            "VR_2b": self.VR & self.VBFjetsPass & self.btagHigh_1b1b,
-            "CR_4b": self.CR & self.VBFjetsPass & self.btagHigh_2b2b,
-            "CR_2b": self.CR & self.VBFjetsPass & self.btagHigh_1b1b,
+            # "SR_4b": self.SR & self.VBFjetsPass & self.btagHigh_2b2b,
+            "SR_2b": self.SR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "VR_4b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
+            "VR_2b": self.VR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "CR_4b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
+            "CR_2b": self.CR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "SR_2b_noVBF": self.SR & self.btagHigh_1b1b,
+            "VR_4b_noVBF": self.VR & self.btagHigh_2b2b,
+            "VR_2b_noVBF": self.VR & self.btagHigh_1b1b,
+            "CR_4b_noVBF": self.CR & self.btagHigh_2b2b,
+            "CR_2b_noVBF": self.CR & self.btagHigh_1b1b,
         }
 
         # singular vars
@@ -414,11 +432,11 @@ class ObjectSelection:
             },
             "dR_h1": {
                 "var": self.dR_h1,
-                "sel": regions["SR_4b"],
+                "sel": None,
             },
             "dR_h2": {
                 "var": self.dR_h2,
-                "sel": regions["SR_4b"],
+                "sel": None,
             },
             # bkg counting
             "N_CR_4b": {
@@ -533,9 +551,10 @@ class ObjectSelection:
                 "sel": None,
             },
         }
+        finalSel.update(kinematics)
 
-        bkgWeightsCR = 0.025380
-        bkgWeightsVR = 0.049299
+        bkgWeightsCR = 0.000561
+        bkgWeightsVR = 0.001599
         # make kinematics vars for all regions, e.g. mhh_CR_4b, mhh_CR_2b, etc.
         # and write to finalSel
         for kinVar, kinVarDict in kinematics.items():
@@ -546,14 +565,14 @@ class ObjectSelection:
                 # need to make a deep copy as dict assignments just creates references
                 finalSel[kinVar + "_" + region] = copy.deepcopy(kinVarDict)
                 # some with weights for bkg estimation
-                if region == "VR_2b":
-                    varWithWeight = kinVar + "_" + region + "_weights"
-                    finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
-                    finalSel[varWithWeight]["weight"] = bkgWeightsCR
-                if region == "SR_2b":
-                    varWithWeight = kinVar + "_" + region + "_weights"
-                    finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
-                    finalSel[varWithWeight]["weight"] = bkgWeightsVR
+                # if region == "VR_2b":
+                #     varWithWeight = kinVar + "_" + region + "_weights"
+                #     finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
+                #     finalSel[varWithWeight]["weight"] = bkgWeightsCR
+                # if region == "SR_2b":
+                #     varWithWeight = kinVar + "_" + region + "_weights"
+                #     finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
+                #     finalSel[varWithWeight]["weight"] = bkgWeightsVR
 
         # go over all defined hists, apply additional weights if exist and return
         results = {}
@@ -571,14 +590,14 @@ class ObjectSelection:
             )
 
         # massplane by hand
-        results["massplane_77"] = (
+        results["massplane"] = (
             np.array(
                 [
-                    self.m_h1[regions["SR_4b"]],
-                    self.m_h2[regions["SR_4b"]],
+                    self.m_h1[:],
+                    self.m_h2[:],
                 ]
             ).T,
-            np.array(self.weights[regions["SR_4b"]]),
+            np.array(self.weights[:]),
         )
 
         return results

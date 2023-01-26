@@ -3,6 +3,7 @@ import pyAMI.client
 import pyAMI_atlas.api as AtlasAPI
 import os
 import json
+import csv
 
 client = pyAMI.client.Client("atlas")
 AtlasAPI.init()
@@ -30,8 +31,6 @@ def get(filepath):
 
     datasetName = ConstructDatasetName(filepath)
 
-    # print(f"Get Meta-data for file: {filepath}")
-    # print("Original Dataset Name: " + datasetName)
     # query info
     # make sure file is not empty
     if os.stat(mdFile).st_size == 0:
@@ -48,6 +47,25 @@ def get(filepath):
         )
         ds_info = AtlasAPI.get_dataset_info(client, dataset=datasets[0]["ldn"])
         data[datasetName] = ds_info[0]
+
+        # add kfactor either from ami or PMG file
+        if "kFactor@PMG" in ds_info:
+            ds_info["kFactor"] = float(ds_info["kFactor@PMG"])
+        else:
+            ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
+            if "mc20" in datasetName:
+                pmgFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/PMGxsecDB_mc16.txt"
+            if "mc21" in datasetName:
+                pmgFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/PMGxsecDB_mc21.txt"
+            with open(pmgFile) as fd:
+                # dataset_number/I:physics_short/C:crossSection/D:genFiltEff/D:kFactor/D:relUncertUP/D:relUncertDOWN/D:generator_name/C:etag/C
+                rd = csv.reader(fd, delimiter="\t")
+                for row in rd:
+                    if row[0] == ds_nr[0]:
+                        # delete empty strings
+                        row = list(filter(None, row))
+                        data[datasetName]["kFactor"] = row[4]
+
     json.dump(data, open(mdFile, "w"))
 
 

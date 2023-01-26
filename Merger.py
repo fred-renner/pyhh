@@ -3,8 +3,17 @@ import numpy as np
 import h5py
 from tqdm.auto import tqdm
 from tools.HistFillerTools import ConstructFilelist
+import argparse
 
-sample = "mc20_ttbar"
+parser = argparse.ArgumentParser()
+parser.add_argument("--sample", type=str, default=None)
+args = parser.parse_args()
+
+if args.sample:
+    sample = args.sample
+else:
+    sample = "mc20_l1cvv1cv1"
+
 filelist = ConstructFilelist(sample, toMerge=True)
 mergedFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + sample + ".h5"
 
