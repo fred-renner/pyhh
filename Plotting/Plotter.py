@@ -4,15 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.font_manager
 import mplhep as hep
-from h5py import File, Group, Dataset
+from h5py import File
 import os
 import logging
 import argparse
-import matplotlib.ticker
+import colors
+import utils
 
-from tools.PlottingTools import OOMFormatter
-import tools.PlottingTools
-import tools.colors
 
 matplotlib.font_manager._rebuild()
 plt.style.use(hep.style.ATLAS)
@@ -24,13 +22,12 @@ args = parser.parse_args()
 
 # fmt: off
 SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_1cvv1cv1.h5"
+SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
 ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
 dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
 run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
 
 # fmt: on
-blind = True
 
 if args.histFile:
     histFile = args.histFile
@@ -59,9 +56,11 @@ def getHist(file, name):
     return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
 
 
-def load(file):
+def load(file, blind=True):
     hists = {}
     for key in file.keys():
+        if blind and "SR_4b" in key:
+            continue
         hists[key] = getHist(file, key)
     return hists
 
@@ -69,7 +68,7 @@ def load(file):
 def triggerRef_leadingLargeRpT():
     triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1]
     trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-    trigger_leadingLargeRpT_err = tools.PlottingTools.getEfficiencyErrors(
+    trigger_leadingLargeRpT_err = utils.getEfficiencyErrors(
         passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
     )
     # normalize + cumulative
@@ -110,7 +109,7 @@ def triggerRef_leadingLargeRpT():
     # ax.set_xlim([0.8, 2500_000])
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "triggerRef_leadingLargeRpT.pdf")
     plt.close()
@@ -120,7 +119,7 @@ def triggerRef_leadingLargeRm():
     # normalize + cumulative
     triggerRef_leadingLargeRm = file["triggerRef_leadingLargeRm"]["histogram"][1:-1]
     trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
-    trigger_leadingLargeRm_err = tools.PlottingTools.getEfficiencyErrors(
+    trigger_leadingLargeRm_err = utils.getEfficiencyErrors(
         passed=trigger_leadingLargeRm, total=triggerRef_leadingLargeRm
     )
     # edges = file["triggerRef_leadingLargeRm"]["edges"]
@@ -160,7 +159,7 @@ def triggerRef_leadingLargeRm():
 
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "triggerRef_leadingLargeRm.pdf")
     plt.close()
@@ -184,7 +183,7 @@ def accEff_mhh():
         hists_.append(hists[key]["hRaw"])
         print(hists[key]["hRaw"])
     print(hists["mhh"]["hRaw"])
-    hists_cumulative, hists_cumulative_err = tools.PlottingTools.CumulativeEfficiencies(
+    hists_cumulative, hists_cumulative_err = utils.CumulativeEfficiencies(
         hists_, baseline=hists["mhh_twoLargeR"]["hRaw"], stopCumulativeFrom=4
     )
     labels = [
@@ -227,14 +226,14 @@ def accEff_mhh():
     hep.rescale_to_axessize
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.savefig(plotPath + "accEff_mhh.pdf")
     plt.close()
 
 
 def trigger_leadingLargeRpT():
     plt.figure()
-    err = tools.PlottingTools.getEfficiencyErrors(
+    err = utils.getEfficiencyErrors(
         passed=hists["leadingLargeRpT_trigger"]["hRaw"],
         total=hists["leadingLargeRpT"]["hRaw"],
     )
@@ -255,7 +254,7 @@ def trigger_leadingLargeRpT():
     ax = plt.gca()
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="lower right")
     plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
     plt.close()
@@ -264,7 +263,7 @@ def trigger_leadingLargeRpT():
 def mhh():
     plt.figure()
     # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
-    # trigger_leadingLargeRm_err = tools.PlottingTools.getEfficiencyErrors(
+    # trigger_leadingLargeRm_err = utils.getEfficiencyErrors(
     #     passed=mhh, total=truth_mhh
     # )
     hep.histplot(
@@ -282,7 +281,7 @@ def mhh():
     hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
     ax = plt.gca()
     # ax.set_yscale("log")
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
     hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
@@ -311,7 +310,7 @@ def pts(name):
     hep.atlas.set_xlabel(f"{name} $[GeV]$ ")
     ax = plt.gca()
     # ax.set_yscale("log")
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
     hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
@@ -328,7 +327,7 @@ def dRs():
     dR_h1 = getHist(file, "dR_h1")
     dR_h2 = getHist(file, "dR_h2")
     # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
-    # trigger_leadingLargeRm_err = tools.PlottingTools.getEfficiencyErrors(
+    # trigger_leadingLargeRm_err = utils.getEfficiencyErrors(
     #     passed=mhh, total=truth_mhh
     # )
     hep.histplot(
@@ -346,7 +345,7 @@ def dRs():
     hep.atlas.set_xlabel("DeltaR leading VR jets")
     ax = plt.gca()
     # ax.set_yscale("log")
-    # ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    # ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
     hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
@@ -358,9 +357,10 @@ def dRs():
     plt.close()
 
 
-def massplane(dataType):
+def massplane(dataType, blind=True):
     plt.figure()
     h_file = globals()[dataType]
+    print(h_file)
     xbins = h_file["massplane"]["edges"][0][1:-1]
     ybins = h_file["massplane"]["edges"][1][1:-1]
     histValues = h_file["massplane"]["histogram"][1:-1, 1:-1]
@@ -375,20 +375,16 @@ def massplane(dataType):
     hep.atlas.set_ylabel("$m_{H2}$ $[GeV]$ ")
     hep.atlas.set_xlabel("$m_{H1}$ $[GeV]$ ")
     ax = plt.gca()
-
+    print(h_file["massplane"]["edges"][0][1:-1])
     X, Y = np.meshgrid(xbins, ybins)
-    CS1 = plt.contour(
-        X, Y, tools.PlottingTools.Xhh(X, Y), [1.6], colors="white", linewidths=1
-    )
+    CS1 = plt.contour(X, Y, utils.Xhh(X, Y), [1.6], colors="white", linewidths=1)
     fmt = {}
     strs = ["SR"]
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
-    CS1 = plt.contour(
-        X, Y, tools.PlottingTools.CR_hh(X, Y), [100e3], colors="white", linewidths=1
-    )
+    CS1 = plt.contour(X, Y, utils.CR_hh(X, Y), [100e3], colors="white", linewidths=1)
     fmt = {}
     strs = ["VR"]
     for l, s in zip(CS1.levels, strs):
@@ -401,16 +397,14 @@ def massplane(dataType):
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
-    if dataType == "f_run2":
-        CS1 = plt.contourf(
-            X, Y, tools.PlottingTools.Xhh(X, Y), [0, 1.6], colors="black"
-        )
+    if blind:
+        CS1 = plt.contourf(X, Y, utils.Xhh(X, Y), [0, 1.6], colors="black")
 
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.get_yaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(tools.PlottingTools.OOMFormatter(3, "%1.1i"))
-    ax.yaxis.set_major_formatter(tools.PlottingTools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
+    ax.yaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
 
     # plt.legend(loc="upper right")
@@ -530,7 +524,7 @@ def mh_SB_ratio(histKey):
     hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
-    # rax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i", offset=False))
+    # rax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i", offset=False))
     ax.legend(loc="upper right")
     plt.savefig(plotPath + f"SB_{histKey}_ratio.pdf")
     plt.close()
@@ -559,8 +553,8 @@ def mh_data_ratio(histKey):
     # B = Q + T
     # Berr = sqrt(Qerr^2 + Terr^2)
 
-    tt = ttbar[histKey]["h"]#*2e-2
-    jj = dijet[histKey]["h"]#*2e-2
+    tt = ttbar[histKey]["h"]
+    jj = dijet[histKey]["h"]
     data = run2[histKey]["h"]
     edges = dijet[histKey]["edges"]
 
@@ -581,7 +575,7 @@ def mh_data_ratio(histKey):
         stack=True,
         histtype="fill",
         # yerr=True,
-        label=["$t\overline{t}$", "Multijet"],#"run2_VR_2b_weighted"],
+        label=["$t\overline{t}$", "Multijet"],  # "run2_VR_2b_weighted"],
         ax=ax,
         color=["hh:darkpink", "hh:medturquoise"],
         edgecolor="black",
@@ -619,7 +613,9 @@ def mh_data_ratio(histKey):
     )
     fig.subplots_adjust(hspace=0.07)
     ax.set_ylabel("Events")
-    rax.set_ylabel(r"$ \frac{\mathrm{Data}}{\mathrm{Pred}}$",horizontalalignment="center")
+    rax.set_ylabel(
+        r"$ \frac{\mathrm{Data}}{\mathrm{Pred}}$", horizontalalignment="center"
+    )
     # rax.set_ylim([0, 0.0001])
     ax.set_yscale("log")
     # ax.set_ylim([0, 1_000_000])
@@ -635,7 +631,7 @@ def mh_data_ratio(histKey):
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.legend(loc="upper right")
-    ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
 
     plt.savefig(plotPath + f"{histKey}_ratio.pdf")
     plt.close()
@@ -643,9 +639,9 @@ def mh_data_ratio(histKey):
 
 def compareABCD(histKey):
     r2 = run2[histKey + "_VR_4b"]["h"]
-    tt = ttbar[histKey + "_VR_2b"]["h"] * 0.0005614624912816201
+    tt = ttbar[histKey + "_VR_2b"]["h"]
     jj = dijet[histKey + "_VR_4b"]["h"]
-    bkgEstimate = run2[histKey + "_VR_2b"]["h"] * 0.0005614624912816201 - tt
+    bkgEstimate = run2[histKey + "_VR_2b"]["h"] - tt
     edges = run2[histKey + "_VR_4b"]["edges"]
 
     bkg_tot = bkgEstimate + tt
@@ -689,7 +685,7 @@ def compareABCD(histKey):
     hep.atlas.set_xlabel(f"{histKey}")
     ax = plt.gca()
     # ax.set_yscale("log")
-    # ax.xaxis.set_major_formatter(OOMFormatter(3, "%1.1i"))
+    # ax.xaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     # hep.yscale_legend()
     hep.atlas.label(data=False, lumi="140", year=None, loc=0)
@@ -700,14 +696,15 @@ def compareABCD(histKey):
     plt.savefig(plotPath + histKey + "_BkgEstimate.pdf")
     plt.close()
 
+blind = True
 
 with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     ttbarFile, "r"
 ) as f_ttbar, File(dijetFile, "r") as f_dijet:
-    SMsignal = load(f_SMsignal)
-    run2 = load(f_run2)
-    ttbar = load(f_ttbar)
-    dijet = load(f_dijet)
+    SMsignal = load(f_SMsignal, blind=False)
+    run2 = load(f_run2, blind=blind)
+    ttbar = load(f_ttbar, blind=False)
+    dijet = load(f_dijet, blind=False)
     # trigger_leadingLargeRpT()
     # triggerRef_leadingLargeRpT()
     # triggerRef_leadingLargeRm()
@@ -716,9 +713,9 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
     #     pts(name)
     # dRs()
-    # massplane("f_SMsignal")
-    # massplane("f_run2")
-    # massplane("f_ttbar")
+    massplane("f_run2",blind=blind)
+    massplane("f_SMsignal",blind=False)
+    massplane("f_ttbar",blind=False)
     # mh_SB_ratio("mh1_VR_")
     # mh_SB_ratio("mh2")
     # mh_data_ratio("mhh_")
@@ -728,7 +725,5 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     #     # mh_SB_ratio("mh2_" + region)
     #     mh_SB_ratio("mhh_" + region)
     mh_data_ratio("mhh_CR_2b")
-    mh_data_ratio("mhh_CR_2b_noVBF")   
     mh_data_ratio("mhh_CR_4b")
-    mh_data_ratio("mhh_CR_4b_noVBF")
     # compareABCD("mhh")

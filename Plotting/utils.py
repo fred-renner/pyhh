@@ -48,6 +48,7 @@ def getEfficiencyErrors(passed, total):
     relative_errors = np.array([value_position - lower_err, upper_err - value_position])
     return relative_errors
 
+import matplotlib.ticker
 
 class OOMFormatter(matplotlib.ticker.ScalarFormatter):
     def __init__(self, order=0, fformat="%1.1f", offset=True, mathText=True):

@@ -2,7 +2,7 @@ import numpy as np
 import vector
 from operator import xor
 import itertools
-from tools.PlottingTools import Xhh, CR_hh
+from Plotting.utils import Xhh, CR_hh
 import copy
 
 np.set_printoptions(threshold=np.inf)

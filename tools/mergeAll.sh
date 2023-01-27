@@ -1,4 +1,4 @@
-# samples to submit
+# samples to merge
 declare -a samples=(
     "mc20_ttbar"
     "run2"

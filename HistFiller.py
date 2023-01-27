@@ -41,7 +41,7 @@ if args.file:
 else:
     # default to mc 20 signal
     filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
-    filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
+    # filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
         dataset = filelist[0].split("/")

@@ -25,12 +25,14 @@ with h5py.File(filelist[0], "r") as readFile:
 with h5py.File(mergedFile, "w") as mergeFile:
     # copy some file
     with h5py.File(filelist[0], "r") as readFile:
-        for group in readFile.keys():
-            readFile.copy(group, mergeFile)
-    # init datastructure values to 0
-    for group in mergeFile.values():
-        for ds in group.values():
-            ds[:] = np.zeros(ds.shape)
+        for hist in readFile.keys():
+            readFile.copy(hist, mergeFile)
+        # init datastructure values to 0
+        for hist in mergeFile.keys():
+            histVars = list(mergeFile[hist].keys())
+            histVars.remove("edges")
+            for ds in histVars:
+                mergeFile[hist][ds][:] = 0
 
     print("Merge files into: " + mergedFile)
     # loop over files to merge and add values into merged file
@@ -38,7 +40,9 @@ with h5py.File(mergedFile, "w") as mergeFile:
     for ith_file in filelist:
         pbar.update(1)
         with h5py.File(ith_file, "r") as f_i:
-            for group in f_i.keys():
-                for ds in f_i[group].keys():
-                    mergeFile[group][ds][:] += f_i[group][ds][:]
+            for hist in f_i.keys():
+                histVars = list(mergeFile[hist].keys())
+                histVars.remove("edges")
+                for ds in histVars:
+                    mergeFile[hist][ds][:] += f_i[hist][ds][:]
     pbar.close()
