@@ -66,8 +66,7 @@ class ObjectSelection:
             lumi = get_lumi(metaData["dataYears"])
             # crosssection comes in nb-1 (* 1e6 = fb-1)
             xsec = metaData["crossSection"] * 1e6
-            sum_of_weights = metaData["initial_sum_of_weights"]
-            # mc.lumi * (db_entry.xsec * db_entry.k_factor * db_entry.gen_filt_eff) / weight;
+            sum_of_weights = metaData["sum_of_weights"]
             self.weightFactor = (
                 xsec
                 * lumi
@@ -75,11 +74,6 @@ class ObjectSelection:
                 * metaData["genFiltEff"]
                 / sum_of_weights
             )
-            print("xsec",xsec)
-            print("lumi",lumi)
-            print("metaData['kFactor']",metaData["kFactor"])
-            print("metaData['genFiltEff']",metaData["genFiltEff"])
-            print("sum_of_weights",sum_of_weights)
         if any("truth" in x for x in vars_arr):
             self.hasTruth = True
         else:
@@ -204,8 +198,7 @@ class ObjectSelection:
             self.hh_regions(event)
             if self.hasTruth:
                 self.truth_mhh(event)
-        # print(self.vars_arr["mcEventWeights"][:][0])
-        print(self.weights)
+                
     def largeRSelect(self, event):
         self.nLargeR[event] = self.lrj_pt[event].shape[0]
         # pt, eta cuts and sort
@@ -573,7 +566,6 @@ class ObjectSelection:
                 #     varWithWeight = kinVar + "_" + region + "_weights"
                 #     finalSel[varWithWeight] = copy.deepcopy(kinVarDict)
                 #     finalSel[varWithWeight]["weight"] = bkgWeightsVR
-
         # go over all defined hists, apply additional weights if exist and return
         results = {}
         for hist in finalSel.keys():

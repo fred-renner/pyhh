@@ -4,6 +4,8 @@ import pyAMI_atlas.api as AtlasAPI
 import os
 import json
 import csv
+import glob
+import uproot
 
 client = pyAMI.client.Client("atlas")
 AtlasAPI.init()
@@ -20,6 +22,22 @@ mcCampaign = {
 mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
 
 
+def CombineCutBookkeepers(filelist):
+    cutBookkeeper = {}
+    cutBookkeeper["initial_events"] = 0
+    cutBookkeeper["initial_sum_of_weights"] = 0
+    cutBookkeeper["initial_sum_of_weights_squared"] = 0
+    for file_ in filelist:
+        with uproot.open(file_) as file:
+            for key in file.keys():
+                if "CutBookkeeper" and "NOSYS" in key:
+                    cbk = file[key].to_numpy()
+                    cutBookkeeper["initial_events"] += cbk[0][0]
+                    cutBookkeeper["initial_sum_of_weights"] += cbk[0][1]
+                    cutBookkeeper["initial_sum_of_weights_squared"] += cbk[0][2]
+    return cutBookkeeper
+
+
 def get(filepath):
     """
     queries the ami info and writes it to a json file
@@ -30,10 +48,10 @@ def get(filepath):
     """
 
     datasetName = ConstructDatasetName(filepath)
-
     # query info
-    # make sure file is not empty
-    if os.stat(mdFile).st_size == 0:
+
+    if not os.path.exists(mdFile):
+        os.mknod(mdFile)
         data = {}
     else:
         data = json.load(open(mdFile))
@@ -65,6 +83,11 @@ def get(filepath):
                         # delete empty strings
                         row = list(filter(None, row))
                         data[datasetName]["kFactor"] = row[4]
+        # get all files in dataset to sum up their sum_of_weights
+        filelist = glob.glob(os.path.dirname(filepath) + "/*.root")
+        cbk = CombineCutBookkeepers(filelist)
+        data[datasetName]["initial_events"] = cbk["initial_events"]
+        data[datasetName]["initial_sum_of_weights"] = cbk["initial_sum_of_weights"]
 
     json.dump(data, open(mdFile, "w"))
 
@@ -82,8 +105,6 @@ def ConstructDatasetName(filepath):
     datasetName : str
     """
     folder = filepath.split("/")[-2]
-    # get dataset number
-    ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", folder)
     # get ami tags until r-tag as p always changes
     ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", folder)
     # print("dataset number: ", ds_nr[0])

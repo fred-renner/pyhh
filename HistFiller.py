@@ -4,7 +4,6 @@ import uproot
 import HistDefs
 import tools.HistFillerTools
 import tools.MetaData
-import tools.Loader
 from h5py import File
 import Analysis
 import multiprocessing
@@ -41,7 +40,7 @@ if args.file:
     )
 else:
     # default to mc 20 signal
-    # filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
+    filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
     filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
@@ -79,18 +78,11 @@ def error_handler(e):
 
 # debugging settings
 if args.debug:
-    filelist = filelist[:2]
+    filelist = filelist[:3]
     histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
-    nEvents = 10
+    nEvents = 1000
     cpus = 1
     batchSize = 1000
-    metaData = {}
-    metaData["initial_sum_of_weights"] = 1e10
-    metaData["crossSection"] = 1e-6
-    metaData["dataYears"] = ["2017"]
-    metaData["genFiltEff"] = 1.0
-    metaData["kFactor"] = 1.0
-    metaData["isMC"] = True
 
 # init hists
 hists = HistDefs.hists
@@ -107,20 +99,20 @@ with File(histOutFile, "w") as outfile:
             if not args.debug:
                 nEvents = "All"
                 batchSize = 20_000
-                if args.cpus:
-                    cpus = args.cpus
-                else:
-                    cpus = multiprocessing.cpu_count() - 4
-                metaData = {}
-                if "data" not in file_:
-                    metaData = tools.HistFillerTools.getMetaData(file)
-                    metaData["isMC"] = True
-                else:
-                    substrings = file_.split(".")
-                    dataCampaign = [s for s in substrings if "data" in s]
-                    metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
-                    metaData["isMC"] = False
-            eventBatches = tools.Loader.EventRanges(
+            if args.cpus:
+                cpus = args.cpus
+            else:
+                cpus = multiprocessing.cpu_count() - 4
+            metaData = {}
+            if "data" not in file_:
+                metaData = tools.HistFillerTools.GetMetaDataFromFile(file)
+                metaData["isMC"] = True
+            else:
+                substrings = file_.split(".")
+                dataCampaign = [s for s in substrings if "data" in s]
+                metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
+                metaData["isMC"] = False
+            eventBatches = tools.HistFillerTools.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
             # a pool objects can start child processes on different cpus

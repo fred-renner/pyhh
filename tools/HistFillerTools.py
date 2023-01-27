@@ -2,7 +2,6 @@ import re
 import json
 from tools.MetaData import ConstructDatasetName
 import glob
-import csv
 
 mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
 
@@ -17,19 +16,10 @@ mcCampaign = {
 }
 
 
-def getMetaData(file):
+def GetMetaDataFromFile(file):
 
     metaData = {}
     filepath = file._file._file_path
-    metaData["isSignal"] = True if "_hh_bbbb_" in filepath else False
-
-    # cut book keeping
-    for key in file.keys():
-        if "CutBookkeeper" and "NOSYS" in key:
-            cbk = file[key].to_numpy()
-            metaData["initial_events"] = cbk[0][0]
-            metaData["initial_sum_of_weights"] = cbk[0][1]
-            metaData["initial_sum_of_weights_squared"] = cbk[0][2]
 
     # get r-tag for datayears
     ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", filepath)
@@ -39,6 +29,7 @@ def getMetaData(file):
     # get logical dataset name from ntuple name
     datasetName = ConstructDatasetName(filepath)
     print("Original Dataset Name: " + datasetName)
+
     md = json.load(open(mdFile))
     if datasetName not in md:
         print("metaData not in json yet, will query from ami")
@@ -50,6 +41,8 @@ def getMetaData(file):
     metaData["genFiltEff"] = float(ds_info["genFiltEff"])
     metaData["crossSection"] = float(ds_info["crossSection"])
     metaData["kFactor"] = float(ds_info["kFactor"])
+    metaData["events"] = float(ds_info["initial_events"])
+    metaData["sum_of_weights"] = float(ds_info["initial_sum_of_weights"])
 
     return metaData
 
@@ -102,3 +95,31 @@ def ConstructFilelist(sampleName, toMerge=False):
         filelist += [file]
 
     return filelist
+
+
+def EventRanges(tree, batch_size=10_000, nEvents="All"):
+    # construct ranges, batch_size=1000 gives e.g.
+    # [[0, 999], [1000, 1999], [2000, 2999],...]
+    ranges = []
+    batch_ranges = []
+    if nEvents is "All":
+        nEvents = tree.num_entries
+    for i in range(0, nEvents, batch_size):
+        ranges += [i]
+    if nEvents not in ranges:
+        ranges += [nEvents + 1]
+    for i, j in zip(ranges[:-1], ranges[1:]):
+        batch_ranges += [[i, j - 1]]
+    return batch_ranges
+
+
+def GetGenerators(tree, vars, nEvents=-1):
+
+    batch_ranges = EventRanges
+    # load a certain range
+    for batch in batch_ranges:
+        if not vars:
+            vars = tree.keys()
+
+        yield tree.arrays(vars, entry_start=batch[0], entry_stop=batch[1], library="np")
+        # del arr
