@@ -113,11 +113,6 @@ hists = [
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="btagHigh_2b2b_mhh",
-        binrange=accEffBinning["binrange"],
-        bins=accEffBinning["bins"],
-    ),
-    FloatHistogram(
         name="dR_h1",
         binrange=dRbins["binrange"],
         bins=dRbins["bins"],
@@ -184,14 +179,10 @@ regions = [
     "VR_2b",
     "CR_4b",
     "CR_2b",
-    "SR_4b_noVBF",
-    "SR_2b_noVBF",
-    "VR_4b_noVBF",
-    "VR_2b_noVBF",
-    "CR_4b_noVBF",
-    "CR_2b_noVBF",
 ]
-
+regions_noVBF = [r + "_noVBF" for r in regions]
+regions += regions_noVBF
+print(regions)
 for hist in kinematicHists:
     # without selection
     kinVar = getattr(hist, "_name")

@@ -36,6 +36,7 @@ def GetMetaDataFromFile(file):
         import tools.MetaData
 
         tools.MetaData.get(filepath)
+        md = json.load(open(mdFile))
 
     ds_info = md[datasetName]
     metaData["genFiltEff"] = float(ds_info["genFiltEff"])
@@ -69,7 +70,7 @@ def ConstructFilelist(sampleName, toMerge=False):
     if sampleName == "mc20_l1cvv1cv1":
         # 1cvv1cv1
         topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
-        pattern = "user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+        pattern = "user.frenner.HH4b.*.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
 
     # mc20 bkg
     if sampleName == "mc20_ttbar":

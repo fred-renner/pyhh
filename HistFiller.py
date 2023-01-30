@@ -126,20 +126,25 @@ with File(histOutFile, "w") as outfile:
             )
             metaData["blind"] = BLIND
 
-            # a pool objects can start child processes on different cpus
-            pool = multiprocessing.Pool(cpus)
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
-            for batch in eventBatches:
-                pool.apply_async(
-                    Analysis.Run,
-                    (batch, metaData, tree, existingVars),
-                    callback=filling_callback,
-                    error_callback=error_handler,
-                )
-            pool.close()
-            pool.join()
-            pbar.close()
+            if args.debug or cpus == 1:
+                for batch in eventBatches:
+                    results = Analysis.Run(batch, metaData, tree, existingVars)
+                    filling_callback(results)
+            else:
+                # a pool objects can start child processes on different cpus
+                pool = multiprocessing.Pool(cpus)
+                for batch in eventBatches:
+                    pool.apply_async(
+                        Analysis.Run,
+                        (batch, metaData, tree, existingVars),
+                        callback=filling_callback,
+                        error_callback=error_handler,
+                    )
+                pool.close()
+                pool.join()
+                pbar.close()
             print("Done")
 
     # write histograms to file

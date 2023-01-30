@@ -552,24 +552,18 @@ def mh_SB_ratio(histKey):
 
 
 def mh_data_ratio(histKey):
-
-    # wollen VR_4b ansehsen
-
-    # wir wollen verschieden regionen, mh1 mh2 mhh,
-
-    # would like datapoints in VR_4b für m_hh
-    # bkg estimate dazu: data_VR_2b_weights-ttbar_VR_4b, ttbar_VR_4b
-
-    # # sm = SMsignal[histKey + "VR_4b"]["h"]
-    # tt = ttbar[histKey + "VR_4b"]["h"]
-    # jj = (run2[histKey + "VR_2b"]["h"] - ttbar[histKey + "VR_2b"]["h"]) * 0.000561456456456456
-    # r2= jj+tt
-    # # pred = jj + tt == r2
-    # ratio = (run2[histKey + "VR_4b"]["h"] - r2) / r2
-    # # need to correct error
-    # edges = ttbar[histKey + "VR_2b"]["edges"]
-    # # bkg = np.array([ttbar[histKey]["hRaw"], bkgEstimate])
-    # # bkg_err = np.sqrt(bkg_tot)
+    if "mh1" in histKey:
+        whichHiggs = "H1"
+    if "mh2" in histKey:
+        whichHiggs = "H2"
+    if "hh" in histKey:
+        whichHiggs = "HH"
+    keyParts = histKey.split("_")
+    if "CR" in keyParts[1]:
+        region = "Control Region"
+    if "VR" in keyParts[1]:
+        region = "Validation Region"
+    btag = keyParts[2]
 
     # B = Q + T
     # Berr = sqrt(Qerr^2 + Terr^2)
@@ -642,12 +636,7 @@ def mh_data_ratio(histKey):
     # ax.set_ylim([0, 1_000_000])
 
     hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
-    if "mh1" in histKey:
-        whichHiggs = "H1"
-    if "mh2" in histKey:
-        whichHiggs = "H2"
-    if "hh" in histKey:
-        whichHiggs = "HH"
+
     hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))

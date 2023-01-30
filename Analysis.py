@@ -32,7 +32,6 @@ def get_lumi(years: list):
         "2016": 33.4022,
         "2017": 44.6306,
         "2018": 58.7916,
-        # "2022": 140.06894,  ############## just for testing ##################
         "all": 140.06894,
     }
     l = 0
@@ -418,11 +417,13 @@ class ObjectSelection:
         if self.blind:
             selections["SR_4b"] = np.zeros(self.nEvents, dtype=bool)
             selections["SR_4b_noVBF"] = np.zeros(self.nEvents, dtype=bool)
-            selections["twoLargeR"] = self.selectedTwoLargeRevents & ~self.SR
+            selections["twoLargeR"] = ~self.SR & self.selectedTwoLargeRevents & & self.VBFjetsPass
+            selections["twoLargeR_noVBF"] = ~self.SR & self.selectedTwoLargeRevents
         else:
             selections["SR_4b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
             selections["SR_4b_noVBF"] = self.SR & self.btagHigh_2b2b
-            selections["twoLargeR"] = self.selectedTwoLargeRevents
+            selections["twoLargeR"] = self.selectedTwoLargeRevents & self.VBFjetsPass
+            selections["twoLargeR_noVBF"] = self.selectedTwoLargeRevents
 
         # singular vars
         finalSel = {
@@ -577,8 +578,8 @@ class ObjectSelection:
                 sel=finalSel[hist]["sel"],
                 weight=w,
             )
-            
-        # add massplane 
+
+        # add massplane
         for region, selectionBool in selections.items():
             results["massplane_" + region] = [
                 np.array(
