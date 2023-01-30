@@ -22,7 +22,7 @@ args = parser.parse_args()
 
 # fmt: off
 SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
+# SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
 ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
 dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
 run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
@@ -56,12 +56,22 @@ def getHist(file, name):
     return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
 
 
-def load(file, blind=True):
+def get2dHist(file, name):
+    h = np.array(file[name]["histogram"][1:-1, 1:-1])
+    hRaw = np.array(file[name]["histogramRaw"][1:-1, 1:-1])
+    xbins = np.array(file[name]["edges"][0][1:-1])
+    ybins = np.array(file[name]["edges"][1][1:-1])
+    err = np.sqrt(hRaw)
+    return {"h": h, "hRaw": hRaw, "xbins": xbins, "ybins": ybins, "err": err}
+
+
+def load(file):
     hists = {}
     for key in file.keys():
-        if blind and "SR_4b" in key:
-            continue
-        hists[key] = getHist(file, key)
+        if "massplane" in key:
+            hists[key] = get2dHist(file, key)
+        else:
+            hists[key] = getHist(file, key)
     return hists
 
 
@@ -357,48 +367,52 @@ def dRs():
     plt.close()
 
 
-def massplane(dataType, blind=True):
+def massplane(histKey):
+
+    SMsignal
+    # run2
+    # ttbar
+    # dijet
     plt.figure()
-    h_file = globals()[dataType]
-    print(h_file)
-    xbins = h_file["massplane"]["edges"][0][1:-1]
-    ybins = h_file["massplane"]["edges"][1][1:-1]
-    histValues = h_file["massplane"]["histogram"][1:-1, 1:-1]
-    hep.hist2dplot(
+    xbins = SMsignal[histKey]["xbins"]
+    ybins = SMsignal[histKey]["ybins"]
+    histValues = SMsignal[histKey]["h"]
+    plane = hep.hist2dplot(
         histValues,
         xbins=xbins,
         ybins=ybins,
     )
-    txt = hep.atlas.text(" Simulation", loc=1)
-    txt[0]._color = "white"
-    txt[1]._color = "white"
+    # txt = hep.atlas.text(" Simulation", loc=1)
+    # txt[0]._color = "white"
+    # txt[1]._color = "white"
     hep.atlas.set_ylabel("$m_{H2}$ $[GeV]$ ")
     hep.atlas.set_xlabel("$m_{H1}$ $[GeV]$ ")
     ax = plt.gca()
-    print(h_file["massplane"]["edges"][0][1:-1])
+    plane.pcolormesh.set_cmap("GnBu")
+
     X, Y = np.meshgrid(xbins, ybins)
-    CS1 = plt.contour(X, Y, utils.Xhh(X, Y), [1.6], colors="white", linewidths=1)
+    CS1 = plt.contour(X, Y, utils.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1)
     fmt = {}
     strs = ["SR"]
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
-    CS1 = plt.contour(X, Y, utils.CR_hh(X, Y), [100e3], colors="white", linewidths=1)
+    CS1 = plt.contour(X, Y, utils.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1)
     fmt = {}
     strs = ["VR"]
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
-    CS1 = plt.contour(X, Y, X + Y, [130e3], colors="white", linewidths=1)
+    CS1 = plt.contour(X, Y, X + Y, [130e3], colors="tab:blue", linewidths=1)
     fmt = {}
     strs = ["CR"]
     for l, s in zip(CS1.levels, strs):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
-    if blind:
-        CS1 = plt.contourf(X, Y, utils.Xhh(X, Y), [0, 1.6], colors="black")
+    # if blind:
+    #     CS1 = plt.contourf(X, Y, utils.Xhh(X, Y), [0, 1.6], colors="black")
 
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
@@ -407,8 +421,15 @@ def massplane(dataType, blind=True):
     ax.yaxis.set_major_formatter(utils.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
 
+    hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
+
+    # if "_CR_" in histKey:
+    #     region = "Control Region"
+    # if "_4b" in histKey
+
+    # plt.text(f"VBF 4b, {region}, 2b2j")
     # plt.legend(loc="upper right")
-    plt.savefig(plotPath + "massplane_" + dataType + ".pdf")
+    plt.savefig(plotPath + histKey + ".pdf")
     plt.close()
 
 
@@ -616,7 +637,7 @@ def mh_data_ratio(histKey):
     rax.set_ylabel(
         r"$ \frac{\mathrm{Data}}{\mathrm{Pred}}$", horizontalalignment="center"
     )
-    # rax.set_ylim([0, 0.0001])
+    rax.set_ylim([0.5, 1.5])
     ax.set_yscale("log")
     # ax.set_ylim([0, 1_000_000])
 
@@ -696,15 +717,14 @@ def compareABCD(histKey):
     plt.savefig(plotPath + histKey + "_BkgEstimate.pdf")
     plt.close()
 
-blind = True
 
 with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     ttbarFile, "r"
 ) as f_ttbar, File(dijetFile, "r") as f_dijet:
-    SMsignal = load(f_SMsignal, blind=False)
-    run2 = load(f_run2, blind=blind)
-    ttbar = load(f_ttbar, blind=False)
-    dijet = load(f_dijet, blind=False)
+    SMsignal = load(f_SMsignal)
+    run2 = load(f_run2)
+    ttbar = load(f_ttbar)
+    dijet = load(f_dijet)
     # trigger_leadingLargeRpT()
     # triggerRef_leadingLargeRpT()
     # triggerRef_leadingLargeRm()
@@ -713,9 +733,8 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
     #     pts(name)
     # dRs()
-    massplane("f_run2",blind=blind)
-    massplane("f_SMsignal",blind=False)
-    massplane("f_ttbar",blind=False)
+    massplane("massplane_twoLargeR")
+    massplane("massplane_SR_4b")
     # mh_SB_ratio("mh1_VR_")
     # mh_SB_ratio("mh2")
     # mh_data_ratio("mhh_")
@@ -726,4 +745,6 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     #     mh_SB_ratio("mhh_" + region)
     mh_data_ratio("mhh_CR_2b")
     mh_data_ratio("mhh_CR_4b")
+    mh_data_ratio("mhh_CR_2b_noVBF")
+    mh_data_ratio("mhh_CR_4b_noVBF")
     # compareABCD("mhh")

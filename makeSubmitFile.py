@@ -22,7 +22,7 @@ if "mc" in sample:
 
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
-    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/HistFillConfig.txt"
+    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/scripts/HistFillConfig.txt"
     f" /lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub",
     shell=True,
 )

@@ -42,6 +42,7 @@ else:
     # default to mc 20 signal
     filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
     # filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
+    # filelist = tools.HistFillerTools.ConstructFilelist("run2")
     # make hist out file name from filename
     if "histOutFileName" not in locals():
         dataset = filelist[0].split("/")
@@ -65,7 +66,7 @@ def filling_callback(results):
     # update bin heights per iteration
     for hist in hists:
         if hist._name not in results.keys():
-            print(f"{hist._name} defined but not in results")
+            print(f"histogram with name: {hist._name} defined but not in results")
         res = results[hist._name]
         hist.fill(values=res[0], weights=res[1])
     pbar.update(batchSize)
@@ -83,6 +84,20 @@ if args.debug:
     nEvents = 1000
     cpus = 1
     batchSize = 1000
+else:
+    nEvents = "All"
+    batchSize = 20_000
+    if args.cpus:
+        cpus = args.cpus
+    else:
+        cpus = multiprocessing.cpu_count() - 4
+
+# auto setup blind if data
+if any("data" in file for file in filelist):
+    isData = True
+else:
+    isData = False
+BLIND = isData
 
 # init hists
 hists = HistDefs.hists
@@ -96,25 +111,21 @@ with File(histOutFile, "w") as outfile:
             tree = file["AnalysisMiniTree"]
             # take only vars that exist
             existingVars = set(tree.keys()).intersection(vars)
-            if not args.debug:
-                nEvents = "All"
-                batchSize = 20_000
-            if args.cpus:
-                cpus = args.cpus
-            else:
-                cpus = multiprocessing.cpu_count() - 4
-            metaData = {}
-            if "data" not in file_:
-                metaData = tools.HistFillerTools.GetMetaDataFromFile(file)
-                metaData["isMC"] = True
-            else:
+
+            if isData:
+                metaData = {}
                 substrings = file_.split(".")
                 dataCampaign = [s for s in substrings if "data" in s]
                 metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
-                metaData["isMC"] = False
+                metaData["isData"] = True
+            else:
+                metaData = tools.HistFillerTools.GetMetaDataFromFile(file)
+                metaData["isData"] = False
             eventBatches = tools.HistFillerTools.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
+            metaData["blind"] = BLIND
+
             # a pool objects can start child processes on different cpus
             pool = multiprocessing.Pool(cpus)
             # progressbar
