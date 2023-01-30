@@ -48,7 +48,9 @@ def getEfficiencyErrors(passed, total):
     relative_errors = np.array([value_position - lower_err, upper_err - value_position])
     return relative_errors
 
+
 import matplotlib.ticker
+
 
 class OOMFormatter(matplotlib.ticker.ScalarFormatter):
     def __init__(self, order=0, fformat="%1.1f", offset=True, mathText=True):
@@ -119,28 +121,6 @@ def CumulativeEfficiencies(hists, baseline, stopCumulativeFrom):
     return cumulatives, cumulatives_err
 
 
-def poisson_err(dh, col, bins):
-    """
-    Calculates weighted Poisson error (sqrt(N) if
-    all weights == 1).
-
-    Parameters
-    ----------
-    dh : data_holder or data_holder_list
-        See data_prep for object definition. Contains
-        DataFrame used for calculation
-    col : str
-        Variable used for binning
-    bins : list or NumPy array
-        Histogram bin edges
-
-    """
-
-    return np.sqrt(
-        np.histogram(dh.nom_df[col], weights=dh.nom_weights**2, bins=bins)[0]
-    )
-
-
 m_h1_center = 124.0e3
 m_h2_center = 117.0e3
 # fm_h1 from signal region optimization:
@@ -165,3 +145,32 @@ def CR_hh(m_h1, m_h2):
         )
         * 1e3
     )
+
+
+def ErrorPropagation(A, B, sigmaA, sigmaB, operation):
+    """
+
+    Parameters
+    ----------
+    A : ndarray
+        var A
+    B : ndarray
+        var B
+    sigmaA : float
+        standard error of A
+    sigmaB : float
+        standard error of B
+    operation : str
+        "dash" for +-, "dot" for */
+
+    Returns
+    -------
+    ndarray
+        propagated error
+    """
+    if "plus" or "minus" in operation:
+        return np.sqrt((sigmaA**2) + (sigmaB**2))
+    if "times" in operation:
+        return np.abs(A * B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+    if "div" in operation:
+        return np.abs(A / B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))

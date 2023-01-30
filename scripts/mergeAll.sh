@@ -9,7 +9,7 @@ declare -a samples=(
 ## now loop through the above array
 for i in "${samples[@]}"; do
     echo "$i"
-    /lustre/fs22/group/atlas/freder/hh/hh-analysis/Merger.py --sample $i
+    /lustre/fs22/group/atlas/freder/hh/hh-analysis/Merger.py --sample $i &
 
     # or do whatever with individual element of the array
 done

@@ -121,10 +121,10 @@ with File(histOutFile, "w") as outfile:
             else:
                 metaData = tools.HistFillerTools.GetMetaDataFromFile(file)
                 metaData["isData"] = False
+            metaData["blind"] = BLIND
             eventBatches = tools.HistFillerTools.EventRanges(
                 tree, batch_size=batchSize, nEvents=nEvents
             )
-            metaData["blind"] = BLIND
 
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)

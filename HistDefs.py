@@ -2,7 +2,7 @@ from tools.Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 import copy
 
 # define hists
-accEffBinning = {"binrange": (0, 3_000_000), "bins": 75}
+accEffBinning = {"binrange": (0, 5_000_000), "bins": 75}
 m_hBinning = {"binrange": (0, 300_000), "bins": 100}
 pt_hBinning = {"binrange": (0.2e6, 1e6), "bins": 100}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
@@ -182,12 +182,15 @@ regions = [
 ]
 regions_noVBF = [r + "_noVBF" for r in regions]
 regions += regions_noVBF
-print(regions)
+collectVars = []
 for hist in kinematicHists:
     # without selection
     kinVar = getattr(hist, "_name")
     for reg in regions:
         var = kinVar + "_" + reg
+        collectVars += [var]
         newHist = copy.deepcopy(hist)
         newHist._name = var
         hists.append(newHist)
+
+kinVars = collectVars

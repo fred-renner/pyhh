@@ -403,21 +403,23 @@ class ObjectSelection:
         """
 
         selections = {
-            "SR_2b": self.SR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "SR_2b": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
             "VR_4b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
-            "VR_2b": self.VR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "VR_2b": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
             "CR_4b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
-            "CR_2b": self.CR & self.btagHigh_1b1b & self.VBFjetsPass,
-            "SR_2b_noVBF": self.SR & self.btagHigh_1b1b,
+            "CR_2b": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
+            "SR_2b_noVBF": self.SR & self.btagLow_2b2j,
             "VR_4b_noVBF": self.VR & self.btagHigh_2b2b,
-            "VR_2b_noVBF": self.VR & self.btagHigh_1b1b,
+            "VR_2b_noVBF": self.VR & self.btagLow_2b2j,
             "CR_4b_noVBF": self.CR & self.btagHigh_2b2b,
-            "CR_2b_noVBF": self.CR & self.btagHigh_1b1b,
+            "CR_2b_noVBF": self.CR & self.btagLow_2b2j,
         }
         if self.blind:
             selections["SR_4b"] = np.zeros(self.nEvents, dtype=bool)
             selections["SR_4b_noVBF"] = np.zeros(self.nEvents, dtype=bool)
-            selections["twoLargeR"] = ~self.SR & self.selectedTwoLargeRevents & & self.VBFjetsPass
+            selections["twoLargeR"] = (
+                ~self.SR & self.selectedTwoLargeRevents & self.VBFjetsPass
+            )
             selections["twoLargeR_noVBF"] = ~self.SR & self.selectedTwoLargeRevents
         else:
             selections["SR_4b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
