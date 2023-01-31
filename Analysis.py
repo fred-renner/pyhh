@@ -432,27 +432,27 @@ class ObjectSelection:
         """
 
         selections = {
-            "SR_2b": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
-            "VR_4b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
-            "VR_2b": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
-            "CR_4b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
-            "CR_2b": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
-            "SR_2b_noVBF": self.SR & self.btagLow_2b2j,
-            "VR_4b_noVBF": self.VR & self.btagHigh_2b2b,
-            "VR_2b_noVBF": self.VR & self.btagLow_2b2j,
-            "CR_4b_noVBF": self.CR & self.btagHigh_2b2b,
-            "CR_2b_noVBF": self.CR & self.btagLow_2b2j,
+            "SR_2b2j": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
+            "VR_2b2b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
+            "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
+            "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
+            "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
+            "SR_2b2j_noVBF": self.SR & self.btagLow_2b2j,
+            "VR_2b2b_noVBF": self.VR & self.btagHigh_2b2b,
+            "VR_2b2j_noVBF": self.VR & self.btagLow_2b2j,
+            "CR_2b2b_noVBF": self.CR & self.btagHigh_2b2b,
+            "CR_2b2j_noVBF": self.CR & self.btagLow_2b2j,
         }
         if self.blind:
-            selections["SR_4b"] = np.zeros(self.nEvents, dtype=bool)
-            selections["SR_4b_noVBF"] = np.zeros(self.nEvents, dtype=bool)
+            selections["SR_2b2b"] = np.zeros(self.nEvents, dtype=bool)
+            selections["SR_2b2b_noVBF"] = np.zeros(self.nEvents, dtype=bool)
             selections["twoLargeR"] = (
                 ~self.SR & self.selectedTwoLargeRevents & self.VBFjetsPass
             )
             selections["twoLargeR_noVBF"] = ~self.SR & self.selectedTwoLargeRevents
         else:
-            selections["SR_4b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
-            selections["SR_4b_noVBF"] = self.SR & self.btagHigh_2b2b
+            selections["SR_2b2b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
+            selections["SR_2b2b_noVBF"] = self.SR & self.btagHigh_2b2b
             selections["twoLargeR"] = self.selectedTwoLargeRevents & self.VBFjetsPass
             selections["twoLargeR_noVBF"] = self.selectedTwoLargeRevents
 
@@ -461,27 +461,6 @@ class ObjectSelection:
             "truth_mhh": {
                 "var": self.truth_m_hh,
                 "sel": None,
-            },
-            # bkg counting
-            "N_CR_4b": {
-                "var": selections["CR_4b"],
-                "sel": selections["CR_4b"],
-            },
-            "N_CR_2b": {
-                "var": selections["CR_2b"],
-                "sel": selections["CR_2b"],
-            },
-            "N_VR_4b": {
-                "var": selections["VR_4b"],
-                "sel": selections["VR_4b"],
-            },
-            "N_VR_2b": {
-                "var": selections["VR_2b"],
-                "sel": selections["VR_2b"],
-            },
-            "N_SR_2b": {
-                "var": selections["SR_2b"],
-                "sel": selections["SR_2b"],
             },
             "nTriggerPass_mhh": {
                 "var": self.m_hh,

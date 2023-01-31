@@ -18,31 +18,6 @@ hists = [
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="N_CR_4b",
-        binrange=count["binrange"],
-        bins=count["bins"],
-    ),
-    FloatHistogram(
-        name="N_CR_2b",
-        binrange=count["binrange"],
-        bins=count["bins"],
-    ),
-    FloatHistogram(
-        name="N_VR_4b",
-        binrange=count["binrange"],
-        bins=count["bins"],
-    ),
-    FloatHistogram(
-        name="N_VR_2b",
-        binrange=count["binrange"],
-        bins=count["bins"],
-    ),
-    FloatHistogram(
-        name="N_SR_2b",
-        binrange=count["binrange"],
-        bins=count["bins"],
-    ),
-    FloatHistogram(
         name="nTriggerPass_mhh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
@@ -203,12 +178,12 @@ kinematicHists = [
 # construct hists for all regions and kinematic vars
 regions = [
     "twoLargeR",
-    "SR_4b",
-    "SR_2b",
-    "VR_4b",
-    "VR_2b",
-    "CR_4b",
-    "CR_2b",
+    "SR_2b2b",
+    "SR_2b2j",
+    "VR_2b2b",
+    "VR_2b2j",
+    "CR_2b2b",
+    "CR_2b2j",
 ]
 regions_noVBF = [r + "_noVBF" for r in regions]
 regions += regions_noVBF
