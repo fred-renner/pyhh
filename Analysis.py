@@ -89,6 +89,7 @@ class ObjectSelection:
         self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
         self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
         self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
         
@@ -176,6 +177,12 @@ class ObjectSelection:
         self.truth_m_hh = np.copy(floatInitArray)
         self.leadingLargeRpt = np.copy(floatInitArray)
         self.leadingLargeRm = np.copy(floatInitArray)
+        self.pt_vbf1 = np.copy(floatInitArray)
+        self.pt_vbf2 = np.copy(floatInitArray)
+        self.pt_h1_btag_vr_1 = np.copy(floatInitArray)
+        self.pt_h1_btag_vr_2 = np.copy(floatInitArray)
+        self.pt_h2_btag_vr_1 = np.copy(floatInitArray)
+        self.pt_h2_btag_vr_2 = np.copy(floatInitArray)
 
     def select(self):
         for event in self.eventRange:
@@ -223,7 +230,7 @@ class ObjectSelection:
             self.selPtSort_lrjIndices[event] = ptOrder[selectedInPtOrder]
             jetPt1 = self.lrj_pt[event][self.selPtSort_lrjIndices[event][0]]
             jetPt2 = self.lrj_pt[event][self.selPtSort_lrjIndices[event][1]]
-            if (jetPt1 > 450e3) & (jetPt2 > 250):
+            if (jetPt1 > 450e3) & (jetPt2 > 250e3):
                 self.selectedTwoLargeRevents[event] = True
                 self.selLargeR1Index[event] = self.selPtSort_lrjIndices[event][0]
                 self.selLargeR2Index[event] = self.selPtSort_lrjIndices[event][1]
@@ -244,13 +251,14 @@ class ObjectSelection:
 
     def getVRs(self, event):
         if self.selectedTwoLargeRevents[event]:
-            # get their corresponding vr jets
-            j1_VRs = self.vr_btag_77[event]._values[self.selLargeR1Index[event]]
-            j2_VRs = self.vr_btag_77[event]._values[self.selLargeR2Index[event]]
+            # get their corresponding vr jets, (vector of vectors)
+            # need ._values as it comes as STL vector uproot object, gives
+            # an np.ndarray
+            j1_VRs = self.vr_btag_77[event]._values[self.selLargeR1Index[event]]._values
+            j2_VRs = self.vr_btag_77[event]._values[self.selLargeR2Index[event]]._values
             # count their tags
             j1_VRs_Btag = np.count_nonzero(j1_VRs)
             j2_VRs_Btag = np.count_nonzero(j2_VRs)
-
             j1_VRs_noBtag = len(j1_VRs) - j1_VRs_Btag
             j2_VRs_noBtag = len(j2_VRs) - j2_VRs_Btag
 
@@ -283,6 +291,27 @@ class ObjectSelection:
             self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
             self.dR_h2[event] = self.vr_deltaR12[event][self.selLargeR2Index[event]]
 
+            # get pt of the btagged ones
+            h1_btag_VR_pts = self.vr_pt[event][self.selLargeR1Index[event]][
+                j1_VRs.astype(bool)
+            ]
+            h2_btag_VR_pts = self.vr_pt[event][self.selLargeR2Index[event]][
+                j2_VRs.astype(bool)
+            ]
+            # the following is fine as they come pt sorted already
+            # h1
+            if h1_btag_VR_pts.shape[0] == 1:
+                self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
+            if h1_btag_VR_pts.shape[0] == 2:
+                self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
+                self.pt_h1_btag_vr_2[event] = h1_btag_VR_pts[1]
+            # h2
+            if h2_btag_VR_pts.shape[0] == 1:
+                self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
+            if h2_btag_VR_pts.shape[0] == 2:
+                self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
+                self.pt_h2_btag_vr_2[event] = h2_btag_VR_pts[1]
+
     def truth_mhh(self, event):
         truth_h1_p4 = vector.obj(
             pt=self.vars_arr["truth_H1_pt"][event],
@@ -299,7 +328,6 @@ class ObjectSelection:
         self.truth_m_hh[event] = (truth_h1_p4 + truth_h2_p4).mass
 
     def hh_p4(self, event):
-        ######## just look if we have two for baseline acc eff
         if self.selectedTwoLargeRevents[event]:
             self.h1_p4 = vector.obj(
                 pt=self.lrj_pt[event][self.selLargeR1Index[event]],
@@ -345,7 +373,7 @@ class ObjectSelection:
                         & (jet_p4.pt > 20e3)
                     ):
                         passedJets_p4.append(jet_p4)
-            # save two leading vbf jets if the pass further cuts
+            # save two leading vbf jets if they pass further cuts
             if len(passedJets_p4) >= 2:
                 # calc mass and eta of all jet jet combinations
                 # e.g. [(0, 1), (0, 2), (1, 2)] to cut
@@ -360,6 +388,7 @@ class ObjectSelection:
                     m_jjs[i] = (jetX + jetY).mass > 1e6
                     eta_jjs[i] = np.abs(jetX.eta - jetY.eta) > 3
                 passMassEta = m_jjs & eta_jjs
+
                 if np.count_nonzero(passMassEta) >= 1:
                     largestPtSum = 0
                     for twoIndices in jet_combinations[passMassEta]:
@@ -371,8 +400,8 @@ class ObjectSelection:
                             if jet1Pt < jet2Pt:
                                 twoIndices = twoIndices[::-1]
                             self.VBFjetsPass[event] = True
-                            self.vbfjet1_p4 = passedJets_p4[twoIndices[0]]
-                            self.vbfjet2_p4 = passedJets_p4[twoIndices[1]]
+                            self.pt_vbf1[event] = passedJets_p4[twoIndices[0]].pt
+                            self.pt_vbf2[event] = passedJets_p4[twoIndices[1]].pt
 
     def hh_selections(self, event):
         # calculate region variables
@@ -394,12 +423,12 @@ class ObjectSelection:
 
     def returnResults(self):
         """
-        lookup table for histname, variable to write, selection and weights to apply
+        apply selections to variables and weights
 
         Returns
         -------
         result : dict
-            key: hist, list: [values, weights]
+            in the form: result[histKey] = [values, weights]
         """
 
         selections = {
@@ -431,14 +460,6 @@ class ObjectSelection:
         finalSel = {
             "truth_mhh": {
                 "var": self.truth_m_hh,
-                "sel": None,
-            },
-            "dR_h1": {
-                "var": self.dR_h1,
-                "sel": None,
-            },
-            "dR_h2": {
-                "var": self.dR_h2,
                 "sel": None,
             },
             # bkg counting
@@ -551,6 +572,38 @@ class ObjectSelection:
             },
             "pt_hh_scalar": {
                 "var": self.pt_hh_scalar,
+                "sel": None,
+            },
+            "dR_h1": {
+                "var": self.dR_h1,
+                "sel": None,
+            },
+            "dR_h2": {
+                "var": self.dR_h2,
+                "sel": None,
+            },
+            "pt_vbf1": {
+                "var": self.pt_vbf1,
+                "sel": None,
+            },
+            "pt_vbf2": {
+                "var": self.pt_vbf2,
+                "sel": None,
+            },
+            "pt_h1_btag_vr_1": {
+                "var": self.pt_h1_btag_vr_1,
+                "sel": None,
+            },
+            "pt_h1_btag_vr_2": {
+                "var": self.pt_h1_btag_vr_2,
+                "sel": None,
+            },
+            "pt_h2_btag_vr_1": {
+                "var": self.pt_h2_btag_vr_1,
+                "sel": None,
+            },
+            "pt_h2_btag_vr_2": {
+                "var": self.pt_h2_btag_vr_2,
                 "sel": None,
             },
         }

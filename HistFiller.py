@@ -18,7 +18,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)
 parser.add_argument("--debug", action="store_true")
 parser.add_argument("--file", type=str, default=None)
-parser.add_argument("--batchMode", action="store_true")
 
 args = parser.parse_args()
 
@@ -77,7 +76,7 @@ def error_handler(e):
     pool.terminate()
 
 
-# debugging settings
+# general settings
 if args.debug:
     filelist = filelist[:3]
     histOutFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
@@ -128,12 +127,13 @@ with File(histOutFile, "w") as outfile:
 
             # progressbar
             pbar = tqdm(total=tree.num_entries, position=0, leave=True)
-            if args.debug or cpus == 1:
+            if args.debug:
                 for batch in eventBatches:
                     results = Analysis.Run(batch, metaData, tree, existingVars)
                     filling_callback(results)
             else:
-                # a pool objects can start child processes on different cpus
+                # a pool objects can start child processes on different cpu cores,
+                # nicely this releases memory per batch
                 pool = multiprocessing.Pool(cpus)
                 for batch in eventBatches:
                     pool.apply_async(
@@ -148,5 +148,6 @@ with File(histOutFile, "w") as outfile:
             print("Done")
 
     # write histograms to file
+    print("Writing to " + histOutFile)
     for hist in hists:
         hist.write(outfile)
