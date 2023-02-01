@@ -5,6 +5,7 @@ executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/scripts
 log                     = log_$(Process).log
 output                  = outfile_$(Process).txt
 error                   = errors_$(Process).txt
+notification = Complete 
 should_transfer_files   = No
 # when_to_transfer_output = ON_EXIT
 request_cpus = $(cpus)

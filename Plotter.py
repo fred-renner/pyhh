@@ -10,8 +10,11 @@ import logging
 import argparse
 import Plotting.colors
 import Plotting.utils
-from HistDefs import kinVars
+from HistDefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
+from pdf2image import convert_from_path
+import imageio
+
 
 matplotlib.font_manager._rebuild()
 plt.style.use(hep.style.ATLAS)
@@ -74,6 +77,94 @@ def load(file):
         else:
             hists[key] = getHist(file, key)
     return hists
+
+
+def savegrid(ims, plotName, rows=None, cols=None, fill=True, showax=False):
+    if rows is None != cols is None:
+        raise ValueError("Set either both rows and cols or neither.")
+
+    if rows is None:
+        rows = len(ims)
+        cols = 1
+
+    gridspec_kw = {"wspace": 0, "hspace": 0} if fill else {}
+    fig, axarr = plt.subplots(rows, cols, gridspec_kw=gridspec_kw)
+    fig.set_dpi(500)
+
+    if fill:
+        bleed = 0
+        fig.subplots_adjust(
+            left=bleed, bottom=bleed, right=(1 - bleed), top=(1 - bleed)
+        )
+
+    for ax, im in zip(axarr.ravel(), ims):
+        ax.imshow(im)
+        if not showax:
+            ax.set_axis_off()
+
+    kwargs = {"pad_inches": 0.01} if fill else {}
+    fig.savefig(plotName, **kwargs)
+
+
+def makeGrid():
+    btags = ["2b2b", "2b2j"]
+    regions = ["CR", "VR", "SR"]
+    vbf = ["", "noVBF"]
+    print(collectedKinVars)
+    for var in collectedKinVars:
+        print(f"making grid for variable {var}")
+        plotsPerGrid = []
+        for btag in btags:
+            for reg in regions:
+                if "massplane" in var:
+                    plot = "_".join([var, reg, btag])
+                else:
+                    plot = "_".join([var, reg, btag, "ratio"])
+                plot += ".pdf"
+                plotsPerGrid += [plot]
+        plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
+        y = len(regions)
+        x = len(btags)
+
+        fig, axarr = plt.subplots(x, y)
+
+        ims = [
+            np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
+        ]
+
+        savegrid(ims, f"{var}.png", rows=x, cols=y)
+
+
+def plotLabel(histKey):
+    if "_noVBF" in histKey:
+        histKey = histKey[:-6]
+    print(histKey)
+    keyParts = histKey.split("_")
+    labels = {}
+    if "CR" in histKey:
+        labels["region"] = "Control Region"
+    if "VR" in histKey:
+        labels["region"] = "Validation Region"
+    else:
+        labels["region"] = ""
+
+    labels["btag"] = keyParts[-1]
+    # if len(keyParts) == 3:
+    #     labels["vbf"] = ""
+    # else:
+    labels["vbf"] = "VBF4b"
+
+    # var
+    labels["var"] = "".join(keyParts[:-2])
+    # if "mh1" in keyParts[0]:
+    #     label["var"] = "$m_{H1}$"
+    # if "mh2" in keyParts[0]:
+    #     label["var"] = "$m_{H2}$"
+    # if "mhh" in keyParts[0]:
+    #     label["var"] = "$m_{HH}$"
+
+    labels["plot"] = ("\n").join([labels["vbf"], labels["region"], labels["btag"]])
+    return labels
 
 
 def triggerRef_leadingLargeRpT():
@@ -426,11 +517,7 @@ def massplane(histKey):
     ax.yaxis.set_major_formatter(Plotting.utils.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
 
-    hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
-
-    # if "_CR_" in histKey:
-    #     region = "Control Region"
-    # if "_4b" in histKey
+    hep.atlas.label(data=True, lumi="140.0", loc=2, ax=ax)
 
     # plt.text(f"VBF 4b, {region}, 2b2j")
     # plt.legend(loc="upper right")
@@ -556,16 +643,47 @@ def mh_SB_ratio(histKey):
     plt.close()
 
 
-def mh_data_ratio(histKey):
+def kinVar_data_ratio(histKey, bkgEstimate=False):
 
+    labels = plotLabel(histKey)
+    # w_CR :  0.008078516356129706
+    # w_VR :  0.007867223406497637
+    # err_w_CR :  0.000514595550525431
+    # err_w_VR :  0.0011059633469388869
     signal = SMsignal[histKey]["h"]
-    tt = ttbar[histKey]["h"]
-    jj = dijet[histKey]["h"]
+    signal_err = SMsignal[histKey]["err"]
     data = run2[histKey]["h"]
-    edges = dijet[histKey]["edges"]
+    data_err = run2[histKey]["err"]
+    tt = ttbar[histKey]["h"]
+    tt_err = ttbar[histKey]["err"]
+
+    # VR_2b2j*0.008078516356129706
+    if bkgEstimate:
+        print(lowTagHistkey)
+        lowTagHistkey = histKey[:-1] + "j"
+        data = run2[lowTagHistkey]["h"]
+        data_err = run2[lowTagHistkey]["err"]
+        tt = ttbar[lowTagHistkey]["h"]
+        tt_err = ttbar[lowTagHistkey]["err"]
+        w_CR = 0.008078516356129706
+        err_w_CR = 0.000514595550525431
+
+        jj = (data - tt) * w_CR
+        jj_err = Plotting.utils.ErrorPropagation(
+            sigmaA=Plotting.utils.ErrorPropagation(
+                sigmaA=data_err, sigmaB=tt_err, operation="-"
+            ),
+            sigmaB=err_w_CR,
+            operation="*",
+            A=data - tt,
+            B=w_CR,
+        )
+    else:
+        jj = dijet[histKey]["h"]
+        jj_err = dijet[histKey]["err"]
+    edges = run2[histKey]["edges"]
 
     plt.figure()
-
     fig, (ax, rax) = plt.subplots(
         nrows=2,
         ncols=1,
@@ -574,30 +692,44 @@ def mh_data_ratio(histKey):
         sharex=True,
     )
 
-    #  stack plot
+    # stack plot
     hep.histplot(
         [tt, jj],
         edges,
         stack=True,
         histtype="fill",
         # yerr=True,
-        label=["$t\overline{t}$", "Multijet"],  # "run2_VR_2b_weighted"],
+        label=["$t\overline{t}$", "Multijet"],
         ax=ax,
         color=["hh:darkpink", "hh:medturquoise"],
         edgecolor="black",
         linewidth=0.5,
     )
+
+    # prediction
+    pred = tt + jj
+    pred_err = Plotting.utils.ErrorPropagation(tt_err, jj_err, "+")
+
+    ratio = data / pred
+    ratio_err = Plotting.utils.ErrorPropagation(
+        data_err,
+        pred_err,
+        "/",
+        data,
+        pred,
+    )
     # error stackplot
-    # ax.fill_between(
-    #     edges,
-    #     np.append(bkg_tot - bkg_tot_err, 0),
-    #     np.append(bkg_tot + bkg_tot_err, 0),
-    #     color="dimgrey",
-    #     linewidth=0,
-    #     alpha=0.5,
-    #     step="post",
-    #     label="stat. uncertainty",
-    # )
+    ax.fill_between(
+        edges,
+        np.append(pred - pred_err, 0),
+        np.append(pred + pred_err, 0),
+        color="dimgrey",
+        linewidth=0,
+        alpha=0.3,
+        step="post",
+        label="stat. uncertainty",
+    )
+
     # data
     hep.histplot(
         data,
@@ -608,36 +740,27 @@ def mh_data_ratio(histKey):
         label="data",
         ax=ax,
     )
+
     # ratio plot
-    pred = tt + jj
-    pred_err = Plotting.utils.ErrorPropagation(
-        tt, jj, ttbar[histKey]["err"], dijet[histKey]["err"], "plus"
-    )
-    print(
-        Plotting.utils.ErrorPropagation(
-            data, pred, run2[histKey]["err"], pred_err, "plus"
-        )
-    )
-    ratio = (data - pred) / pred
-    ratio_err = Plotting.utils.ErrorPropagation(
-        (data - pred),
-        pred,
-        Plotting.utils.ErrorPropagation(
-            data, pred, run2[histKey]["err"], pred_err, "minus"
-        ),
-        pred_err,
-        "div",
-    )
-    # print(ratio_err)
     hep.histplot(
         ratio,
         edges,
         histtype="errorbar",
-        yerr=False,
+        yerr=ratio_err,
         ax=rax,
         color="Black",
     )
-
+    # error ratioplot
+    rax.fill_between(
+        edges,
+        np.append((pred - pred_err) / pred, 0),
+        np.append((pred + pred_err) / pred, 0),
+        color="dimgrey",
+        linewidth=0,
+        alpha=0.3,
+        step="post",
+        # label="stat. uncertainty",
+    )
     hep.histplot(
         signal * 10000,
         edges,
@@ -648,64 +771,77 @@ def mh_data_ratio(histKey):
         color="hh:darkyellow",  # "orangered",
         linewidth=1.25,
     )
-    fig.subplots_adjust(hspace=0.07)
-    ax.set_ylabel("Events")
-    rax.set_ylabel(
-        r"$ \frac{\mathrm{Data - Pred.}}{\mathrm{Pred.}}$", horizontalalignment="center"
-    )
-    # rax.set_ylim([0.5, 1.5])
-    ax.set_ylim([1e-2, 1e7])
 
-    ax.set_yscale("log")
-    keyParts = histKey.split("_")
-    print(keyParts)
-    if "CR" in keyParts[1]:
-        region = "Control Region, "
-    if "VR" in keyParts[1]:
-        region = "Validation Region, "
-    else:
-        region = ""
-    if len(keyParts) == 2:
-        btag = ""
-    else:
-        btag = keyParts[2]
-    if len(keyParts) == 3:
-        vbf = ""
-    else:
-        vbf = "VBF4b, "
-    ax.text(
-        0.25,
-        0.925,
-        vbf + region + btag,
-        horizontalalignment="center",
-        verticalalignment="center",
-        transform=ax.transAxes,
-    )
     hep.atlas.label(
         data=True,
         lumi="140.0",
-        loc=0,
+        loc=1,
         ax=ax,
     )
+    ax.text(
+            x=0.05,
+            y=0.75,
+            s=labels["plot"],
+            transform=ax.transAxes,
+            # verticalalignment="bottom",
+            # horizontalalignment="left",
+            fontsize=12,
+        )
 
-    hep.atlas.set_xlabel(f"{keyParts[0]} $[GeV]$ ")
+    fig.subplots_adjust(hspace=0.07)
+    ax.set_ylabel("Events")
+    rax.set_ylabel(
+        r"$ \frac{\mathrm{Data}}{\mathrm{Pred.}}$", horizontalalignment="center"
+    )
+    rax.set_ylim([0.0, 2])
+    plt.axhline(y=1.0, color="tab:red", linestyle="-")
+    ax.set_ylim([1e-2, 1e7])
+    ax.set_yscale("log")
+    hep.atlas.set_xlabel(f"{histKey} $[GeV]$ ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.legend(loc="upper right")
     ax.xaxis.set_major_formatter(Plotting.utils.OOMFormatter(3, "%1.1i"))
+    # to show subticks of logplot
     ax.yaxis.set_major_locator(mticker.LogLocator(numticks=999))
     ax.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
-    plt.savefig(plotPath + f"{histKey}_ratio.pdf")
+    if bkgEstimate:
+        plt.savefig(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
+    else:
+        plt.savefig(plotPath + f"{histKey}_ratio.pdf")
+    print(plotPath + f"{histKey}_ratio.pdf")
+
     plt.close()
 
 
 def compareABCD(histKey):
-    r2 = run2[histKey + "_VR_4b"]["h"]
-    tt = ttbar[histKey + "_VR_2b"]["h"]
-    jj = dijet[histKey + "_VR_4b"]["h"]
-    bkgEstimate = run2[histKey + "_VR_2b"]["h"] - tt
-    edges = run2[histKey + "_VR_4b"]["edges"]
 
+    signal_err = SMsignal[histKey]["err"]
+    data = run2[histKey]["h"]
+    data_err = run2[histKey]["err"]
+    tt = ttbar[histKey]["h"]
+    tt_err = ttbar[histKey]["err"]
+
+    # VR_2b2j*0.008078516356129706
+    print(lowTagHistkey)
+    lowTagHistkey = histKey[:-1] + "j"
+    data = run2[lowTagHistkey]["h"]
+    data_err = run2[lowTagHistkey]["err"]
+    tt = ttbar[lowTagHistkey]["h"]
+    tt_err = ttbar[lowTagHistkey]["err"]
+    w_CR = 0.008078516356129706
+    err_w_CR = 0.000514595550525431
+
+    jj = (data - tt) * w_CR
+    jj_err = Plotting.utils.ErrorPropagation(
+        sigmaA=Plotting.utils.ErrorPropagation(
+            sigmaA=data_err, sigmaB=tt_err, operation="-"
+        ),
+        sigmaB=err_w_CR,
+        operation="*",
+        A=data - tt,
+        B=w_CR,
+    )
     bkg_tot = bkgEstimate + tt
     bkg_tot_err = np.sqrt(run2[histKey + "_VR_2b_weights"]["h"])
     plt.figure()
@@ -775,27 +911,19 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     #     pts(name)
     # dRs()
 
-    # for var in kinVars:
-    # massplane("massplane_twoLargeR")
-    # massplane("massplane_SR_4b")
-    # mh_SB_ratio("mh1_VR_")
-    # mh_SB_ratio("mh2")
-    # mh_data_ratio("mhh_")
+    # kinVar_data_ratio(var)
 
-    # for region in ["SR_2b", "VR_4b", "VR_2b", "CR_4b", "CR_2b"]:
-    #     # mh_SB_ratio("mh1_" + region)
-    #     # mh_SB_ratio("mh2_" + region)
-    #     mh_SB_ratio("mhh_" + region)
-    # mh_data_ratio("mhh_CR_2b")
-    # mh_data_ratio("mhh_CR_4b")
-    for var in kinVars:
-        if "twoLargeR_noVBF" in var:
-            continue
-        if "massplane" in var:
-            massplane(var)
-        else:
-            mh_data_ratio(var)
-
-    # mh_data_ratio("mhh_CR_2b_noVBF")
-    # mh_data_ratio("mhh_CR_4b_noVBF")
+    # for var in collectedKinVarsWithRegions:
+    #     print(var)
+    #     if "massplane" in var:
+    #         massplane(var)
+    #     else:
+    #         pass#kinVar_data_ratio(var, bkgEstimate=False)
+    # for var in collectedKinVarsWithRegions:
+    #     if "2b2b" in var:
+    #         if "noVBF" not in var:
+    #             kinVar_data_ratio(var, bkgEstimate=True)
+    kinVar_data_ratio("mhh_VR_2b2b", bkgEstimate=False)
+    # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
     # compareABCD("mhh")
+    # makeGrid()

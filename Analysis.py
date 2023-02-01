@@ -211,8 +211,9 @@ class ObjectSelection:
         # Jet/ETmiss recommendation 200 < pT < 3000 GeV, 50 < m < 600 GeV
         ptCuts = (self.lrj_pt[event] > 200e3) & (self.lrj_pt[event] < 3000e3)
         mCuts = (self.lrj_m[event] > 50e3) & (self.lrj_m[event] < 600e3)
-        etaCut = np.abs(self.lrj_eta[event]) < 2.0
-        selected = np.array((ptCuts & mCuts & etaCut), dtype=bool)
+        # this eta cut is in old boosted analysis
+        # etaCut = np.abs(self.lrj_eta[event]) < 2.0
+        selected = np.array((ptCuts & mCuts), dtype=bool)
         # counting
         nJetsSelected = np.count_nonzero(selected)
         self.nLargeRBasicSelected[event] = nJetsSelected
@@ -240,7 +241,7 @@ class ObjectSelection:
         if self.nLargeR[event] > 0:
             self.atLeastOneLargeR[event] = True
             # cannot use selPtSort as they are selected!
-            maxPtIndex = self.selLargeR1Index[event]
+            maxPtIndex = np.argmax(self.lrj_pt[event])
             self.leadingLargeRpt[event] = self.lrj_pt[event][maxPtIndex]
             maxMIndex = np.argmax(self.lrj_m[event])
             self.leadingLargeRm[event] = self.lrj_m[event][maxMIndex]
@@ -252,8 +253,8 @@ class ObjectSelection:
     def getVRs(self, event):
         if self.selectedTwoLargeRevents[event]:
             # get their corresponding vr jets, (vector of vectors)
-            # need ._values as it comes as STL vector uproot object, gives
-            # an np.ndarray
+            # need ._values as it comes as STL vector uproot object, instead of
+            # .tolist() it comes already as np.ndarray
             j1_VRs = self.vr_btag_77[event]._values[self.selLargeR1Index[event]]._values
             j2_VRs = self.vr_btag_77[event]._values[self.selLargeR2Index[event]]._values
             # count their tags

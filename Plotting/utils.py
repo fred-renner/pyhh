@@ -147,30 +147,33 @@ def CR_hh(m_h1, m_h2):
     )
 
 
-def ErrorPropagation(A, B, sigmaA, sigmaB, operation):
-    """
+def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
+    """_summary_
 
     Parameters
     ----------
-    A : ndarray
-        var A
-    B : ndarray
-        var B
-    sigmaA : float
+    sigmaA : ndarray
         standard error of A
-    sigmaB : float
-        standard error of B
+    sigmaB : ndarray
+        _description_
     operation : str
-        "dash" for +-, "dot" for */
+        operator
+    A : ndarray, optional
+        A values, by default None
+    B : ndarray, optional
+        B values, by default None
 
     Returns
     -------
     ndarray
         propagated error
     """
-    if "plus" or "minus" in operation:
-        return np.sqrt((sigmaA**2) + (sigmaB**2))
-    if "times" in operation:
-        return np.abs(A * B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
-    if "div" in operation:
-        return np.abs(A / B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+
+    if "+" or "-" in operation:
+        error = np.sqrt((sigmaA**2) + (sigmaB**2))
+    if "*" in operation:
+        error = np.abs(A * B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+    if "/" in operation:
+        error = np.abs(A / B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+
+    return error

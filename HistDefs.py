@@ -187,15 +187,18 @@ regions = [
 ]
 regions_noVBF = [r + "_noVBF" for r in regions]
 regions += regions_noVBF
-collectVars = []
+kinVars = []
+kinVarsWithRegions = []
 for hist in kinematicHists:
     # without selection
     kinVar = getattr(hist, "_name")
+    kinVars += [kinVar]
     for reg in regions:
         var = kinVar + "_" + reg
-        collectVars += [var]
+        kinVarsWithRegions += [var]
         newHist = copy.deepcopy(hist)
         newHist._name = var
         hists.append(newHist)
 
-kinVars = collectVars
+collectedKinVars = kinVars
+collectedKinVarsWithRegions = kinVarsWithRegions
