@@ -29,7 +29,7 @@ subprocess.call(
 
 # write jobs per line
 print(f"Made submit file for {sample} with {len(filelist)} jobs. ")
-with open(f"/lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub", "a") as f:
+with open(f"/lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub", "w") as f:
     for i, file in enumerate(filelist):
         f.write(f"arguments = $(Proxy_path) $(cpus) {file}")
         f.write("\n")

@@ -11,12 +11,13 @@ with h5py.File(run2File, "r") as run2:
         with h5py.File(dijetFile, "r") as dijet:
             # works with any kinematic var as vars are filled with the nr of
             # selected events
+            print(run2.keys())
             CR_2b2b_Data = np.sum(run2["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_Data = np.sum(run2["mhh_CR_2b2j"]["histogram"][:])
+            CR_2b2j_Data = np.sum(run2["mhh_CR_1b1b"]["histogram"][:])
             CR_2b2b_ttbar = np.sum(ttbar["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_ttbar = np.sum(ttbar["mhh_CR_2b2j"]["histogram"][:])
+            CR_2b2j_ttbar = np.sum(ttbar["mhh_CR_1b1b"]["histogram"][:])
             CR_2b2b_dijet = np.sum(dijet["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_dijet = np.sum(dijet["mhh_CR_2b2j"]["histogram"][:])
+            CR_2b2j_dijet = np.sum(dijet["mhh_CR_1b1b"]["histogram"][:])
 
             VR_2b2b_Data = np.sum(run2["mhh_VR_2b2b"]["histogram"][:])
             VR_2b2j_Data = np.sum(run2["mhh_VR_2b2j"]["histogram"][:])

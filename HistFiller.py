@@ -60,8 +60,17 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
             vars.append((line.split(start))[1].split(end)[0])
 
 
-# the filling is executed each time an Analysis.Run job finishes
 def filling_callback(results):
+    """
+    The filling is executed each time an Analysis.Run job finishes. According
+    to this it is executed sequentially, so no data races.
+    https://stackoverflow.com/questions/24770934/who-runs-the-callback-when-using-apply-async-method-of-a-multiprocessing-pool
+
+        Parameters
+        ----------
+        results : list
+           takes list from Analysis.ObjectSelection.returnResults()
+    """
     # update bin heights per iteration
     for hist in hists:
         if hist._name not in results.keys():
