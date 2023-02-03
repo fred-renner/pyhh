@@ -177,3 +177,53 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
         error = np.abs(A / B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
 
     return error
+
+
+def rebin(
+    h,
+    edges,
+    err=None,
+    bins=10,
+):
+    """rebin a histogram
+
+    Parameters
+    ----------
+    h : ndarray
+        histogram counts
+    edges : ndarray
+         edges to h
+    err : ndarray, optional
+        error to h, by default None
+    bins : int, optional
+        nr of new bins, by default 10
+
+    Returns
+    -------
+    ndarray, ndarray, ndarray
+        newH, newEdges, newErr
+
+    Raises
+    ------
+    ValueError
+        if more bins requested than originally given
+    """
+
+    # a rebinning with more bins is not really useful
+    if bins > (edges.shape[0] - 1):
+        raise ValueError("More bins than before")
+    # make new edges for bin nr
+    newEdges = np.linspace(edges[0], edges[-1], bins + 1)
+    # get the binindices in which the given hist values end up with the new binning
+    # -1 to start counting from zero
+    histIndicesForNewEdges = np.digitize(edges, newEdges)[:-1] - 1
+    newH = np.zeros(bins)
+    newErr = np.zeros(bins)
+    for i in range(0, bins ):
+        # get all the values from h that belong in the i-th bin of the new hist
+        # and calculate the mean value and error
+        newH[i] = h[histIndicesForNewEdges == i].mean()
+        if err is not None:
+            newErr[i] = err[histIndicesForNewEdges == i].mean()
+
+    return newH, newEdges, newErr

@@ -63,7 +63,7 @@ for line in open("/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "
 def filling_callback(results):
     """
     The filling is executed each time an Analysis.Run job finishes. According
-    to this it is executed sequentially, so no data races.
+    to this it is executed sequentially, so no data races expected.
     https://stackoverflow.com/questions/24770934/who-runs-the-callback-when-using-apply-async-method-of-a-multiprocessing-pool
 
         Parameters
@@ -78,11 +78,13 @@ def filling_callback(results):
         res = results[hist._name]
         hist.fill(values=res[0], weights=res[1])
     pbar.update(batchSize)
+    return
 
 
 def error_handler(e):
     print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
     pool.terminate()
+    return
 
 
 # general settings
@@ -142,7 +144,7 @@ with File(histOutFile, "w") as outfile:
                     filling_callback(results)
             else:
                 # a pool objects can start child processes on different cpu cores,
-                # nicely this releases memory per batch
+                # nicely this properly releases memory per batch
                 pool = multiprocessing.Pool(cpus)
                 for batch in eventBatches:
                     pool.apply_async(

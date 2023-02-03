@@ -169,10 +169,11 @@ def plotLabel(histKey, ax):
         ["Run 2, " + labels["vbf"], labels["region"] + ", " + labels["btag"]]
     )
     hep.atlas.label(
-        data=True,
+        # data=False,
         lumi="140.0",
         loc=1,
         ax=ax,
+        llabel="Internal",
     )
     ax.text(
         x=0.05,
@@ -818,20 +819,48 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
     plt.close()
 
 
-def compareABCD(histKey):
+def compareABCD(histKey, rebin=None):
 
     data = run2[histKey]["h"]
     data_err = run2[histKey]["err"]
     tt = ttbar[histKey]["h"]
     tt_err = ttbar[histKey]["err"]
+    edges = run2[histKey]["edges"]
 
     # VR_2b2j*0.008078516356129706
-
     lowTagHistkey = histKey[:-1] + "j"
     data_2 = run2[lowTagHistkey]["h"]
     data_err_2 = run2[lowTagHistkey]["err"]
     tt_2 = ttbar[lowTagHistkey]["h"]
     tt_err_2 = ttbar[lowTagHistkey]["err"]
+    if rebin:
+        bins=rebin
+        data, edges_, data_err = Plotting.utils.rebin(
+            h=data,
+            edges=edges,
+            err=data_err,
+            bins=bins,
+        )
+        tt, edges_, tt_err = Plotting.utils.rebin(
+            h=tt,
+            edges=edges,
+            err=tt_err,
+            bins=bins,
+        )
+
+        data_2, edges_, data_err_2 = Plotting.utils.rebin(
+            h=data_2,
+            edges=edges,
+            err=data_err_2,
+            bins=bins,
+        )
+        tt_2, edges_, tt_err_2 = Plotting.utils.rebin(
+            h=tt_2,
+            edges=edges,
+            err=tt_err_2,
+            bins=bins,
+        )
+        edges = edges_
     w_CR = 0.008078516356129706
     err_w_CR = 0.000514595550525431
 
@@ -846,53 +875,98 @@ def compareABCD(histKey):
     )
 
     plt.figure()
-    hep.histplot(
-        [jj, jj_2],
-        edges,
-        stack=True,
-        histtype="fill",
-        # yerr=True,
-        label=["$t\overline{t}$", "Bkg estimate"],  # , "Multijet"],
-        color=["hh:darkpink", "hh:medturquoise"],
-        edgecolor="black",
-        linewidth=0.5,
+    fig, (ax, rax) = plt.subplots(
+        nrows=2,
+        ncols=1,
+        figsize=(8, 8),
+        gridspec_kw={"height_ratios": (3, 1)},
+        sharex=True,
     )
+    # hep.histplot(
+    #     [jj_2, jj],
+    #     edges,
+    #     stack=False,
+    #     histtype="step",
+    #     yerr=[jj_err, jj_err_2],
+    #     label=["data - tt, 2b2j", "data - tt, 2b2b"],
+    #     ax=ax,
+    #     color=["hh:darkpink", "hh:medturquoise"],
+    #     # edgecolor="black",
+    #     # linewidth=0.5,
+    # )
+
     hep.histplot(
-        # cumulative_signal/cumulative_bkg,
-        r2,
+        jj,
         edges,
         histtype="errorbar",
-        yerr=True,
-        color="Black",
-        label="data",
+        yerr=jj_err,
+        label="data - tt, 2b2b",
+        ax=ax,
     )
-    ax = plt.gca()
-    ax.fill_between(
+    hep.histplot(
+        jj_2,
         edges,
-        np.append(bkg_tot + bkg_tot_err, 0),
-        np.append(bkg_tot - bkg_tot_err, 0),
-        hatch="\\\\\\\\",
-        facecolor="None",
-        edgecolor="dimgrey",
-        linewidth=0,
-        step="post",
-        zorder=1,
-        label="stat. uncertainty",
+        histtype="errorbar",
+        yerr=jj_err_2,
+        label="data - tt, 2b2j",
+        ax=ax,
     )
+    hep.histplot(
+        jj_2 * w_CR,
+        edges,
+        histtype="errorbar",
+        yerr=jj_err*w_CR,
+        label="w_CR*(data - tt), 2b2j",
+        ax=ax,
+    )
+    
+    
+
+
+    hep.histplot(
+        jj_2 / jj,
+        edges,
+        histtype="errorbar",
+        yerr=Plotting.utils.ErrorPropagation(
+            sigmaA=jj_err,
+            sigmaB=jj_err_2,
+            operation="/",
+            A=jj,
+            B=jj_2,
+        ),
+        color="Black",
+        # label="ratio",
+        ax=rax,
+    )
+
+    # ax.fill_between(
+    #     edges,
+    #     np.append(bkg_tot + bkg_tot_err, 0),
+    #     np.append(bkg_tot - bkg_tot_err, 0),
+    #     hatch="\\\\\\\\",
+    #     facecolor="None",
+    #     edgecolor="dimgrey",
+    #     linewidth=0,
+    #     step="post",
+    #     zorder=1,
+    #     label="stat. uncertainty",
+    # )
     # hep.atlas.text(" Simulation", loc=1)
-    hep.atlas.set_ylabel("Events")
+    ax.legend()
+    ax.set_ylabel("Events")
+    rax.set_ylabel("ratio")
+    rax.set_ylim([0, 250])
+
     hep.atlas.set_xlabel(f"{histKey}")
-    ax = plt.gca()
-    # ax.set_yscale("log")
-    # ax.xaxis.set_major_formatter(Plotting.utils.OOMFormatter(3, "%1.1i"))
-    plt.legend(loc="upper right")
-    # hep.yscale_legend()
-    hep.atlas.label(data=False, lumi="140", year=None, loc=0)
+    ax.set_yscale("log")
+    ax.xaxis.set_major_formatter(Plotting.utils.OOMFormatter(3, "%1.1i"))
 
+    plotLabel(histKey, ax)
     plt.tight_layout()
-    # ax.get_xaxis().get_offset_text().set_position((2, 0))
+    ax.get_xaxis().get_offset_text().set_position((2, 0))
+    print(plotPath + histKey + "_compareABCD.pdf")
 
-    plt.savefig(plotPath + histKey + "_BkgEstimate.pdf")
+    plt.savefig(plotPath + histKey + "_compareABCD.pdf")
     plt.close()
 
 
@@ -927,6 +1001,6 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     # kinVar_data_ratio("mhh_CR_2b2b", bkgEstimate=False)
     # massplane("massplane_CR_2b2b")
     # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
-    # compareABCD("mhh_CR_2b2b")
-    # compareABCD("mhh_VR_2b2b")
-    makeGrid()
+    compareABCD("mh1_CR_2b2b", rebin=20)
+    compareABCD("mh1_VR_2b2b", rebin=20)
+    # makeGrid()
