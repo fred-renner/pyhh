@@ -6,10 +6,12 @@ class Config:
     def __init__(self, args):
 
         if args.batchMode:
-            # to run on same cpu core
+            # to run on same cpu core as main program, even with cpus=1 a child
+            # process is spawned on another cpu core
             import multiprocessing.dummy as multiprocessing
 
-            self.cpus = 1
+        else:
+            import multiprocessing
 
         if args.file:
             self.filelist = [args.file]
@@ -66,6 +68,8 @@ class Config:
             self.batchSize = 20_000
             if args.cpus:
                 self.cpus = args.cpus
+            elif args.batchMode:
+                self.cpus = 1
             else:
                 self.cpus = multiprocessing.cpu_count() - 4
 

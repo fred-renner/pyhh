@@ -65,7 +65,7 @@ def get2dHist(file, name):
     hRaw = np.array(file[name]["histogramRaw"][1:-1, 1:-1])
     xbins = np.array(file[name]["edges"][0][1:-1])
     ybins = np.array(file[name]["edges"][1][1:-1])
-    err = np.sqrt(hRaw)
+    err = np.sqrt(np.sqrt(file[name]["w2sum"]))
     return {"h": h, "hRaw": hRaw, "xbins": xbins, "ybins": ybins, "err": err}
 
 
@@ -1010,6 +1010,7 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     #                 print(var)
     #                 kinVar_data_ratio(var, bkgEstimate=True)
     kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
+    kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
     # massplane("massplane_CR_2b2b")
     # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
     # compareABCD("mh1_CR_2b2b",rebin=10)

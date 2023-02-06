@@ -1,5 +1,6 @@
-Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
-cpus = 1
+# Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
+# cpus = 1
+# request_cpus = $(cpus)
 
 executable              = /lustre/fs22/group/atlas/freder/hh/hh-analysis/scripts/HistFill.sh
 log                     = log_$(Process).log
@@ -8,6 +9,5 @@ error                   = errors_$(Process).txt
 # notification = Complete 
 should_transfer_files   = No
 # when_to_transfer_output = ON_EXIT
-request_cpus = $(cpus)
 getenv = True
 

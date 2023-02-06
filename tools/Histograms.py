@@ -19,7 +19,7 @@ class FloatHistogram:
         self._histRaw = np.zeros(self._bins.size - 1, dtype=float)
         self._hist = np.zeros(self._bins.size - 1, dtype=float)
         self._w2sum = np.zeros(self._bins.size - 1, dtype=float)
-        self.blah = np.copy(self._w2sum)
+
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 
@@ -32,15 +32,12 @@ class FloatHistogram:
         self._histRaw += histRaw
         self._w2sum += w2
 
-
     def write(self, file_):
         hgroup = file_.create_group(self._name)
         hgroup.attrs["type"] = "float"
         hist = hgroup.create_dataset("histogram", data=self._hist, **self._compression)
-        histRaw = hgroup.create_dataset(
-            "histogramRaw", data=self._histRaw, **self._compression
-        )
-        w2sum = hgroup.create_dataset("w2sum", data=self._w2sum, **self._compression)
+        hgroup.create_dataset("histogramRaw", data=self._histRaw, **self._compression)
+        hgroup.create_dataset("w2sum", data=self._w2sum, **self._compression)
         ax = hgroup.create_dataset("edges", data=self._bins[1:-1], **self._compression)
         ax.make_scale("edges")
         hist.dims[0].attach_scale(ax)
