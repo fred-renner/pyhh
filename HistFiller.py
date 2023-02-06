@@ -82,6 +82,7 @@ with File(config.histOutFile, "w") as outfile:
             if args.debug:
                 for batch in eventBatches:
                     results = Analysis.Run(batch, metaData, tree, existingVars)
+                    print(results)
                     filling_callback(results)
             else:
                 # a pool objects can start child processes on different cpu cores,

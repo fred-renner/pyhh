@@ -19,26 +19,19 @@ class FloatHistogram:
         self._histRaw = np.zeros(self._bins.size - 1, dtype=float)
         self._hist = np.zeros(self._bins.size - 1, dtype=float)
         self._w2sum = np.zeros(self._bins.size - 1, dtype=float)
+        self.blah = np.copy(self._w2sum)
         # compression for h5 file
         self._compression = dict(compression="gzip") if compress else {}
 
     def fill(self, values, weights):
         hist = np.histogramdd(values, bins=[self._bins], weights=weights)[0]
         histRaw = np.histogramdd(values, bins=[self._bins])[0]
-        # find the bins of the weights
-        indices = np.digitize(values, self._bins) - 1
-        # print(indices)
-        # sum them up squared
-        w2 = weights**2
-        for k, ind in enumerate(indices):
-            self._w2sum[ind] += weights[k] ** 2
-        # b = self._w2sum
-        # b[indices] += w2
-        
-        # print(self._w2sum)
-        # print(b)
+        w2 = np.histogramdd(values, bins=[self._bins], weights=weights**2)[0]
+
         self._hist += hist
         self._histRaw += histRaw
+        self._w2sum += w2
+
 
     def write(self, file_):
         hgroup = file_.create_group(self._name)

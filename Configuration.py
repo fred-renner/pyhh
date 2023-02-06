@@ -10,6 +10,7 @@ class Config:
             import multiprocessing.dummy as multiprocessing
 
             self.cpus = 1
+
         if args.file:
             self.filelist = [args.file]
             fileParts = self.filelist[0].split("/")
