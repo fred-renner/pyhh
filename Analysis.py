@@ -2,7 +2,7 @@ import numpy as np
 import vector
 from operator import xor
 import itertools
-from Plotting.utils import Xhh, CR_hh
+from Plotting.tools import Xhh, CR_hh
 import copy
 
 np.set_printoptions(threshold=np.inf)
@@ -212,7 +212,7 @@ class ObjectSelection:
         ptCuts = (self.lrj_pt[event] > 200e3) & (self.lrj_pt[event] < 3000e3)
         mCuts = (self.lrj_m[event] > 50e3) & (self.lrj_m[event] < 600e3)
         # this eta cut is in old boosted analysis
-        # etaCut = np.abs(self.lrj_eta[event]) < 2.0
+        etaCut = np.abs(self.lrj_eta[event]) < 2.0
         selected = np.array((ptCuts & mCuts), dtype=bool)
         # counting
         nJetsSelected = np.count_nonzero(selected)

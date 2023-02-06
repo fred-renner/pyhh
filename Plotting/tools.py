@@ -1,12 +1,10 @@
 import numpy as np
 import matplotlib.ticker
 
-# https://indico.cern.ch/event/66256/contributions/2071577/attachments/1017176/1447814/EfficiencyErrors.pdf
-# https://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2286-cd.pdf
-# http://phys.kent.edu/~smargeti/STAR/D0/Ullrich-Errors.pdf
 
-# per bin
+
 def EfficiencyErrorBayesian(k, n, bUpper):
+    # per bin
     if n == 0:
         if bUpper:
             return 0
@@ -30,7 +28,25 @@ def EfficiencyErrorBayesian(k, n, bUpper):
 
 
 def getEfficiencyErrors(passed, total):
-    """get relative upper and lower error bar positions"""
+    """
+    get relative upper and lower error bar positions by calculating a bayesian
+    Error based on:
+    # https://indico.cern.ch/event/66256/contributions/2071577/attachments/1017176/1447814/EfficiencyErrors.pdf
+    # https://lss.fnal.gov/archive/test-tm/2000/fermilab-tm-2286-cd.pdf
+    # http://phys.kent.edu/~smargeti/STAR/D0/Ullrich-Errors.pdf
+
+    Parameters
+    ----------
+    passed : np.ndarray
+        values that passed a cut
+    total : np.ndarray
+        baseline 
+
+    Returns
+    -------
+    np.ndarray
+        2xN array holding relative errors to values
+    """
     upper_err = np.array(
         [
             EfficiencyErrorBayesian(passed, total, bUpper=True)

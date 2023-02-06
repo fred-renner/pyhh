@@ -27,9 +27,16 @@ class FloatHistogram:
         histRaw = np.histogramdd(values, bins=[self._bins])[0]
         # find the bins of the weights
         indices = np.digitize(values, self._bins) - 1
+        # print(indices)
         # sum them up squared
+        w2 = weights**2
         for k, ind in enumerate(indices):
             self._w2sum[ind] += weights[k] ** 2
+        # b = self._w2sum
+        # b[indices] += w2
+        
+        # print(self._w2sum)
+        # print(b)
         self._hist += hist
         self._histRaw += histRaw
 
