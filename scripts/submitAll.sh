@@ -6,7 +6,10 @@ declare -a samples=(
     "mc20_l1cvv1cv1"
 )
 
-## now loop through the above array
+# run from submit folder
+rsync -r --exclude=.git /lustre/fs22/group/atlas/freder/hh/hh-analysis /lustre/fs22/group/atlas/freder/hh/submit/
+
+# now loop through the above array
 for i in "${samples[@]}"; do
     echo "$i"
     /lustre/fs22/group/atlas/freder/hh/hh-analysis/makeSubmitFile.py --sample $i

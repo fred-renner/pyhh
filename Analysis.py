@@ -263,30 +263,30 @@ class ObjectSelection:
             j1_VRs_noBtag = len(j1_VRs) - j1_VRs_Btag
             j2_VRs_noBtag = len(j2_VRs) - j2_VRs_Btag
 
-            # this is not mutually exclusive....
+            # this is not mutually exclusive with >=
             if xor(
-                j1_VRs_Btag == 1 and j2_VRs_noBtag >= 1,
-                j2_VRs_Btag == 1 and j1_VRs_noBtag >= 1,
+                j1_VRs_Btag == 1 and j2_VRs_noBtag == 1,
+                j2_VRs_Btag == 1 and j1_VRs_noBtag == 1,
             ):
                 self.btagLow_1b1j[event] = True
             if xor(
-                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 1,
-                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 1,
+                j1_VRs_Btag == 2 and j2_VRs_noBtag == 1,
+                j2_VRs_Btag == 2 and j1_VRs_noBtag == 1,
             ):
                 self.btagLow_2b1j[event] = True
             if xor(
-                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 2,
-                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 2,
+                j1_VRs_Btag == 2 and j2_VRs_noBtag == 2,
+                j2_VRs_Btag == 2 and j1_VRs_noBtag == 2,
             ):
                 self.btagLow_2b2j[event] = True
             if j1_VRs_Btag == 1 and j2_VRs_Btag == 1:
                 self.btagHigh_1b1b[event] = True
             if xor(
-                j1_VRs_Btag >= 2 and j2_VRs_Btag == 1,
-                j2_VRs_Btag >= 2 and j1_VRs_Btag == 1,
+                j1_VRs_Btag == 2 and j2_VRs_Btag == 1,
+                j2_VRs_Btag == 2 and j1_VRs_Btag == 1,
             ):
                 self.btagHigh_2b1b[event] = True
-            if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
+            if j1_VRs_Btag == 2 and j2_VRs_Btag == 2:
                 self.btagHigh_2b2b[event] = True
 
             self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]

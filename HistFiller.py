@@ -66,10 +66,10 @@ def filling_callback(results):
     to this it is executed sequentially, so no data races expected.
     https://stackoverflow.com/questions/24770934/who-runs-the-callback-when-using-apply-async-method-of-a-multiprocessing-pool
 
-        Parameters
-        ----------
-        results : list
-           takes list from Analysis.ObjectSelection.returnResults()
+    Parameters
+    ----------
+    results : list
+        takes list from Analysis.ObjectSelection.returnResults()
     """
     # update bin heights per iteration
     for hist in hists:
