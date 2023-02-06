@@ -165,16 +165,20 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
 
     Returns
     -------
-    ndarray
+    np.ndarray
         propagated error
     """
 
     if "+" or "-" in operation:
-        error = np.sqrt((sigmaA**2) + (sigmaB**2))
+        error = np.sqrt(np.power(sigmaA, 2) + np.power(sigmaB, 2))
     if "*" in operation:
-        error = np.abs(A * B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+        error = np.abs(A * B) * np.sqrt(
+            np.power(np.divide(sigmaA, A), 2) + np.power(np.divide(sigmaB, B), 2)
+        )
     if "/" in operation:
-        error = np.abs(A / B) * np.sqrt(((sigmaA / A) ** 2) + ((sigmaB / B) ** 2))
+        error = np.abs(A / B) * np.sqrt(
+            np.power(np.divide(sigmaA, A), 2) + np.power(np.divide(sigmaB, B), 2)
+        )
 
     return error
 
@@ -212,14 +216,14 @@ def rebin(
     # a rebinning with more bins is not really useful
     if bins > (edges.shape[0] - 1):
         raise ValueError("More bins than before")
-    # make new edges for bin nr
+    # make new edges for bin nr and given bin range
     newEdges = np.linspace(edges[0], edges[-1], bins + 1)
     # get the binindices in which the given hist values end up with the new binning
     # -1 to start counting from zero
     histIndicesForNewEdges = np.digitize(edges, newEdges)[:-1] - 1
     newH = np.zeros(bins)
     newErr = np.zeros(bins)
-    for i in range(0, bins ):
+    for i in range(0, bins):
         # get all the values from h that belong in the i-th bin of the new hist
         # and calculate the mean value and error
         newH[i] = h[histIndicesForNewEdges == i].mean()
