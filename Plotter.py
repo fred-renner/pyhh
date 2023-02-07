@@ -1003,16 +1003,17 @@ with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
     #         massplane(var)
     #     else:
     #         kinVar_data_ratio(var, bkgEstimate=False)
+    #         kinVar_data_ratio(var, bkgEstimate=True)
     # for var in collectedKinVarsWithRegions:
     #     if "2b2b" in var:
     #         if "noVBF" not in var:
     #             if "massplane" not in var:
     #                 print(var)
     #                 kinVar_data_ratio(var, bkgEstimate=True)
-    kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
-    kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
+    # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
+    # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
     # massplane("massplane_CR_2b2b")
     # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
     # compareABCD("mh1_CR_2b2b",rebin=10)
-    # compareABCD("mh1_VR_2b2b", rebin=50)
+    compareABCD("pt_h1_CR_2b2b", rebin=20)
     # makeGrid()

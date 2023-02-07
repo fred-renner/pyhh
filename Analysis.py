@@ -23,9 +23,13 @@ def get_lumi(years: list):
 
     Parameters
     ----------
-    years: list
+    years : list
         Years corresponding to desired lumi
 
+    Returns
+    -------
+    float
+        lumi sum of given years
     """
     lumi = {
         "2015": 3.4454,
@@ -186,6 +190,8 @@ class ObjectSelection:
 
     def select(self):
         for event in self.eventRange:
+            if not self.trigger[event]:
+                continue
             # order matters!
             # if not self.vr_dontOverlap[event]:
             #     continue
@@ -194,7 +200,6 @@ class ObjectSelection:
                     self.weightFactor
                     * self.vars_arr["pileupWeight_NOSYS"][event]
                     * self.vars_arr["mcEventWeights"][event][0]
-                    # mcEventWeights[:][0] == generatorWeight_NOSYS
                 )
             self.largeRSelect(event)
             self.TriggerReference(event)
@@ -213,7 +218,7 @@ class ObjectSelection:
         mCuts = (self.lrj_m[event] > 50e3) & (self.lrj_m[event] < 600e3)
         # this eta cut is in old boosted analysis
         etaCut = np.abs(self.lrj_eta[event]) < 2.0
-        selected = np.array((ptCuts & mCuts), dtype=bool)
+        selected = np.array((ptCuts & mCuts & etaCut), dtype=bool)
         # counting
         nJetsSelected = np.count_nonzero(selected)
         self.nLargeRBasicSelected[event] = nJetsSelected
@@ -602,16 +607,9 @@ class ObjectSelection:
         # go over all defined hists, apply additional weights if exist and return
         results = {}
         for hist in finalSel.keys():
-            # if self-defined weight value
-            if "weight" in finalSel[hist]:
-                w = finalSel[hist]["weight"]
-            else:
-                w = None
-
             results[hist] = self.resultWithWeights(
                 var=finalSel[hist]["var"],
                 sel=finalSel[hist]["sel"],
-                weight=w,
             )
 
         # add massplane
@@ -638,7 +636,7 @@ class ObjectSelection:
         var : np.ndarray
             array with varSelDicts
         sel : np.ndarray, optional
-            array holding a booleans to select on var , by default None
+            array holding booleans to select on var, by default None
         weight : float, optional
             weights for the hists, by default None
 
