@@ -781,7 +781,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
     plt.close()
 
 
-def compareABCD(histKey, rebin=None):
+def compareABCD(histKey, factor=None):
 
     data = run2[histKey]["h"]
     data_err = run2[histKey]["err"]
@@ -795,32 +795,32 @@ def compareABCD(histKey, rebin=None):
     data_err_2 = run2[lowTagHistkey]["err"]
     tt_2 = ttbar[lowTagHistkey]["h"]
     tt_err_2 = ttbar[lowTagHistkey]["err"]
-    if rebin:
-        bins = rebin
-        data, edges_, data_err = Plotting.tools.rebin(
+    if factor:
+        
+        data, edges_, data_err = Plotting.tools.factorRebin(
             h=data,
             edges=edges,
+            factor=factor,
             err=data_err,
-            bins=bins,
         )
-        tt, edges_, tt_err = Plotting.tools.rebin(
+        tt, edges_, tt_err = Plotting.tools.factorRebin(
             h=tt,
             edges=edges,
+            factor=factor,
             err=tt_err,
-            bins=bins,
         )
 
-        data_2, edges_, data_err_2 = Plotting.tools.rebin(
+        data_2, edges_, data_err_2 = Plotting.tools.factorRebin(
             h=data_2,
             edges=edges,
+            factor=factor,
             err=data_err_2,
-            bins=bins,
         )
-        tt_2, edges_, tt_err_2 = Plotting.tools.rebin(
+        tt_2, edges_, tt_err_2 = Plotting.tools.factorRebin(
             h=tt_2,
             edges=edges,
+            factor=factor,
             err=tt_err_2,
-            bins=bins,
         )
         edges = edges_
     w_CR = 0.008078516356129706
@@ -955,22 +955,22 @@ dijet = hists_["dijet"]
 # dRs()
 
 # kinVar_data_ratio(var)
-for var in collectedKinVarsWithRegions:
-    print(var)
-    if "massplane" in var:
-        massplane(var)
-    else:
-        kinVar_data_ratio(var, bkgEstimate=False)
-for var in collectedKinVarsWithRegions:
-    if "2b2b" in var:
-        if "noVBF" not in var:
-            if "massplane" not in var:
-                print(var)
-                kinVar_data_ratio(var, bkgEstimate=True)
+# for var in collectedKinVarsWithRegions:
+#     print(var)
+#     if "massplane" in var:
+#         massplane(var)
+#     else:
+#         kinVar_data_ratio(var, bkgEstimate=False)
+# for var in collectedKinVarsWithRegions:
+#     if "2b2b" in var:
+#         if "noVBF" not in var:
+#             if "massplane" not in var:
+#                 print(var)
+#                 kinVar_data_ratio(var, bkgEstimate=True)
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
-compareABCD("mh1_CR_2b2b")
-compareABCD("pt_h1_CR_2b2b")
+compareABCD("mh1_CR_2b2b",factor=3)
+compareABCD("mh1_VR_2b2b",factor=3)
 # makeGrid()

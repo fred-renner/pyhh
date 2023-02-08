@@ -190,25 +190,24 @@ class ObjectSelection:
 
     def select(self):
         for event in self.eventRange:
-            if not self.trigger[event]:
-                continue
-            # order matters!
-            # if not self.vr_dontOverlap[event]:
-            #     continue
-            if self.mc:
-                self.weights[event] = (
-                    self.weightFactor
-                    * self.vars_arr["pileupWeight_NOSYS"][event]
-                    * self.vars_arr["mcEventWeights"][event][0]
-                )
-            self.largeRSelect(event)
-            self.TriggerReference(event)
-            self.getVRs(event)
-            self.hh_p4(event)
-            self.vbfSelect(event)
-            self.hh_selections(event)
-            if self.hasTruth:
-                self.truth_mhh(event)
+            if self.trigger[event]:
+                # order matters!
+                # if not self.vr_dontOverlap[event]:
+                #     continue
+                if self.mc:
+                    self.weights[event] = (
+                        self.weightFactor
+                        * self.vars_arr["pileupWeight_NOSYS"][event]
+                        * self.vars_arr["mcEventWeights"][event][0]
+                    )
+                self.largeRSelect(event)
+                self.TriggerReference(event)
+                self.getVRs(event)
+                self.hh_p4(event)
+                self.vbfSelect(event)
+                self.hh_selections(event)
+                if self.hasTruth:
+                    self.truth_mhh(event)
 
     def largeRSelect(self, event):
         self.nLargeR[event] = self.lrj_pt[event].shape[0]

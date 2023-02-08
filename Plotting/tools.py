@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.ticker
 
 
-
 def EfficiencyErrorBayesian(k, n, bUpper):
     # per bin
     if n == 0:
@@ -40,7 +39,7 @@ def getEfficiencyErrors(passed, total):
     passed : np.ndarray
         values that passed a cut
     total : np.ndarray
-        baseline 
+        baseline
 
     Returns
     -------
@@ -205,7 +204,8 @@ def rebin(
     err=None,
     bins=10,
 ):
-    """rebin a histogram
+    """
+    rebin a histogram
 
     Parameters
     ----------
@@ -229,21 +229,28 @@ def rebin(
         if more bins requested than originally given
     """
 
-    # a rebinning with more bins is not really useful
-    if bins > (edges.shape[0] - 1):
-        raise ValueError("More bins than before")
-    # make new edges for bin nr and given bin range
-    newEdges = np.linspace(edges[0], edges[-1], bins + 1)
-    # get the binindices in which the given hist values end up with the new binning
-    # -1 to start counting from zero
-    histIndicesForNewEdges = np.digitize(edges, newEdges)[:-1] - 1
-    newH = np.zeros(bins)
-    newErr = np.zeros(bins)
-    for i in range(0, bins):
-        # get all the values from h that belong in the i-th bin of the new hist
-        # and calculate the mean value and error
-        newH[i] = h[histIndicesForNewEdges == i].mean()
-        if err is not None:
-            newErr[i] = err[histIndicesForNewEdges == i].mean()
 
-    return newH, newEdges, newErr
+def factorRebin(
+    h,
+    edges,
+    factor=int(2),
+    err=None,
+):
+
+    # assumes equally spaced binning
+    # reduce bins by factor
+    for i in range(1, factor):
+        # make hist a mutiple of 2 by truncating if uneven bincount
+        if (h.shape[0] % 2) == 1:
+            h = h[:-1]
+            edges = edges[:-1]
+            if err is not None:
+                err = err[:-1]
+
+        h = h[::2] + h[1::2]
+        edges = edges[::2]
+        # error propagate
+        if err is not None:
+            err = ErrorPropagation(err[::2], err[1::2], "+")
+
+    return h, edges, err
