@@ -2,9 +2,9 @@
 import h5py
 import numpy as np
 
-run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/==/hists-run2.h5"
-ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/==/hists-mc20_ttbar.h5"
-dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/==/hists-mc20_dijet.h5"
+run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
+ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
+dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
 
 with h5py.File(run2File, "r") as run2:
     with h5py.File(ttbarFile, "r") as ttbar:
@@ -53,55 +53,54 @@ tmp = globals().copy()
     and not hasattr(v, "__call__")
 ]
 
-
-# no trigger with >=
-# CR_2b2b_Data :  424.0
-# CR_2b2j_Data :  51208.0
+# with >=
+# CR_2b2b_Data :  422.0
+# CR_2b2j_Data :  51068.0
 # CR_2b2b_ttbar :  23.389917929619916
-# CR_2b2j_ttbar :  1618.4386981390915
-# CR_2b2b_dijet :  303.54647944993513
-# CR_2b2j_dijet :  50135.86818185366
+# CR_2b2j_ttbar :  1616.5546985863693
+# CR_2b2b_dijet :  301.01295777480243
+# CR_2b2j_dijet :  50043.96716752163
 # VR_2b2b_Data :  100.0
-# VR_2b2j_Data :  12038.0
+# VR_2b2j_Data :  12017.0
 # VR_2b2b_ttbar :  8.205115660238086
 # VR_2b2j_ttbar :  369.98453930424955
 # VR_2b2b_dijet :  75.10225686177348
-# VR_2b2j_dijet :  11708.261919075809
-# CR1 :  400.6100820703801
-# CR2 :  49589.56130186091
+# VR_2b2j_dijet :  11703.753269491555
+# CR1 :  398.6100820703801
+# CR2 :  49451.44530141363
 # VR1 :  91.79488433976192
-# VR2 :  11668.015460695751
-# w_CR :  0.008078516356129706
-# w_VR :  0.007867223406497637
-# errCR1 :  25.427572712909363
-# errCR2 :  266.5216704500192
+# VR2 :  11647.015460695751
+# w_CR :  0.008060635632402544
+# w_VR :  0.007881408301511642
+# errCR1 :  25.3789510151095
+# errCR2 :  266.18870140591633
 # errVR1 :  12.864457306408683
-# errVR2 :  128.95280205937758
-# err_w_CR :  0.000514595550525431
-# err_w_VR :  0.0011059633469388869
+# errVR2 :  128.8570602440667
+# err_w_CR :  0.0005150403753024878
+# err_w_VR :  0.001107964697105445
 
-# no trigger with ==
-# CR_2b2b_Data :  395.0
-# CR_2b2j_Data :  25948.0
+# with ==
+# CR_2b2b_Data :  393.0
+# CR_2b2j_Data :  25861.0
 # CR_2b2b_ttbar :  22.676181152330216
-# CR_2b2j_ttbar :  937.1851101440698
-# CR_2b2b_dijet :  293.135655597215
-# CR_2b2j_dijet :  25978.788426626383
+# CR_2b2j_ttbar :  935.5754906961702
+# CR_2b2b_dijet :  290.60213392208226
+# CR_2b2j_dijet :  25923.139412338314
 # VR_2b2b_Data :  93.0
-# VR_2b2j_Data :  5760.0
+# VR_2b2j_Data :  5748.0
 # VR_2b2b_ttbar :  8.205115660238086
 # VR_2b2j_ttbar :  224.09271509960655
 # VR_2b2b_dijet :  72.86379160674761
-# VR_2b2j_dijet :  5585.642574208596
-# CR1 :  372.32381884766977
-# CR2 :  25010.81488985593
+# VR_2b2j_dijet :  5581.716131645005
+# CR1 :  370.32381884766977
+# CR2 :  24925.42450930383
 # VR1 :  84.79488433976192
-# VR2 :  5535.907284900393
-# w_CR :  0.014886512914006637
-# w_VR :  0.015317251531839486
-# errCR1 :  24.636558316070442
-# errCR2 :  191.69730833081866
+# VR2 :  5523.907284900393
+# w_CR :  0.014857272288760428
+# w_VR :  0.015350526351437657
+# errCR1 :  24.58617900331766
+# errCR2 :  191.40073517688205
 # errVR1 :  12.508108067401638
-# errVR2 :  90.86439046477825
-# err_w_CR :  0.0009916223455886857
-# err_w_VR :  0.0022733948500171077
+# errVR2 :  90.78529230483662
+# err_w_CR :  0.0009929654997671551
+# err_w_VR :  0.0022783697623748847

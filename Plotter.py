@@ -8,6 +8,7 @@ from h5py import File
 import os
 import logging
 import argparse
+import Plotting.loadHists
 import Plotting.colors
 import Plotting.tools
 from Plotting.tools import ErrorPropagation as propagateError
@@ -24,14 +25,6 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--histFile", type=str, default=None)
 args = parser.parse_args()
 
-# fmt: off
-# SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
-ttbarFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
-dijetFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
-run2File = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
-
-# fmt: on
 
 if args.histFile:
     histFile = args.histFile
@@ -49,34 +42,6 @@ plotPath = "/lustre/fs22/group/atlas/freder/hh/run/plots/" + filename + "/"
 
 if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
-
-
-def getHist(file, name):
-    # access [1:-1] to remove underflow and overflow bins
-    h = np.array(file[name]["histogram"][1:-1])
-    hRaw = np.array(file[name]["histogramRaw"][1:-1])
-    edges = np.array(file[name]["edges"][:])
-    err = np.sqrt(hRaw)
-    return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
-
-
-def get2dHist(file, name):
-    h = np.array(file[name]["histogram"][1:-1, 1:-1])
-    hRaw = np.array(file[name]["histogramRaw"][1:-1, 1:-1])
-    xbins = np.array(file[name]["edges"][0][1:-1])
-    ybins = np.array(file[name]["edges"][1][1:-1])
-    err = np.sqrt(np.sqrt(file[name]["w2sum"]))
-    return {"h": h, "hRaw": hRaw, "xbins": xbins, "ybins": ybins, "err": err}
-
-
-def load(file):
-    hists = {}
-    for key in file.keys():
-        if "massplane" in key:
-            hists[key] = get2dHist(file, key)
-        else:
-            hists[key] = getHist(file, key)
-    return hists
 
 
 def savegrid(ims, plotName, rows=None, cols=None, fill=True, showax=False):
@@ -665,10 +630,6 @@ def mh_SB_ratio(histKey):
 
 def kinVar_data_ratio(histKey, bkgEstimate=False):
 
-    # w_CR :  0.008078516356129706
-    # w_VR :  0.007867223406497637
-    # err_w_CR :  0.000514595550525431
-    # err_w_VR :  0.0011059633469388869
     signal = SMsignal[histKey]["h"]
     signal_err = SMsignal[histKey]["err"]
     data = run2[histKey]["h"]
@@ -683,8 +644,8 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
         dataLowTag_err = run2[lowTagHistkey]["err"]
         ttLowTag = ttbar[lowTagHistkey]["h"]
         ttLowTag_err = ttbar[lowTagHistkey]["err"]
-        w_CR = 0.008078516356129706
-        err_w_CR = 0.000514595550525431
+        w_CR: 0.008060635632402544
+        err_w_CR: 0.0005150403753024878
 
         jj = (dataLowTag - ttLowTag) * w_CR
         jj_err = Plotting.tools.ErrorPropagation(
@@ -979,41 +940,37 @@ def compareABCD(histKey, rebin=None):
     plt.close()
 
 
-with File(SMsignalFile, "r") as f_SMsignal, File(run2File, "r") as f_run2, File(
-    ttbarFile, "r"
-) as f_ttbar, File(dijetFile, "r") as f_dijet:
-    SMsignal = load(f_SMsignal)
-    run2 = load(f_run2)
-    ttbar = load(f_ttbar)
-    dijet = load(f_dijet)
-    # trigger_leadingLargeRpT()
-    # triggerRef_leadingLargeRpT()
-    # triggerRef_leadingLargeRm()
-    # accEff_mhh()
-    # mhh()
-    # for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
-    #     pts(name)
-    # dRs()
+hists_ = Plotting.loadHists.run()
+SMsignal = hists_["SMsignal"]
+run2 = hists_["run2"]
+ttbar = hists_["ttbar"]
+dijet = hists_["dijet"]
+# trigger_leadingLargeRpT()
+# triggerRef_leadingLargeRpT()
+# triggerRef_leadingLargeRm()
+# accEff_mhh()
+# mhh()
+# for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
+#     pts(name)
+# dRs()
 
-    # kinVar_data_ratio(var)
-
-    # for var in collectedKinVarsWithRegions:
-    #     print(var)
-    #     if "massplane" in var:
-    #         massplane(var)
-    #     else:
-    #         kinVar_data_ratio(var, bkgEstimate=False)
-    #         kinVar_data_ratio(var, bkgEstimate=True)
-    # for var in collectedKinVarsWithRegions:
-    #     if "2b2b" in var:
-    #         if "noVBF" not in var:
-    #             if "massplane" not in var:
-    #                 print(var)
-    #                 kinVar_data_ratio(var, bkgEstimate=True)
-    # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
-    # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
-    # massplane("massplane_CR_2b2b")
-    # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
-    # compareABCD("mh1_CR_2b2b",rebin=10)
-    compareABCD("pt_h1_CR_2b2b", rebin=20)
-    # makeGrid()
+# kinVar_data_ratio(var)
+for var in collectedKinVarsWithRegions:
+    print(var)
+    if "massplane" in var:
+        massplane(var)
+    else:
+        kinVar_data_ratio(var, bkgEstimate=False)
+for var in collectedKinVarsWithRegions:
+    if "2b2b" in var:
+        if "noVBF" not in var:
+            if "massplane" not in var:
+                print(var)
+                kinVar_data_ratio(var, bkgEstimate=True)
+# kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
+# kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
+# massplane("massplane_CR_2b2b")
+# kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
+compareABCD("mh1_CR_2b2b")
+compareABCD("pt_h1_CR_2b2b")
+# makeGrid()

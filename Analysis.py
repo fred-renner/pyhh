@@ -270,28 +270,28 @@ class ObjectSelection:
 
             # this is not mutually exclusive with >=
             if xor(
-                j1_VRs_Btag == 1 and j2_VRs_noBtag == 1,
-                j2_VRs_Btag == 1 and j1_VRs_noBtag == 1,
+                j1_VRs_Btag == 1 and j2_VRs_noBtag >= 1,
+                j2_VRs_Btag == 1 and j1_VRs_noBtag >= 1,
             ):
                 self.btagLow_1b1j[event] = True
             if xor(
-                j1_VRs_Btag == 2 and j2_VRs_noBtag == 1,
-                j2_VRs_Btag == 2 and j1_VRs_noBtag == 1,
+                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 1,
+                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 1,
             ):
                 self.btagLow_2b1j[event] = True
             if xor(
-                j1_VRs_Btag == 2 and j2_VRs_noBtag == 2,
-                j2_VRs_Btag == 2 and j1_VRs_noBtag == 2,
+                j1_VRs_Btag >= 2 and j2_VRs_noBtag >= 2,
+                j2_VRs_Btag >= 2 and j1_VRs_noBtag >= 2,
             ):
                 self.btagLow_2b2j[event] = True
             if j1_VRs_Btag == 1 and j2_VRs_Btag == 1:
                 self.btagHigh_1b1b[event] = True
             if xor(
-                j1_VRs_Btag == 2 and j2_VRs_Btag == 1,
-                j2_VRs_Btag == 2 and j1_VRs_Btag == 1,
+                j1_VRs_Btag >= 2 and j2_VRs_Btag == 1,
+                j2_VRs_Btag >= 2 and j1_VRs_Btag == 1,
             ):
                 self.btagHigh_2b1b[event] = True
-            if j1_VRs_Btag == 2 and j2_VRs_Btag == 2:
+            if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
                 self.btagHigh_2b2b[event] = True
 
             self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
@@ -306,14 +306,14 @@ class ObjectSelection:
             ]
             # the following is fine as they come pt sorted already
             # h1
-            if h1_btag_VR_pts.shape[0] == 1:
-                self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
+            # if h1_btag_VR_pts.shape[0] == 1:
+            #     self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
             if h1_btag_VR_pts.shape[0] == 2:
                 self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
                 self.pt_h1_btag_vr_2[event] = h1_btag_VR_pts[1]
             # h2
-            if h2_btag_VR_pts.shape[0] == 1:
-                self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
+            # if h2_btag_VR_pts.shape[0] == 1:
+            #     self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
             if h2_btag_VR_pts.shape[0] == 2:
                 self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
                 self.pt_h2_btag_vr_2[event] = h2_btag_VR_pts[1]

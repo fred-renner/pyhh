@@ -4,3 +4,6 @@ numpy
 matplotlib
 h5py
 mplhep
+pyhf
+tqdm
+pdf2image
