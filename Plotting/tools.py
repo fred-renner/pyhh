@@ -198,14 +198,15 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
     return error
 
 
-def rebin(
+def factorRebin(
     h,
     edges,
+    factor=int(2),
     err=None,
-    bins=10,
 ):
     """
-    rebin a histogram
+    rebin a histogram with equally spaced bins, the last resulting bin entry not
+    necessarily has the same bin width as the other ones.
 
     Parameters
     ----------
@@ -213,44 +214,49 @@ def rebin(
         histogram counts
     edges : ndarray
          edges to h
+    factor : int, optional
+        factor by which to reduce the hist bins, by default int(2)
     err : ndarray, optional
         error to h, by default None
-    bins : int, optional
-        nr of new bins, by default 10
 
     Returns
     -------
     ndarray, ndarray, ndarray
-        newH, newEdges, newErr
+        newH, newEdgesIndices, newErr
 
-    Raises
-    ------
-    ValueError
-        if more bins requested than originally given
     """
 
+    newBinNr = int(h.shape[0] / factor)
+    # edges indices of old bins that suit the factor of new bins e.g. for 99
+    # bins and a factor of 10 gives
+    # [0, 10, 20, 30, 40, 50, 60, 70, 80, 90]
+    newEdgesIndices = subintervals(0, h.shape[0], newBinNr)
+    # get indices ranges in old bins for new bins, append rest if last index
+    # not matching original last index
+    # [[0, 9], [10, 19], [20, 29], [30, 39], [40, 49], [50, 59], [60, 69], [70, 79], [80, 89], [90, 99]]
+    intervals = []
+    for i, j in zip(newEdgesIndices[:-1], newEdgesIndices[1:]):
+        intervals += [[i, j - 1]]
+    intervals[-1][-1] = h.shape[0]
+    if newEdgesIndices[-1] != h.shape[0]:
+        newEdgesIndices[-1] = h.shape[0]
 
-def factorRebin(
-    h,
-    edges,
-    factor=int(2),
-    err=None,
-):
-
-    # assumes equally spaced binning
-    # reduce bins by factor
-    for i in range(1, factor):
-        # make hist a mutiple of 2 by truncating if uneven bincount
-        if (h.shape[0] % 2) == 1:
-            h = h[:-1]
-            edges = edges[:-1]
-            if err is not None:
-                err = err[:-1]
-
-        h = h[::2] + h[1::2]
-        edges = edges[::2]
+    hNew = []
+    errNew = []
+    for slice in intervals:
+        hNew.append(np.sum(h[slice[0] : slice[1]]))
         # error propagate
         if err is not None:
-            err = ErrorPropagation(err[::2], err[1::2], "+")
+            squaredSigma = 0
+            for e in err[slice[0] : slice[1]]:
+                squaredSigma += np.power(e, 2)
+            errNew.append(np.sqrt(squaredSigma))
 
-    return h, edges, err
+    edgesNew = edges[newEdgesIndices]
+    return np.array(hNew), np.array(edgesNew), np.array(errNew)
+
+
+def subintervals(a, b, n):
+    # n subintervals in the range [a,b]
+    lst = [int(a + x * (b - a) / n) for x in range(n + 1)]
+    return lst

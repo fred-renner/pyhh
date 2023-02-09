@@ -796,7 +796,6 @@ def compareABCD(histKey, factor=None):
     tt_2 = ttbar[lowTagHistkey]["h"]
     tt_err_2 = ttbar[lowTagHistkey]["err"]
     if factor:
-        
         data, edges_, data_err = Plotting.tools.factorRebin(
             h=data,
             edges=edges,
@@ -901,8 +900,8 @@ def compareABCD(histKey, factor=None):
             sigmaA=jj_err,
             sigmaB=bkgEstimateErr,
             operation="/",
-            A=jj,
-            B=bkgEstimateErr,
+            A=bkgEstimateErr,
+            B=jj,
         ),
         color="Black",
         # label="ratio",
@@ -971,6 +970,6 @@ dijet = hists_["dijet"]
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
-compareABCD("mh1_CR_2b2b",factor=3)
-compareABCD("mh1_VR_2b2b",factor=3)
+compareABCD("mh1_CR_2b2b",factor=7)
+# compareABCD("mh1_VR_2b2b",factor=3)
 # makeGrid()
