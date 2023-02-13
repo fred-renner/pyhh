@@ -409,9 +409,6 @@ class ObjectSelection:
                             self.pt_vbf2[event] = passedJets_p4[twoIndices[1]].pt
 
 
-deta>4, dphi<2
-
-
     def hh_selections(self, event):
         # calculate region variables
         if self.selectedTwoLargeRevents[event]:

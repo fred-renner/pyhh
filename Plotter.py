@@ -643,7 +643,6 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         ttLowTag_err = ttbar[lowTagHistkey]["err"]
         w_CR = 0.008060635632402544
         err_w_CR = 0.0005150403753024878
-
         jj = (dataLowTag - ttLowTag) * w_CR
         jj_err = Plotting.tools.ErrorPropagation(
             sigmaA=Plotting.tools.ErrorPropagation(
@@ -651,10 +650,10 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
                 sigmaB=ttLowTag_err,
                 operation="-",
             ),
-            sigmaB=err_w_CR,
+            sigmaB=np.ones(jj.shape) * err_w_CR,
             operation="*",
             A=dataLowTag - ttLowTag,
-            B=w_CR,
+            B=np.ones(jj.shape) * w_CR,
         )
     else:
         jj = dijet[histKey]["h"]
@@ -686,6 +685,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
             err=jj_err,
         )
         edges = edges_
+
 
     plt.figure()
     fig, (ax, rax) = plt.subplots(
@@ -722,7 +722,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         data,
         pred,
     )
-    # error stackplot
+    # error stackplot    
     ax.fill_between(
         edges,
         np.append(pred - pred_err, 0),
@@ -783,7 +783,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
     )
     rax.set_ylim([0.0, 2])
     plt.axhline(y=1.0, color="tab:red", linestyle="-")
-    ax.set_ylim([1e-2, 1e6])
+    ax.set_ylim([1e-3, 1e6])
     ax.set_yscale("log")
 
     hep.atlas.set_xlabel(f"{histKey} [GeV] ")

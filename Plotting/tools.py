@@ -142,6 +142,8 @@ m_h2_center = 117.0e3
 # https://indico.cern.ch/event/1191598/contributions/5009137/attachments/2494578/4284249/HH4b20220818.pdf
 fm_h1 = 1500.0e6
 fm_h2 = 1900.0e6
+
+
 # SR variable (1.6 is the nominal cutoff)
 def Xhh(m_h1, m_h2):
     return np.sqrt(
@@ -162,8 +164,15 @@ def CR_hh(m_h1, m_h2):
     )
 
 
-def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
-    """_summary_
+def ErrorPropagation(
+    sigmaA,
+    sigmaB,
+    operation,
+    A=None,
+    B=None,
+):
+    """
+    calculate propagated error
 
     Parameters
     ----------
@@ -172,7 +181,7 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
     sigmaB : ndarray
         standard error of B
     operation : str
-        operator
+        +, -, *, /
     A : ndarray, optional
         A values, by default None
     B : ndarray, optional
@@ -188,11 +197,13 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
         error = np.sqrt(np.power(sigmaA, 2) + np.power(sigmaB, 2))
     if "*" in operation:
         error = np.abs(A * B) * np.sqrt(
-            np.power(np.divide(sigmaA, A), 2) + np.power(np.divide(sigmaB, B), 2)
+            np.power(np.divide(sigmaA, A, out=np.zeros_like(sigmaA), where=A != 0), 2)
+            + np.power(np.divide(sigmaB, B, out=np.zeros_like(sigmaB), where=B != 0), 2)
         )
     if "/" in operation:
         error = np.abs(A / B) * np.sqrt(
-            np.power(np.divide(sigmaA, A), 2) + np.power(np.divide(sigmaB, B), 2)
+            np.power(np.divide(sigmaA, A, out=np.zeros_like(sigmaA), where=A != 0), 2)
+            + np.power(np.divide(sigmaB, B, out=np.zeros_like(sigmaB), where=B != 0), 2)
         )
 
     return error
