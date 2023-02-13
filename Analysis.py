@@ -98,8 +98,8 @@ class ObjectSelection:
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
         
         # don't refactor for now as this file is read to load the vars
-        # mc21
         if self.mc:
+            # mc21
             if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
                 self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
                 self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
@@ -407,6 +407,10 @@ class ObjectSelection:
                             self.VBFjetsPass[event] = True
                             self.pt_vbf1[event] = passedJets_p4[twoIndices[0]].pt
                             self.pt_vbf2[event] = passedJets_p4[twoIndices[1]].pt
+
+
+deta>4, dphi<2
+
 
     def hh_selections(self, event):
         # calculate region variables

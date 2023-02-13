@@ -25,6 +25,13 @@ with h5py.File(run2File, "r") as run2:
             VR_2b2j_ttbar = np.sum(ttbar["mhh_VR_2b2j"]["histogram"][:])
             VR_2b2b_dijet = np.sum(dijet["mhh_VR_2b2b"]["histogram"][:])
             VR_2b2j_dijet = np.sum(dijet["mhh_VR_2b2j"]["histogram"][:])
+            
+            SR_2b2b_Data = np.sum(run2["mhh_SR_2b2b"]["histogram"][:])
+            SR_2b2j_Data = np.sum(run2["mhh_SR_2b2j"]["histogram"][:])
+            SR_2b2b_ttbar = np.sum(ttbar["mhh_SR_2b2b"]["histogram"][:])
+            SR_2b2j_ttbar = np.sum(ttbar["mhh_SR_2b2j"]["histogram"][:])
+            SR_2b2b_dijet = np.sum(dijet["mhh_SR_2b2b"]["histogram"][:])
+            SR_2b2j_dijet = np.sum(dijet["mhh_SR_2b2j"]["histogram"][:])
 # make multijet only
 CR1 = CR_2b2b_Data - CR_2b2b_ttbar
 CR2 = CR_2b2j_Data - CR_2b2j_ttbar
@@ -66,6 +73,12 @@ tmp = globals().copy()
 # VR_2b2j_ttbar :  369.98453930424955
 # VR_2b2b_dijet :  75.10225686177348
 # VR_2b2j_dijet :  11703.753269491555
+# SR_2b2b_Data :  0.0
+# SR_2b2j_Data :  4881.0
+# SR_2b2b_ttbar :  1.60228221395706
+# SR_2b2j_ttbar :  68.95969051783325
+# SR_2b2b_dijet :  25.728457586195567
+# SR_2b2j_dijet :  4892.262786981583
 # CR1 :  398.6100820703801
 # CR2 :  49451.44530141363
 # VR1 :  91.79488433976192

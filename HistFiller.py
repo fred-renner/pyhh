@@ -16,7 +16,6 @@ parser.add_argument("--cpus", type=int, default=None)
 parser.add_argument("--debug", action="store_true")
 parser.add_argument("--batchMode", action="store_true")
 parser.add_argument("--file", type=str, default=None)
-
 args = parser.parse_args()
 
 # get configuration

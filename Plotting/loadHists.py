@@ -16,7 +16,7 @@ def getHist(file, name):
     h = np.array(file[name]["histogram"][1:-1])
     hRaw = np.array(file[name]["histogramRaw"][1:-1])
     edges = np.array(file[name]["edges"][:])
-    err = np.sqrt(np.sqrt(file[name]["w2sum"][1:-1]))
+    err = np.sqrt(file[name]["w2sum"][1:-1])
     return {"h": h, "hRaw": hRaw, "edges": edges, "err": err}
 
 
@@ -25,7 +25,7 @@ def get2dHist(file, name):
     hRaw = np.array(file[name]["histogramRaw"][1:-1, 1:-1])
     xbins = np.array(file[name]["edges"][0][1:-1])
     ybins = np.array(file[name]["edges"][1][1:-1])
-    err = np.sqrt(np.sqrt(file[name]["w2sum"]))
+    err = np.sqrt(file[name]["w2sum"][1:-1, 1:-1])
     return {"h": h, "hRaw": hRaw, "xbins": xbins, "ybins": ybins, "err": err}
 
 

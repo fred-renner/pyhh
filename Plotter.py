@@ -2,9 +2,7 @@
 # from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib.font_manager
 import mplhep as hep
-from h5py import File
 import os
 import logging
 import argparse
@@ -16,8 +14,8 @@ from HistDefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
 from pdf2image import convert_from_path
 
+# np.seterr(divide='ignore', invalid='ignore')
 
-matplotlib.font_manager._rebuild()
 plt.style.use(hep.style.ATLAS)
 
 
@@ -53,8 +51,7 @@ def savegrid(ims, plotName, rows=None, cols=None, fill=True, showax=False):
         cols = 1
 
     gridspec_kw = {"wspace": 0, "hspace": 0} if fill else {}
-    fig, axarr = plt.subplots(rows, cols, gridspec_kw=gridspec_kw)
-    fig.set_dpi(500)
+    fig, axarr = plt.subplots(rows, cols, dpi=500, gridspec_kw=gridspec_kw)
 
     if fill:
         bleed = 0
@@ -91,13 +88,16 @@ def makeGrid():
         y = len(regions)
         x = len(btags)
 
-        fig, axarr = plt.subplots(x, y)
-
         ims = [
             np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
         ]
 
-        savegrid(ims, f"{var}.png", rows=x, cols=y)
+        savegrid(
+            ims,
+            f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
+            rows=x,
+            cols=y,
+        )
 
 
 def plotLabel(histKey, ax):
@@ -445,9 +445,8 @@ def dRs():
 
 
 def massplane(histKey):
-
-    SMsignal
-    run2
+    # SMsignal
+    # run2
     # ttbar
     # dijet
     plt.figure()
@@ -462,8 +461,8 @@ def massplane(histKey):
     # txt = hep.atlas.text(" Simulation", loc=1)
     # txt[0]._color = "white"
     # txt[1]._color = "white"
-    hep.atlas.set_ylabel("$m_{H2}$ $[GeV]$ ")
-    hep.atlas.set_xlabel("$m_{H1}$ $[GeV]$ ")
+    hep.atlas.set_ylabel("m$_\mathrm{H2}$ [GeV]")
+    hep.atlas.set_xlabel("m$_\mathrm{H1}$ [GeV]")
     ax = plt.gca()
     plane.pcolormesh.set_cmap("GnBu")
 
@@ -511,7 +510,6 @@ def massplane(histKey):
 
 
 def mh_SB_ratio(histKey):
-
     # make both ratios, s/sqrt(B) and over Data
     signal = SMsignal[histKey]["h"]
     tt = ttbar[histKey]["h"]
@@ -628,29 +626,30 @@ def mh_SB_ratio(histKey):
     plt.close()
 
 
-def kinVar_data_ratio(histKey, bkgEstimate=False):
-
+def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
     signal = SMsignal[histKey]["h"]
     signal_err = SMsignal[histKey]["err"]
     data = run2[histKey]["h"]
     data_err = run2[histKey]["err"]
     tt = ttbar[histKey]["h"]
     tt_err = ttbar[histKey]["err"]
+    edges = run2[histKey]["edges"]
 
-    # VR_2b2j*0.008078516356129706
     if bkgEstimate:
         lowTagHistkey = histKey[:-1] + "j"
         dataLowTag = run2[lowTagHistkey]["h"]
         dataLowTag_err = run2[lowTagHistkey]["err"]
         ttLowTag = ttbar[lowTagHistkey]["h"]
         ttLowTag_err = ttbar[lowTagHistkey]["err"]
-        w_CR: 0.008060635632402544
-        err_w_CR: 0.0005150403753024878
+        w_CR = 0.008060635632402544
+        err_w_CR = 0.0005150403753024878
 
         jj = (dataLowTag - ttLowTag) * w_CR
         jj_err = Plotting.tools.ErrorPropagation(
             sigmaA=Plotting.tools.ErrorPropagation(
-                sigmaA=dataLowTag_err, sigmaB=ttLowTag_err, operation="-"
+                sigmaA=dataLowTag_err,
+                sigmaB=ttLowTag_err,
+                operation="-",
             ),
             sigmaB=err_w_CR,
             operation="*",
@@ -660,7 +659,33 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
     else:
         jj = dijet[histKey]["h"]
         jj_err = dijet[histKey]["err"]
-    edges = run2[histKey]["edges"]
+
+    if rebinFactor:
+        signal, edges_, signal_err = Plotting.tools.factorRebin(
+            h=signal,
+            edges=edges,
+            factor=rebinFactor,
+            err=signal_err,
+        )
+        data, edges_, data_err = Plotting.tools.factorRebin(
+            h=data,
+            edges=edges,
+            factor=rebinFactor,
+            err=data_err,
+        )
+        tt, edges_, tt_err = Plotting.tools.factorRebin(
+            h=tt,
+            edges=edges,
+            factor=rebinFactor,
+            err=tt_err,
+        )
+        jj, edges_, jj_err = Plotting.tools.factorRebin(
+            h=jj,
+            edges=edges,
+            factor=rebinFactor,
+            err=jj_err,
+        )
+        edges = edges_
 
     plt.figure()
     fig, (ax, rax) = plt.subplots(
@@ -714,7 +739,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
         data,
         edges,
         histtype="errorbar",
-        yerr=True,
+        yerr=data_err,
         color="Black",
         label="data",
         ax=ax,
@@ -758,9 +783,10 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
     )
     rax.set_ylim([0.0, 2])
     plt.axhline(y=1.0, color="tab:red", linestyle="-")
-    ax.set_ylim([1e-2, 1e7])
+    ax.set_ylim([1e-2, 1e6])
     ax.set_yscale("log")
-    hep.atlas.set_xlabel(f"{histKey} $[GeV]$ ")
+
+    hep.atlas.set_xlabel(f"{histKey} [GeV] ")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.legend(loc="upper right")
@@ -782,7 +808,6 @@ def kinVar_data_ratio(histKey, bkgEstimate=False):
 
 
 def compareABCD(histKey, factor=None):
-
     data = run2[histKey]["h"]
     data_err = run2[histKey]["err"]
     tt = ttbar[histKey]["h"]
@@ -822,8 +847,8 @@ def compareABCD(histKey, factor=None):
             err=tt_err_2,
         )
         edges = edges_
-    w_CR = 0.008078516356129706
-    err_w_CR = 0.000514595550525431
+    w_CR = 0.008060635632402544
+    err_w_CR = 0.0005150403753024878
 
     jj = data - tt
     jj_err = Plotting.tools.ErrorPropagation(
@@ -843,18 +868,6 @@ def compareABCD(histKey, factor=None):
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
-    # hep.histplot(
-    #     [jj_2, jj],
-    #     edges,
-    #     stack=False,
-    #     histtype="step",
-    #     yerr=[jj_err, jj_err_2],
-    #     label=["data - tt, 2b2j", "data - tt, 2b2b"],
-    #     ax=ax,
-    #     color=["hh:darkpink", "hh:medturquoise"],
-    #     # edgecolor="black",
-    #     # linewidth=0.5,
-    # )
 
     hep.histplot(
         jj,
@@ -864,14 +877,6 @@ def compareABCD(histKey, factor=None):
         label="data - tt, 2b2b",
         ax=ax,
     )
-    # hep.histplot(
-    #     jj_2,
-    #     edges,
-    #     histtype="errorbar",
-    #     yerr=jj_err_2,
-    #     label="data - tt, 2b2j",
-    #     ax=ax,
-    # )
 
     bkgEstimateErr = (
         Plotting.tools.ErrorPropagation(
@@ -893,7 +898,7 @@ def compareABCD(histKey, factor=None):
     )
 
     hep.histplot(
-        jj_2 * w_CR / jj,
+        jj / (jj_2 * w_CR),
         edges,
         histtype="errorbar",
         yerr=Plotting.tools.ErrorPropagation(
@@ -904,35 +909,37 @@ def compareABCD(histKey, factor=None):
             B=jj,
         ),
         color="Black",
-        # label="ratio",
         ax=rax,
     )
 
-    # ax.fill_between(
-    #     edges,
-    #     np.append(bkg_tot + bkg_tot_err, 0),
-    #     np.append(bkg_tot - bkg_tot_err, 0),
-    #     hatch="\\\\\\\\",
-    #     facecolor="None",
-    #     edgecolor="dimgrey",
-    #     linewidth=0,
-    #     step="post",
-    #     zorder=1,
-    #     label="stat. uncertainty",
-    # )
+    rax.fill_between(
+        edges,
+        np.append((jj - jj_err) / jj, 0),
+        np.append((jj + jj_err) / jj, 0),
+        color="tab:blue",
+        linewidth=0,
+        alpha=0.3,
+        step="post",
+        label="2b2b stat. uncertainty",
+    )
+
     # hep.atlas.text(" Simulation", loc=1)
     ax.legend()
     ax.set_ylabel("Events")
-    rax.set_ylabel("ratio")
+    rax.set_ylabel(
+        r"$ \frac{\mathrm{2b2b}}{\mathrm{w_{CR}\times 2b2j}}$",
+        horizontalalignment="center",
+    )
     rax.set_ylim([0, 2])
+    rax.axhline(y=1.0, color="tab:red", linestyle="-")
+    rax.legend()
 
-    hep.atlas.set_xlabel(f"{histKey}")
-    # ax.set_yscale("log")
+    hep.atlas.set_xlabel(f"{histKey} $[GeV]$ ")
+    plt.tight_layout()
+    rax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
-    ax.get_xaxis().get_offset_text().set_position((2, 0))
 
     plotLabel(histKey, ax)
-    plt.tight_layout()
     print(plotPath + histKey + "_compareABCD.pdf")
 
     plt.savefig(plotPath + histKey + "_compareABCD.pdf")
@@ -967,9 +974,16 @@ dijet = hists_["dijet"]
 #                 print(var)
 #                 kinVar_data_ratio(var, bkgEstimate=True)
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
-# kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
-# massplane("massplane_CR_2b2b")
-# kinVar_data_ratio("mhh_VR_2b2j", bkgEstimate=False)
-compareABCD("mh1_CR_2b2b",factor=7)
-# compareABCD("mh1_VR_2b2b",factor=3)
+# # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
+# # massplane("massplane_CR_2b2b")
+# # kinVar_data_ratio("mhh_VR_2b2j")
+kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8)
+kinVar_data_ratio("mhh_VR_2b2j", rebinFactor=8)
+kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+# kinVar_data_ratio("mh1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+# for var in collectedKinVarsWithRegions:
+#     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:
+#         compareABCD(var, factor=6)
+
+
 # makeGrid()

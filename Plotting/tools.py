@@ -170,7 +170,7 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
     sigmaA : ndarray
         standard error of A
     sigmaB : ndarray
-        _description_
+        standard error of B
     operation : str
         operator
     A : ndarray, optional
@@ -184,7 +184,7 @@ def ErrorPropagation(sigmaA, sigmaB, operation, A=None, B=None):
         propagated error
     """
 
-    if "+" or "-" in operation:
+    if "+" in operation or "-" in operation:
         error = np.sqrt(np.power(sigmaA, 2) + np.power(sigmaB, 2))
     if "*" in operation:
         error = np.abs(A * B) * np.sqrt(
