@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from pyhf.contrib.viz import brazil
 import Plotting.loadHists
 from Plotting.tools import ErrorPropagation
+import json
 
 hists = Plotting.loadHists.run()
 fitVariable = "mhh_VR_2b2j"
@@ -20,40 +21,12 @@ dijet_err = hists["dijet"][fitVariable]["err"]
 bkg = ttbar + dijet
 bkg_unc = np.array(ErrorPropagation(ttbar_err, dijet_err, operation="+"))
 
-
-
-
-
-
-
-
-
-# print(SMsignal)
-# print( run2)
-# print( ttbar)
-
-# SMsignal=[1,2,3,4,0,0]
-# SMsignal_err=[1,2,3,4,0,0]
-# run2=[1,2,3,4,0,0]
-# run2_err=[1,2,3,4,0,0]
-# ttbar=[1,2,3,4,0,0]
-# ttbar_err=[1,2,3,4,0,0]
-# dijet=[1,2,3,4,0,0]
-# dijet_err=[1,2,3,4,0,0]
-# bkg=[1,2,3,4,0,0]
-# bkg_unc=[1,2,3,4,0,0]
-# bkg=ttbar+dijet
-# bkg_unc = ErrorPropagation(ttbar_err, dijet_err, operation="+")
-
 pyhf.set_backend("numpy")
 model = pyhf.simplemodels.uncorrelated_background(
-    signal=SMsignal, bkg=ttbar, bkg_uncertainty=ttbar_err
+    signal=list(SMsignal), bkg=list(bkg), bkg_uncertainty=list(bkg_unc)
 )
-# model = pyhf.simplemodels.uncorrelated_background(
-#     signal=[5.0, 10.0], bkg=[50.0, 60.0], bkg_uncertainty=[5.0, 12.0]
-# )
 
-print(model.__dict__)
+print(json.dumps(model.spec, indent=2))
 print(f"  channels: {model.config.channels}")
 print(f"     nbins: {model.config.channel_nbins}")
 print(f"   samples: {model.config.samples}")
@@ -61,13 +34,32 @@ print(f" modifiers: {model.config.modifiers}")
 print(f"parameters: {model.config.parameters}")
 print(f"  nauxdata: {model.config.nauxdata}")
 print(f"   auxdata: {model.config.auxdata}")
+
+
+# print(model.config.param_set("uncorr_bkguncrt").n_parameters)
+
+# print(model.expected_data([0.5, 1.0, 1.0], include_auxdata=False))
+print(model.config.par_order)
 print(model.config.param_set("uncorr_bkguncrt").n_parameters)
+print(model.config.param_set("mu").n_parameters)
+print(model.config.suggested_init())
+print(model.config.suggested_bounds())
+print(model.config.suggested_fixed())
 init_pars = model.config.suggested_init()
-print(len(init_pars))
-model.expected_actualdata(init_pars)
+print(init_pars)
+print(model.expected_actualdata(init_pars))
+
+bkg_pars = init_pars.copy()
+bkg_pars[model.config.poi_index] = 10
+print(model.expected_actualdata(bkg_pars))
+
+observations = list(run2) + model.config.auxdata  # this is a common pattern!
+print(model.logpdf(pars=bkg_pars, data=observations))
+print(pyhf.infer.mle.fit(data=observations, pdf=model))
+
 CLs_obs, CLs_exp = pyhf.infer.hypotest(
     1.0,  # null hypothesis
-    [53.0, 65.0] + model.config.auxdata,
+    observations,
     model,
     test_stat="q",
     return_expected_set=True,
@@ -75,18 +67,18 @@ CLs_obs, CLs_exp = pyhf.infer.hypotest(
 print(f"      Observed CLs: {CLs_obs:.4f}")
 for expected_value, n_sigma in zip(CLs_exp, np.arange(-2, 3)):
     print(f"Expected CLs({n_sigma:2d} σ): {expected_value:.4f}")
-breakasd
-data = run2 + model.config.auxdata
 
-poi_vals = np.linspace(0, 5, 41)
-results = [
-    pyhf.infer.hypotest(
-        test_poi, data, model, test_stat="qtilde", return_expected_set=True
-    )
-    for test_poi in poi_vals
-]
 
+poi_values = np.linspace(0.1, 5, 50)
+obs_limit, exp_limits, (scan, results) = pyhf.infer.intervals.upper_limits.upper_limit(
+    observations, model, poi_values, level=0.05, return_results=True
+)
+print(f"Upper limit (obs): μ = {obs_limit:.4f}")
+print(f"Upper limit (exp): μ = {exp_limits[2]:.4f}")
+plt.figure()
 fig, ax = plt.subplots()
-fig.set_size_inches(7, 5)
-brazil.plot_results(poi_vals, results, ax=ax)
+fig.set_size_inches(10.5, 7)
+ax.set_title("Hypothesis Tests")
+
+artists = brazil.plot_results(poi_values, results, ax=ax)
 plt.savefig("fittest.pdf")

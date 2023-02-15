@@ -10,17 +10,17 @@ should_transfer_files   = No
 getenv = True
 
 
-arguments = $(Proxy_path) user.pgadow.410470.e6337_s3681_r13167_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
-arguments = $(Proxy_path) user.pgadow.410470.e6337_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
+#arguments = $(Proxy_path) user.pgadow.410470.e6337_s3681_r13167_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue
+#arguments = $(Proxy_path) user.pgadow.410470.e6337_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue
 arguments = $(Proxy_path) user.pgadow.410470.e6337_s3681_r13145_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
 queue
-arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13167_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
-arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
-arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13145_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
-arguments = $(Proxy_path) user.pgadow.504648.e8418_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
-queue
+#arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13167_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue
+#arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue
+#arguments = $(Proxy_path) user.pgadow.427080.e5362_s3681_r13145_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue
+#arguments = $(Proxy_path) user.pgadow.504648.e8418_s3681_r13144_p5169.tdd.TrackJets.22_2_105.23-02-10_vr_ftag1_02_output.h5 /lustre/fs22/group/atlas/freder/ftag/mc_samples
+#queue

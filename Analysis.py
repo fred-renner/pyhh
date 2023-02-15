@@ -137,9 +137,11 @@ class ObjectSelection:
         self.nEvents = len(self.lrj_pt)
         self.eventRange = range(self.nEvents)
 
-        # init some variables
-        # make list holding the large R jet selection indices per event
-        self.selPtSort_lrjIndices = [x for x in self.eventRange]
+        # vectors of vectors init
+        # if we don't know the size, lists are faster
+        self.selPtSort_lrjIndices = [[] for x in self.eventRange]
+        self.mjj_vbf = [[] for x in self.eventRange]
+
         # int init
         intInitArray = np.full(self.nEvents, -1, dtype=int)
         self.nLargeR = np.copy(intInitArray)
@@ -221,10 +223,7 @@ class ObjectSelection:
         # counting
         nJetsSelected = np.count_nonzero(selected)
         self.nLargeRBasicSelected[event] = nJetsSelected
-        # empty array if there are less then 2
-        if nJetsSelected < 2:
-            self.selPtSort_lrjIndices[event] = np.array([])
-        else:
+        if nJetsSelected >= 2:
             # selected is a bool array for lrj_pt[event]
             # now sort by getting jet indices in decreasing order of pt
             ptOrder = np.flip(np.argsort(self.lrj_pt[event]))
@@ -232,7 +231,8 @@ class ObjectSelection:
             selectedInPtOrder = selected[ptOrder]
             # applying these bools back on ptOrder gives the corresponding
             # Indices of the jets that come from self.lrj_pt[event]
-            self.selPtSort_lrjIndices[event] = ptOrder[selectedInPtOrder]
+            indices = ptOrder[selectedInPtOrder]
+            self.selPtSort_lrjIndices[event] = indices
             jetPt1 = self.lrj_pt[event][self.selPtSort_lrjIndices[event][0]]
             jetPt2 = self.lrj_pt[event][self.selPtSort_lrjIndices[event][1]]
             if (jetPt1 > 450e3) & (jetPt2 > 250e3):
@@ -385,15 +385,17 @@ class ObjectSelection:
                 jet_combinations = np.array(
                     list(itertools.combinations(range(len(passedJets_p4)), 2))
                 )
-                m_jjs = np.ndarray(jet_combinations.shape[0], dtype=bool)
-                eta_jjs = np.ndarray(jet_combinations.shape[0], dtype=bool)
+                m_jjs = np.ndarray(jet_combinations.shape[0], dtype=float)
+                m_jj_pass = np.ndarray(jet_combinations.shape[0], dtype=bool)
+                eta_jj_pass = np.ndarray(jet_combinations.shape[0], dtype=bool)
                 for i, twoIndices in enumerate(jet_combinations):
                     jetX = passedJets_p4[twoIndices[0]]
                     jetY = passedJets_p4[twoIndices[1]]
-                    m_jjs[i] = (jetX + jetY).mass > 1e6
-                    eta_jjs[i] = np.abs(jetX.eta - jetY.eta) > 3
-                passMassEta = m_jjs & eta_jjs
-
+                    m_jjs[i] = (jetX + jetY).mass
+                    m_jj_pass[i] = m_jjs[i] > 1e6
+                    eta_jj_pass[i] = np.abs(jetX.eta - jetY.eta) > 3
+                self.mjj_vbf[event] = m_jjs
+                passMassEta = m_jj_pass & eta_jj_pass
                 if np.count_nonzero(passMassEta) >= 1:
                     largestPtSum = 0
                     for twoIndices in jet_combinations[passMassEta]:
@@ -407,7 +409,6 @@ class ObjectSelection:
                             self.VBFjetsPass[event] = True
                             self.pt_vbf1[event] = passedJets_p4[twoIndices[0]].pt
                             self.pt_vbf2[event] = passedJets_p4[twoIndices[1]].pt
-
 
     def hh_selections(self, event):
         # calculate region variables
@@ -514,32 +515,36 @@ class ObjectSelection:
             },
             "trigger_leadingLargeRpT": {
                 "var": self.leadingLargeRpt,
-                "sel": (self.trigger & self.leadingLargeRmassGreater100),
+                "sel": self.trigger & self.leadingLargeRmassGreater100,
             },
             "triggerRef_leadingLargeRpT": {
                 "var": self.leadingLargeRpt,
-                "sel": (self.triggerRef & self.leadingLargeRmassGreater100),
+                "sel": self.triggerRef & self.leadingLargeRmassGreater100,
             },
             "trigger_leadingLargeRm": {
                 "var": self.leadingLargeRm,
-                "sel": (self.trigger & self.leadingLargeRpTGreater500),
+                "sel": self.trigger & self.leadingLargeRpTGreater500,
             },
             "triggerRef_leadingLargeRm": {
                 "var": self.leadingLargeRm,
-                "sel": (self.triggerRef & self.leadingLargeRpTGreater500),
+                "sel": self.triggerRef & self.leadingLargeRpTGreater500,
             },
         }
 
         kinematics = {
-            "mhh": {
+            "m_hh": {
                 "var": self.m_hh,
                 "sel": None,
             },
-            "mh1": {
+            "m_h1": {
                 "var": self.m_h1,
                 "sel": None,
             },
-            "mh2": {
+            "m_h1_test": {
+                "var": self.m_h1,
+                "sel": None,
+            },
+            "m_h2": {
                 "var": self.m_h2,
                 "sel": None,
             },
@@ -591,6 +596,10 @@ class ObjectSelection:
                 "var": self.pt_h2_btag_vr_2,
                 "sel": None,
             },
+            "m_jjVBF": {
+                "var": self.mjj_vbf,
+                "sel": None,
+            },
         }
 
         # make kinematics vars for all selections, e.g. mhh_CR_4b, mhh_CR_2b, etc.
@@ -604,12 +613,24 @@ class ObjectSelection:
                 # need to make a deep copy as dict assignments just creates references
                 finalSel[kinVar + "_" + region] = copy.deepcopy(kinVarDict)
 
-        # go over all defined hists, apply additional weights if exist and return
+        # go over all defined hists, and return
         results = {}
         for hist in finalSel.keys():
+            # if list of lists build var/weights manually
+            if isinstance(finalSel[hist]["var"], list):
+                finalSel[hist]["var"], w = flatten2d(
+                    finalSel[hist]["var"],
+                    self.weights,
+                    finalSel[hist]["sel"],
+                )
+                finalSel[hist]["sel"] = None
+            else:
+                w = None
+            # get final values with according weights
             results[hist] = self.resultWithWeights(
                 var=finalSel[hist]["var"],
                 sel=finalSel[hist]["sel"],
+                userWeight=w,
             )
 
         # add massplane
@@ -626,8 +647,7 @@ class ObjectSelection:
 
         return results
 
-    def resultWithWeights(self, var, sel=None, weight=None):
-
+    def resultWithWeights(self, var, sel=None, userWeight=None):
         """
         select varSelDicts of vars and attach weights
 
@@ -647,14 +667,52 @@ class ObjectSelection:
         """
 
         if sel is None:
-            if weight is None:
+            if userWeight is None:
                 varWithWeights = [var, self.weights]
             else:
-                varWithWeights = [var, np.ones(var.shape) * weight]
+                varWithWeights = [var, userWeight]
         else:
-            if weight is None:
+            if userWeight is None:
                 varWithWeights = [var[sel], self.weights[sel]]
-            else:
-                varWithWeights = [var[sel], np.ones(var[sel].shape) * weight]
 
         return varWithWeights
+
+
+def flatten2d(arr, weights, sel=None):
+    """
+    flatten 2d array and replicate weights for each event
+
+    Parameters
+    ----------
+    arr : list of lists
+        list holding lists of values
+    weights : nd.array
+        weights per event same shape as arr.shape[0]
+    sel : np.array, optional
+        event selection, by default None
+    Returns
+    -------
+    flatArr, flatArrWeights
+
+    """
+    if sel is None:
+        selection = np.full(len(arr), 1, dtype=int)
+    else:
+        selection = sel
+
+    # get selection, list is dimensional imhomogeneous
+    selectedArr = list(itertools.compress(arr, selection))
+    # itertools.chain.from_iterable flattens
+    flatArr = np.array(list(itertools.chain.from_iterable(selectedArr)))
+    flatArrWeights = np.array(
+        list(
+            itertools.chain.from_iterable(
+                [
+                    np.repeat(w, len(mjjs))
+                    for mjjs, w in zip(selectedArr, weights[selection])
+                ]
+            )
+        )
+    )
+
+    return flatArr, flatArrWeights

@@ -2,6 +2,7 @@
 # from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.offsetbox import AnchoredText
 import mplhep as hep
 import os
 import logging
@@ -134,22 +135,60 @@ def plotLabel(histKey, ax):
         ["Run 2, " + labels["vbf"], labels["region"] + ", " + labels["btag"]]
     )
     hep.atlas.label(
-        # data=False,
-        lumi="140.0",
-        loc=1,
-        ax=ax,
-        llabel="Internal",
+            # data=False,
+            lumi="140.0",
+            loc=1,
+            ax=ax,
+            llabel="Internal",
+        ),
+    print(ax.__dict__)
+    anchored_label = AnchoredText(
+        s=hep.atlas.label(
+            # data=False,
+            lumi="140.0",
+            loc=1,
+            ax=ax,
+            llabel="Internal",
+        ),
+        loc="upper left",
+        frameon=False,
     )
-    ax.text(
-        x=0.05,
-        y=0.875,
+
+    anchored_text = AnchoredText(
         s=labels["plot"],
-        transform=ax.transAxes,
-        verticalalignment="top",
-        horizontalalignment="left",
-        fontsize=12,
+        loc="upper left",
+        frameon=False,
     )
+    ax.add_artist(anchored_label)
+
+    ax.add_artist(anchored_text)
     return labels
+
+
+def draw_text(ax):
+    """
+    Draw two text-boxes, anchored by different corners to the upper-left
+    corner of the figure.
+    """
+    at = AnchoredText(
+        "Figure 1a",
+        loc="upper left",
+        prop=dict(size=8),
+        frameon=True,
+    )
+    at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    ax.add_artist(at)
+
+    at2 = AnchoredText(
+        "Figure 1(b)",
+        loc="lower left",
+        prop=dict(size=8),
+        frameon=True,
+        bbox_to_anchor=(0.0, 1.0),
+        bbox_transform=ax.transAxes,
+    )
+    at2.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+    ax.add_artist(at2)
 
 
 def triggerRef_leadingLargeRpT():
@@ -347,7 +386,14 @@ def trigger_leadingLargeRpT():
     plt.close()
 
 
-def mhh():
+def plotVar(histKey):
+    signal = SMsignal[histKey]["h"]
+    signal_err = SMsignal[histKey]["err"]
+    data = run2[histKey]["h"]
+    data_err = run2[histKey]["err"]
+    tt = ttbar[histKey]["h"]
+    tt_err = ttbar[histKey]["err"]
+    edges = run2[histKey]["edges"]
     plt.figure()
     # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
     # trigger_leadingLargeRm_err = Plotting.tools.getEfficiencyErrors(
@@ -377,70 +423,6 @@ def mhh():
     ax.get_xaxis().get_offset_text().set_position((2, 0))
 
     plt.savefig(plotPath + "mhh.pdf")
-    plt.close()
-
-
-def pts(name):
-    plt.figure()
-    hep.histplot(
-        hists[name]["h"],  # / truth_mhh,
-        hists[name]["edges"],  # / truth_mhh,
-        histtype="errorbar",
-        yerr=hists[name]["err"],  # / truth_mhh,
-        solid_capstyle="projecting",
-        capsize=3,
-        # label=["truth", "reco"]
-        # alpha=0.75,
-    )
-    # hep.atlas.text(" Simulation", loc=1)
-    hep.atlas.set_ylabel("Events")
-    hep.atlas.set_xlabel(f"{name} $[GeV]$ ")
-    ax = plt.gca()
-    # ax.set_yscale("log")
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
-    plt.legend(loc="upper right")
-    # hep.yscale_legend()
-    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
-
-    plt.tight_layout()
-    ax.get_xaxis().get_offset_text().set_position((2, 0))
-
-    plt.savefig(plotPath + f"{name}.pdf")
-    plt.close()
-
-
-def dRs():
-    plt.figure()
-    dR_h1 = getHist(file, "dR_h1")
-    dR_h2 = getHist(file, "dR_h2")
-    # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
-    # trigger_leadingLargeRm_err = Plotting.tools.getEfficiencyErrors(
-    #     passed=mhh, total=truth_mhh
-    # )
-    hep.histplot(
-        [dR_h1["h"], dR_h2["h"]],
-        dR_h1["edges"],
-        histtype="errorbar",
-        yerr=[dR_h1["err"], dR_h2["err"]],
-        solid_capstyle="projecting",
-        capsize=3,
-        label=["H1", "H2"],
-        alpha=0.75,
-    )
-    # hep.atlas.text(" Simulation", loc=1)
-    hep.atlas.set_ylabel("Events")
-    hep.atlas.set_xlabel("DeltaR leading VR jets")
-    ax = plt.gca()
-    # ax.set_yscale("log")
-    # ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
-    plt.legend(loc="upper right")
-    # hep.yscale_legend()
-    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
-
-    plt.tight_layout()
-    # ax.get_xaxis().get_offset_text().set_position((2, 0))
-
-    plt.savefig(plotPath + "VR_dR.pdf")
     plt.close()
 
 
@@ -626,7 +608,7 @@ def mh_SB_ratio(histKey):
     plt.close()
 
 
-def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
+def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
     signal = SMsignal[histKey]["h"]
     signal_err = SMsignal[histKey]["err"]
     data = run2[histKey]["h"]
@@ -686,6 +668,18 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         )
         edges = edges_
 
+    # prediction
+    pred = tt + jj
+    pred_err = Plotting.tools.ErrorPropagation(tt_err, jj_err, "+")
+
+    ratio = data / pred
+    ratio_err = Plotting.tools.ErrorPropagation(
+        data_err,
+        pred_err,
+        "/",
+        data,
+        pred,
+    )
 
     plt.figure()
     fig, (ax, rax) = plt.subplots(
@@ -710,19 +704,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         linewidth=0.5,
     )
 
-    # prediction
-    pred = tt + jj
-    pred_err = Plotting.tools.ErrorPropagation(tt_err, jj_err, "+")
-
-    ratio = data / pred
-    ratio_err = Plotting.tools.ErrorPropagation(
-        data_err,
-        pred_err,
-        "/",
-        data,
-        pred,
-    )
-    # error stackplot    
+    # error stackplot
     ax.fill_between(
         edges,
         np.append(pred - pred_err, 0),
@@ -743,6 +725,16 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         color="Black",
         label="data",
         ax=ax,
+    )
+    hep.histplot(
+        signal * 10000,
+        edges,
+        histtype="step",
+        # yerr=True,
+        label="SM Signal x 10000",
+        ax=ax,
+        color="hh:darkyellow",  # "orangered",
+        linewidth=1.25,
     )
 
     # ratio plot
@@ -765,16 +757,6 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         step="post",
         # label="stat. uncertainty",
     )
-    hep.histplot(
-        signal * 10000,
-        edges,
-        histtype="step",
-        # yerr=True,
-        label="SM Signal x 10000",
-        ax=ax,
-        color="hh:darkyellow",  # "orangered",
-        linewidth=1.25,
-    )
 
     fig.subplots_adjust(hspace=0.07)
     ax.set_ylabel("Events")
@@ -782,19 +764,29 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None):
         r"$ \frac{\mathrm{Data}}{\mathrm{Pred.}}$", horizontalalignment="center"
     )
     rax.set_ylim([0.0, 2])
+    # draw line at 1.0
     plt.axhline(y=1.0, color="tab:red", linestyle="-")
-    ax.set_ylim([1e-3, 1e6])
-    ax.set_yscale("log")
+    ax.legend(loc="upper right")
 
+    # ax.autoscale()
+    # ax.get_ylim()
+    # if ymax:
+    #     ax.set_ylim([1e-3, 1e6])
+    # else:
+    #     ax.set_ylim([1e-3, 1e6])
+
+    ax.set_yscale("log")
     hep.atlas.set_xlabel(f"{histKey} [GeV] ")
+    labels = plotLabel(histKey, ax)
+
+    hep.mpl_magic(ax=ax)
+
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.legend(loc="upper right")
     ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
     # to show subticks of logplot
     ax.yaxis.set_major_locator(mticker.LogLocator(numticks=999))
     ax.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
-    labels = plotLabel(histKey, ax)
 
     if bkgEstimate:
         plt.savefig(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
@@ -946,19 +938,15 @@ def compareABCD(histKey, factor=None):
     plt.close()
 
 
-hists_ = Plotting.loadHists.run()
-SMsignal = hists_["SMsignal"]
-run2 = hists_["run2"]
-ttbar = hists_["ttbar"]
-dijet = hists_["dijet"]
+hists = Plotting.loadHists.run()
+SMsignal = hists["SMsignal"]
+run2 = hists["run2"]
+ttbar = hists["ttbar"]
+dijet = hists["dijet"]
 # trigger_leadingLargeRpT()
 # triggerRef_leadingLargeRpT()
 # triggerRef_leadingLargeRm()
 # accEff_mhh()
-# mhh()
-# for name in ["pt_h1", "pt_h2", "pt_hh", "pt_hh_scalar"]:
-#     pts(name)
-# dRs()
 
 # kinVar_data_ratio(var)
 # for var in collectedKinVarsWithRegions:
@@ -976,10 +964,11 @@ dijet = hists_["dijet"]
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
 # # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
 # # massplane("massplane_CR_2b2b")
-# # kinVar_data_ratio("mhh_VR_2b2j")
-kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8)
-kinVar_data_ratio("mhh_VR_2b2j", rebinFactor=8)
-kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+kinVar_data_ratio("vbf_mjj")
+
+# kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8)
+# kinVar_data_ratio("mhh_VR_2b2j", rebinFactor=8)
+# kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # kinVar_data_ratio("mh1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # for var in collectedKinVarsWithRegions:
 #     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:

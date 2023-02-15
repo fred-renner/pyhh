@@ -93,17 +93,22 @@ hists = [
 kinematicHists = [
     # needs to be the same binning as accEff plot
     FloatHistogram(
-        name="mhh",
+        name="m_hh",
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
     FloatHistogram(
-        name="mh1",
+        name="m_h1",
         binrange=m_hBinning["binrange"],
         bins=m_hBinning["bins"],
     ),
     FloatHistogram(
-        name="mh2",
+        name="m_h1_test",
+        binrange=m_hBinning["binrange"],
+        bins=10,
+    ),
+    FloatHistogram(
+        name="m_h2",
         binrange=m_hBinning["binrange"],
         bins=m_hBinning["bins"],
     ),
@@ -172,6 +177,11 @@ kinematicHists = [
         name="pt_h2_btag_vr_2",
         binrange=vrBinning["binrange"],
         bins=vrBinning["bins"],
+    ),
+    FloatHistogram(
+        name="m_jjVBF",
+        binrange=(0, 5e6),
+        bins=(75),
     ),
 ]
 
