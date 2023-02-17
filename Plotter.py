@@ -14,8 +14,8 @@ from Plotting.tools import ErrorPropagation as propagateError
 from HistDefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
 from pdf2image import convert_from_path
+from tools.logging import log
 
-# np.seterr(divide='ignore', invalid='ignore')
 
 plt.style.use(hep.style.ATLAS)
 
@@ -73,9 +73,9 @@ def makeGrid():
     btags = ["2b2b", "2b2j"]
     regions = ["CR", "VR", "SR"]
     vbf = ["", "noVBF"]
-    print(collectedKinVars)
+
     for var in collectedKinVars:
-        print(f"making grid for variable {var}")
+        log.info(f"making grid for variable {var}")
         plotsPerGrid = []
         for btag in btags:
             for reg in regions:
@@ -104,7 +104,7 @@ def makeGrid():
 def plotLabel(histKey, ax):
     if "_noVBF" in histKey:
         histKey = histKey[:-6]
-    print(histKey)
+    log.info(histKey)
     keyParts = histKey.split("_")
     labels = {}
     if "CR" in histKey:
@@ -165,30 +165,30 @@ def plotLabel(histKey, ax):
     return labels
 
 
-def draw_text(ax):
-    """
-    Draw two text-boxes, anchored by different corners to the upper-left
-    corner of the figure.
-    """
-    at = AnchoredText(
-        "Figure 1a",
-        loc="upper left",
-        prop=dict(size=8),
-        frameon=True,
-    )
-    at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    ax.add_artist(at)
+# def draw_text(ax):
+#     """
+#     Draw two text-boxes, anchored by different corners to the upper-left
+#     corner of the figure.
+#     """
+#     at = AnchoredText(
+#         "Figure 1a",
+#         loc="upper left",
+#         prop=dict(size=8),
+#         frameon=True,
+#     )
+#     at.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+#     ax.add_artist(at)
 
-    at2 = AnchoredText(
-        "Figure 1(b)",
-        loc="lower left",
-        prop=dict(size=8),
-        frameon=True,
-        bbox_to_anchor=(0.0, 1.0),
-        bbox_transform=ax.transAxes,
-    )
-    at2.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
-    ax.add_artist(at2)
+#     at2 = AnchoredText(
+#         "Figure 1(b)",
+#         loc="lower left",
+#         prop=dict(size=8),
+#         frameon=True,
+#         bbox_to_anchor=(0.0, 1.0),
+#         bbox_transform=ax.transAxes,
+#     )
+#     at2.patch.set_boxstyle("round,pad=0.,rounding_size=0.2")
+#     ax.add_artist(at2)
 
 
 def triggerRef_leadingLargeRpT():
@@ -449,15 +449,24 @@ def massplane(histKey):
     plane.pcolormesh.set_cmap("GnBu")
 
     X, Y = np.meshgrid(xbins, ybins)
-    CS1 = plt.contour(
-        X, Y, Plotting.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
-    )
-    fmt = {}
-    strs = ["SR"]
-    for l, s in zip(CS1.levels, strs):
-        fmt[l] = s
-    ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+    # CS1 = plt.contour(
+    #     X, Y, Plotting.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
+    # )
+    # fmt = {}
+    # strs = ["SR"]
+    # for l, s in zip(CS1.levels, strs):
+    #     fmt[l] = s
+    # ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
+    for i in np.linspace(0,5,1):
+        CS1 = plt.contour(
+            X, Y, Plotting.tools.Xhh(X, Y), [i], colors="tab:red", linewidths=1
+        )
+        fmt = {}
+        strs = ["SR"]
+        for l, s in zip(CS1.levels, strs):
+            fmt[l] = s
+        ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
     CS1 = plt.contour(
         X, Y, Plotting.tools.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1
     )
@@ -487,7 +496,7 @@ def massplane(histKey):
     # plt.text(f"VBF 4b, {region}, 2b2j")
     # plt.legend(loc="upper right")
     plt.savefig(plotPath + histKey + ".pdf")
-    print(plotPath + histKey + ".pdf")
+    log.info(plotPath + histKey + ".pdf")
     plt.close()
 
 
@@ -536,9 +545,7 @@ def mh_SB_ratio(histKey):
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
-    # print(tt.shape)
-    # print(jj.shape)
-    # print(edges.shape)
+    
     # # stack plot
     hep.histplot(
         [tt, jj],
@@ -775,7 +782,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
     # else:
     #     ax.set_ylim([1e-3, 1e6])
 
-    ax.set_yscale("log")
+    # ax.set_yscale("log")
     hep.atlas.set_xlabel(f"{histKey} [GeV] ")
     labels = plotLabel(histKey, ax)
 
@@ -790,11 +797,11 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
 
     if bkgEstimate:
         plt.savefig(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
-        print(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
+        log.info(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
 
     else:
         plt.savefig(plotPath + f"{histKey}_ratio.pdf")
-        print(plotPath + f"{histKey}_ratio.pdf")
+        log.info(plotPath + f"{histKey}_ratio.pdf")
 
     plt.close()
 
@@ -932,7 +939,7 @@ def compareABCD(histKey, factor=None):
     ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
 
     plotLabel(histKey, ax)
-    print(plotPath + histKey + "_compareABCD.pdf")
+    log.info(plotPath + histKey + "_compareABCD.pdf")
 
     plt.savefig(plotPath + histKey + "_compareABCD.pdf")
     plt.close()
@@ -950,7 +957,7 @@ dijet = hists["dijet"]
 
 # kinVar_data_ratio(var)
 # for var in collectedKinVarsWithRegions:
-#     print(var)
+#     log.info(var)
 #     if "massplane" in var:
 #         massplane(var)
 #     else:
@@ -959,17 +966,17 @@ dijet = hists["dijet"]
 #     if "2b2b" in var:
 #         if "noVBF" not in var:
 #             if "massplane" not in var:
-#                 print(var)
+#                 log.info(var)
 #                 kinVar_data_ratio(var, bkgEstimate=True)
 # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
 # # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
-# # massplane("massplane_CR_2b2b")
-kinVar_data_ratio("vbf_mjj")
+massplane("massplane_CR_2b2b")
+kinVar_data_ratio("m_jjVBF_VR_2b2j")
 
-# kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8)
-# kinVar_data_ratio("mhh_VR_2b2j", rebinFactor=8)
-# kinVar_data_ratio("mhh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
-# kinVar_data_ratio("mh1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
+# kinVar_data_ratio("m_hh_VR_2b2j", rebinFactor=8)
+kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+# kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # for var in collectedKinVarsWithRegions:
 #     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:
 #         compareABCD(var, factor=6)

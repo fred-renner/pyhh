@@ -4,6 +4,7 @@ from operator import xor
 import itertools
 from Plotting.tools import Xhh, CR_hh
 import copy
+from tools.logging import log
 
 np.set_printoptions(threshold=np.inf)
 
@@ -600,6 +601,38 @@ class ObjectSelection:
                 "var": self.mjj_vbf,
                 "sel": None,
             },
+            "lrj_pt": {
+                "var": self.lrj_pt,
+                "sel": None,
+            },
+            "lrj_eta": {
+                "var": self.lrj_eta,
+                "sel": None,
+            },
+            "lrj_phi": {
+                "var": self.lrj_phi,
+                "sel": None,
+            },
+            "lrj_m": {
+                "var": self.lrj_m,
+                "sel": None,
+            },
+            "srj_pt": {
+                "var": self.srj_pt,
+                "sel": None,
+            },
+            "srj_eta": {
+                "var": self.srj_eta,
+                "sel": None,
+            },
+            "srj_phi": {
+                "var": self.srj_phi,
+                "sel": None,
+            },
+            "srj_m": {
+                "var": self.srj_m,
+                "sel": None,
+            },
         }
 
         # make kinematics vars for all selections, e.g. mhh_CR_4b, mhh_CR_2b, etc.
@@ -617,7 +650,9 @@ class ObjectSelection:
         results = {}
         for hist in finalSel.keys():
             # if list of lists build var/weights manually
-            if isinstance(finalSel[hist]["var"], list):
+            if isinstance(finalSel[hist]["var"], list) or (
+                finalSel[hist]["var"].dtype == object
+            ):
                 finalSel[hist]["var"], w = flatten2d(
                     finalSel[hist]["var"],
                     self.weights,
@@ -680,7 +715,7 @@ class ObjectSelection:
 
 def flatten2d(arr, weights, sel=None):
     """
-    flatten 2d array and replicate weights for each event
+    flatten 2d inhomogeneous array and replicate weights for each event
 
     Parameters
     ----------

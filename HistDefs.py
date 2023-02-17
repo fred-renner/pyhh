@@ -1,5 +1,6 @@
 from tools.Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 import copy
+import math
 
 # define hists
 accEffBinning = {"binrange": (0, 5_000_000), "bins": 75}
@@ -180,8 +181,48 @@ kinematicHists = [
     ),
     FloatHistogram(
         name="m_jjVBF",
-        binrange=(0, 5e6),
-        bins=(75),
+        binrange=(0, 3e6),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="lrj_pt",
+        binrange=(0, 3e6),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="lrj_eta",
+        binrange=(-5, 5),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="lrj_phi",
+        binrange=(-2 * math.pi, 2 * math.pi),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="lrj_m",
+        binrange=(0, 3e6),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="srj_pt",
+        binrange=(0, 3e6),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="srj_eta",
+        binrange=(-5, 5),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="srj_phi",
+        binrange=(-2 * math.pi, 2 * math.pi),
+        bins=75,
+    ),
+    FloatHistogram(
+        name="srj_m",
+        binrange=(0, 3e6),
+        bins=75,
     ),
 ]
 
@@ -211,4 +252,5 @@ for hist in kinematicHists:
         hists.append(newHist)
 
 collectedKinVars = kinVars
+
 collectedKinVarsWithRegions = kinVarsWithRegions

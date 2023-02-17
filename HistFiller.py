@@ -9,7 +9,7 @@ import Analysis
 import multiprocessing
 import argparse
 import Configuration
-
+from tools.logging import log
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)
@@ -36,7 +36,7 @@ def filling_callback(results):
     # update bin heights per iteration
     for hist in hists:
         if hist._name not in results.keys():
-            print(f"histogram with name: {hist._name} defined but not in results")
+            log.warning(f"histogram with name: {hist._name} defined but not in results")
         res = results[hist._name]
         hist.fill(values=res[0], weights=res[1])
     pbar.update(config.batchSize)
@@ -44,7 +44,7 @@ def filling_callback(results):
 
 
 def error_handler(e):
-    print("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
+    log.error("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
     pool.terminate()
     return
 
@@ -55,7 +55,7 @@ hists = HistDefs.hists
 with File(config.histOutFile, "w") as outfile:
     # loop over input files
     for i, file_ in enumerate(config.filelist):
-        print("\nProcessing file " + str(i + 1) + "/" + str(len(config.filelist)))
+        log.info("Processing file " + str(i + 1) + "/" + str(len(config.filelist)))
         with uproot.open(file_) as file:
             # access the tree
             tree = file["AnalysisMiniTree"]
@@ -96,9 +96,9 @@ with File(config.histOutFile, "w") as outfile:
                 pool.close()
                 pool.join()
                 pbar.close()
-            print("Done")
+            log.info("Done\n")
 
     # write histograms to file
-    print("Writing to " + config.histOutFile)
+    log.info("Writing to " + config.histOutFile)
     for hist in hists:
         hist.write(outfile)

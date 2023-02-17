@@ -32,7 +32,7 @@ class Config:
         else:
             # default to mc 20 signal
             self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
-            # self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
+            self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
             # self.filelist = tools.HistFillerTools.ConstructFilelist("run2")
             # make hist out file name from filename
             if "histOutFileName" not in locals():

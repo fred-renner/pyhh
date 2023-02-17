@@ -7,3 +7,4 @@ mplhep
 pyhf
 tqdm
 pdf2image
+coloredlogs

@@ -2,6 +2,8 @@
 import subprocess
 from tools.HistFillerTools import ConstructFilelist
 import argparse
+from tools.logging import log
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sample", type=str, default=None)
@@ -28,7 +30,7 @@ subprocess.call(
 )
 
 # write jobs per line
-print(f"Made submit file for {sample} with {len(filelist)} jobs. ")
+log,info(f"Made submit file for {sample} with {len(filelist)} jobs. ")
 with open(f"/lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub", "a") as f:
     for i, file in enumerate(filelist):
         f.write(f"arguments = {file}")

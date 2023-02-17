@@ -2,6 +2,7 @@ import re
 import json
 from tools.MetaData import ConstructDatasetName
 import glob
+from tools.logging import log
 
 mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
 
@@ -26,11 +27,11 @@ def GetMetaDataFromFile(file):
 
     # get logical dataset name from ntuple name
     datasetName = ConstructDatasetName(filepath)
-    print("Original Dataset Name: " + datasetName)
+    log.info("Original Dataset Name: " + datasetName)
 
     md = json.load(open(mdFile))
     if datasetName not in md:
-        print("metaData not in json yet, will query from ami")
+        log.info("metaData not in json yet, will query from ami")
         import tools.MetaData
 
         tools.MetaData.get(filepath)
@@ -101,7 +102,7 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     # [[0, 999], [1000, 1999], [2000, 2999],...]
     ranges = []
     batch_ranges = []
-    if nEvents is "All":
+    if nEvents == "All":
         nEvents = tree.num_entries
     for i in range(0, nEvents, batch_size):
         ranges += [i]

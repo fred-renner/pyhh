@@ -4,6 +4,7 @@ import h5py
 from tqdm.auto import tqdm
 from tools.HistFillerTools import ConstructFilelist
 import argparse
+from tools.logging import log
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sample", type=str, default=None)
@@ -34,7 +35,7 @@ with h5py.File(mergedFile, "w") as mergeFile:
             for ds in histVars:
                 mergeFile[hist][ds][:] = 0
 
-    print("Merge files into: " + mergedFile)
+    log.info("Merge files into: " + mergedFile)
     # loop over files to merge and add values into merged file
     pbar = tqdm(total=len(filelist), position=0, leave=True)
     for ith_file in filelist:
