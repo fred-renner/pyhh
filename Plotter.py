@@ -134,34 +134,52 @@ def plotLabel(histKey, ax):
     labels["plot"] = ("\n").join(
         ["Run 2, " + labels["vbf"], labels["region"] + ", " + labels["btag"]]
     )
+    # hep.atlas.label(
+    #         # data=False,
+    #         lumi="140.0",
+    #         loc=1,
+    #         ax=ax,
+    #         llabel="Internal",
+    #     ),
+    # print(ax.__dict__)
+    # anchored_label = AnchoredText(
+    #     s=hep.atlas.label(
+    #         # data=False,
+    #         lumi="140.0",
+    #         loc=1,
+    #         ax=ax,
+    #         llabel="Internal",
+    #     ),
+    #     loc="upper left",
+    #     frameon=False,
+    # )
+
+    # anchored_text = AnchoredText(
+    #     s=labels["plot"],
+    #     loc="upper left",
+    #     frameon=False,
+    # )
+    # ax.add_artist(anchored_label)
+
+    # ax.add_artist(anchored_text)
+
     hep.atlas.label(
-            # data=False,
-            lumi="140.0",
-            loc=1,
-            ax=ax,
-            llabel="Internal",
-        ),
-    print(ax.__dict__)
-    anchored_label = AnchoredText(
-        s=hep.atlas.label(
-            # data=False,
-            lumi="140.0",
-            loc=1,
-            ax=ax,
-            llabel="Internal",
-        ),
-        loc="upper left",
-        frameon=False,
+        # data=False,
+        lumi="140.0",
+        loc=1,
+        ax=ax,
+        llabel="Internal",
     )
-
-    anchored_text = AnchoredText(
+    ax.text(
+        x=0.05,
+        y=0.875,
         s=labels["plot"],
-        loc="upper left",
-        frameon=False,
+        transform=ax.transAxes,
+        verticalalignment="top",
+        horizontalalignment="left",
+        fontsize=12,
     )
-    ax.add_artist(anchored_label)
 
-    ax.add_artist(anchored_text)
     return labels
 
 
@@ -435,35 +453,31 @@ def massplane(histKey):
     xbins = run2[histKey]["xbins"]
     ybins = run2[histKey]["ybins"]
     histValues = run2[histKey]["h"]
-    plane = hep.hist2dplot(
-        histValues,
-        xbins=xbins,
-        ybins=ybins,
-    )
-    # txt = hep.atlas.text(" Simulation", loc=1)
-    # txt[0]._color = "white"
-    # txt[1]._color = "white"
+    # plane = hep.hist2dplot(
+    #     histValues,
+    #     xbins=xbins,
+    #     ybins=ybins,
+    # )
+
     hep.atlas.set_ylabel("m$_\mathrm{H2}$ [GeV]")
     hep.atlas.set_xlabel("m$_\mathrm{H1}$ [GeV]")
     ax = plt.gca()
-    plane.pcolormesh.set_cmap("GnBu")
+    # plane.pcolormesh.set_cmap("GnBu")
 
     X, Y = np.meshgrid(xbins, ybins)
-    # CS1 = plt.contour(
-    #     X, Y, Plotting.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
-    # )
-    # fmt = {}
-    # strs = ["SR"]
-    # for l, s in zip(CS1.levels, strs):
-    #     fmt[l] = s
-    # ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+    CS1 = plt.contour(
+        X, Y, Plotting.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
+    )
+    fmt = {}
+    strs = ["SR"]
+    for l, s in zip(CS1.levels, strs):
+        fmt[l] = s
+    ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
-    for i in np.linspace(0,5,1):
-        CS1 = plt.contour(
-            X, Y, Plotting.tools.Xhh(X, Y), [i], colors="tab:red", linewidths=1
-        )
+    for i in np.linspace(0, 5, 10):
+        CS1 = plt.contour(X, Y, Plotting.tools.Xhh(X, Y), [i], linewidths=1)
         fmt = {}
-        strs = ["SR"]
+        strs = [str(np.round(i, 2))]
         for l, s in zip(CS1.levels, strs):
             fmt[l] = s
         ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
@@ -545,7 +559,7 @@ def mh_SB_ratio(histKey):
         gridspec_kw={"height_ratios": (3, 1)},
         sharex=True,
     )
-    
+
     # # stack plot
     hep.histplot(
         [tt, jj],
@@ -753,11 +767,16 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
         ax=rax,
         color="Black",
     )
+
+    normErrLow = (pred - pred_err) / pred
+    normErrHigh = (pred + pred_err) / pred
+    print(normErrLow)
+    print(        Plotting.tools.repeatLastValue(normErrLow),)
     # error ratioplot
     rax.fill_between(
         edges,
-        np.append((pred - pred_err) / pred, 0),
-        np.append((pred + pred_err) / pred, 0),
+        Plotting.tools.repeatLastValue(normErrLow),
+        Plotting.tools.repeatLastValue(normErrHigh),
         color="dimgrey",
         linewidth=0,
         alpha=0.3,
@@ -782,11 +801,11 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
     # else:
     #     ax.set_ylim([1e-3, 1e6])
 
-    # ax.set_yscale("log")
+    ax.set_yscale("log")
     hep.atlas.set_xlabel(f"{histKey} [GeV] ")
     labels = plotLabel(histKey, ax)
 
-    hep.mpl_magic(ax=ax)
+    # hep.mpl_magic(ax=ax)
 
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
@@ -968,14 +987,19 @@ dijet = hists["dijet"]
 #             if "massplane" not in var:
 #                 log.info(var)
 #                 kinVar_data_ratio(var, bkgEstimate=True)
-# kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=True)
-# # kinVar_data_ratio("mh1_VR_2b2b", bkgEstimate=False)
-massplane("massplane_CR_2b2b")
-kinVar_data_ratio("m_jjVBF_VR_2b2j")
+# kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=True)
+# # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
+# massplane("massplane_CR_2b2b")
+# kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
+# kinVar_data_ratio("m_h1_twoLargeR",rebinFactor=10)
+kinVar_data_ratio("m_h1_test_VR_2b2b")
+# kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
+# kinVar_data_ratio("m_hh_CR_2b2j", rebinFactor=2)
 
-kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
+
+# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
 # kinVar_data_ratio("m_hh_VR_2b2j", rebinFactor=8)
-kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # for var in collectedKinVarsWithRegions:
 #     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:

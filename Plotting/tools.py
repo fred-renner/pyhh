@@ -268,6 +268,15 @@ def factorRebin(
 
 
 def subintervals(a, b, n):
-    # n subintervals in the range [a,b]
+    """n subintervals in the range [a,b]"""
+
     lst = [int(a + x * (b - a) / n) for x in range(n + 1)]
     return lst
+
+
+def repeatLastValue(a):
+    """repeat last Value to get e.g. stat error bar ax.fill_between right"""
+    a=np.array(a)
+    firstNonNanIndex = np.where(np.isnan(a) == False)[0][-1]
+    b=np.insert(a, firstNonNanIndex, a[firstNonNanIndex])
+    return b
