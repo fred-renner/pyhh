@@ -3,14 +3,14 @@ import copy
 import math
 
 # define hists
-accEffBinning = {"binrange": (0, 5_000_000), "bins": 75}
-m_hBinning = {"binrange": (0, 300_000), "bins": 100}
-pt_hBinning = {"binrange": (0.2e6, 1e6), "bins": 100}
+accEffBinning = {"binrange": (0, 5_000_000), "bins": 50}
+m_hBinning = {"binrange": (0, 300_000), "bins": 50}
+pt_hBinning = {"binrange": (0.2e6, 1e6), "bins": 50}
 TriggerEffpT = {"binrange": (0, 3_000_000), "bins": 150}
 TriggerEffm = {"binrange": (0, 300_000), "bins": 150}
-dRbins = {"binrange": (0, 1.2), "bins": 75}
+dRbins = {"binrange": (0, 1.2), "bins": 50}
 count = {"binrange": (0, 2), "bins": 2}
-vrBinning = {"binrange": (0, 0.5e6), "bins": 75}
+vrBinning = {"binrange": (0, 0.5e6), "bins": 50}
 
 hists = [
     FloatHistogram(
@@ -130,16 +130,16 @@ kinematicHists = [
     ),
     FloatHistogram(
         name="pt_hh_scalar",
-        binrange=(0.4e6, 1.5e6),
+        binrange=(0.65e6, 1.5e6),
         bins=pt_hBinning["bins"],
     ),
     FloatHistogram(
-        name="dR_h1",
+        name="dR_VR_h1",
         binrange=dRbins["binrange"],
         bins=dRbins["bins"],
     ),
     FloatHistogram(
-        name="dR_h2",
+        name="dR_VR_h2",
         binrange=dRbins["binrange"],
         bins=dRbins["bins"],
     ),
@@ -152,12 +152,12 @@ kinematicHists = [
     FloatHistogram(
         name="pt_vbf1",
         binrange=(0, 1e6),
-        bins=75,
+        bins=50,
     ),
     FloatHistogram(
         name="pt_vbf2",
         binrange=(0, 1e6),
-        bins=75,
+        bins=50,
     ),
     FloatHistogram(
         name="pt_h1_btag_vr_1",
@@ -182,52 +182,53 @@ kinematicHists = [
     FloatHistogram(
         name="m_jjVBF",
         binrange=(0, 3e6),
-        bins=75,
+        bins=50,
     ),
     FloatHistogram(
         name="lrj_pt",
-        binrange=(0, 3e6),
-        bins=75,
+        binrange=(0, 1.5e6),
+        bins=50,
     ),
     FloatHistogram(
         name="lrj_eta",
-        binrange=(-5, 5),
-        bins=75,
+        binrange=(-2, 2),
+        bins=50,
     ),
     FloatHistogram(
         name="lrj_phi",
-        binrange=(-2 * math.pi, 2 * math.pi),
-        bins=75,
+        binrange=(-math.pi, math.pi),
+        bins=50,
     ),
     FloatHistogram(
         name="lrj_m",
-        binrange=(0, 3e6),
-        bins=75,
+        binrange=(0, 0.5e6),
+        bins=50,
     ),
     FloatHistogram(
         name="srj_pt",
-        binrange=(0, 3e6),
-        bins=75,
+        binrange=(0, 1.5e6),
+        bins=50,
     ),
     FloatHistogram(
         name="srj_eta",
         binrange=(-5, 5),
-        bins=75,
+        bins=50,
     ),
     FloatHistogram(
         name="srj_phi",
-        binrange=(-2 * math.pi, 2 * math.pi),
-        bins=75,
+        binrange=(-math.pi, math.pi),
+        bins=50,
     ),
     FloatHistogram(
         name="srj_m",
-        binrange=(0, 3e6),
-        bins=75,
+        binrange=(0, 200e3),
+        bins=50,
     ),
 ]
 
 # construct hists for all regions and kinematic vars
 regions = [
+    "None",
     "twoLargeR",
     "SR_2b2b",
     "SR_2b2j",
@@ -236,8 +237,8 @@ regions = [
     "CR_2b2b",
     "CR_2b2j",
 ]
-regions_noVBF = [r + "_noVBF" for r in regions]
-regions += regions_noVBF
+# regions_noVBF = [r + "_noVBF" for r in regions]
+# regions += regions_noVBF
 kinVars = []
 kinVarsWithRegions = []
 for hist in kinematicHists:

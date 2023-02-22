@@ -74,20 +74,46 @@ def makeGrid():
     regions = ["CR", "VR", "SR"]
     vbf = ["", "noVBF"]
 
+    # for var in collectedKinVars:
+    #     log.info(f"making grid for variable {var}")
+    #     plotsPerGrid = []
+    #     for btag in btags:
+    #         for reg in regions:
+    #             if "massplane" in var:
+    #                 plot = "_".join([var, reg, btag])
+    #             else:
+    #                 plot = "_".join([var, reg, btag, "ratio"])
+    #             plot += ".pdf"
+    #             plotsPerGrid += [plot]
+    #     plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
+    #     y = len(regions)
+    #     x = len(btags)
+
+    #     ims = [
+    #         np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
+    #     ]
+
+    #     savegrid(
+    #         ims,
+    #         f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
+    #         rows=x,
+    #         cols=y,
+    #     )
+
+    # for bkg_estimate
     for var in collectedKinVars:
-        log.info(f"making grid for variable {var}")
+        log.info(f"making grid for variable {var} Background estimate")
         plotsPerGrid = []
-        for btag in btags:
-            for reg in regions:
-                if "massplane" in var:
-                    plot = "_".join([var, reg, btag])
-                else:
-                    plot = "_".join([var, reg, btag, "ratio"])
-                plot += ".pdf"
-                plotsPerGrid += [plot]
+        btag = "2b2b"
+        for suffix in ["bkgEstimate_ratio","ratio"]:
+            for reg in ["CR", "VR"]:
+                if "massplane" not in var:
+                    plot = "_".join([var, reg, btag, suffix])
+                    plot += ".pdf"
+                    plotsPerGrid += [plot]
         plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
-        y = len(regions)
-        x = len(btags)
+        y = 2
+        x = 2
 
         ims = [
             np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
@@ -95,7 +121,7 @@ def makeGrid():
 
         savegrid(
             ims,
-            f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
+            f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}_bkgEstimate.png",
             rows=x,
             cols=y,
         )
@@ -453,16 +479,16 @@ def massplane(histKey):
     xbins = run2[histKey]["xbins"]
     ybins = run2[histKey]["ybins"]
     histValues = run2[histKey]["h"]
-    # plane = hep.hist2dplot(
-    #     histValues,
-    #     xbins=xbins,
-    #     ybins=ybins,
-    # )
+    plane = hep.hist2dplot(
+        histValues,
+        xbins=xbins,
+        ybins=ybins,
+    )
+    plane.pcolormesh.set_cmap("GnBu")
 
     hep.atlas.set_ylabel("m$_\mathrm{H2}$ [GeV]")
     hep.atlas.set_xlabel("m$_\mathrm{H1}$ [GeV]")
     ax = plt.gca()
-    # plane.pcolormesh.set_cmap("GnBu")
 
     X, Y = np.meshgrid(xbins, ybins)
     CS1 = plt.contour(
@@ -474,16 +500,17 @@ def massplane(histKey):
         fmt[l] = s
     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
 
-    for i in np.linspace(0, 5, 10):
-        CS1 = plt.contour(X, Y, Plotting.tools.Xhh(X, Y), [i], linewidths=1)
-        fmt = {}
-        strs = [str(np.round(i, 2))]
-        for l, s in zip(CS1.levels, strs):
-            fmt[l] = s
-        ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
-    CS1 = plt.contour(
-        X, Y, Plotting.tools.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1
-    )
+    # # to show opening of SR contour
+    # for i in np.linspace(0, 5, 10):
+    #     CS1 = plt.contour(X, Y, Plotting.tools.Xhh(X, Y), [i], linewidths=1)
+    #     fmt = {}
+    #     strs = [str(np.round(i, 2))]
+    #     for l, s in zip(CS1.levels, strs):
+    #         fmt[l] = s
+    #     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
+    # CS1 = plt.contour(
+    #     X, Y, Plotting.tools.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1
+    # )
     fmt = {}
     strs = ["VR"]
     for l, s in zip(CS1.levels, strs):
@@ -770,8 +797,6 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
 
     normErrLow = (pred - pred_err) / pred
     normErrHigh = (pred + pred_err) / pred
-    print(normErrLow)
-    print(        Plotting.tools.repeatLastValue(normErrLow),)
     # error ratioplot
     rax.fill_between(
         edges,
@@ -974,36 +999,35 @@ dijet = hists["dijet"]
 # triggerRef_leadingLargeRm()
 # accEff_mhh()
 
-# kinVar_data_ratio(var)
+
+# kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=True)
+# # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
+# massplane("massplane_CR_2b2b")
+# kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
+# kinVar_data_ratio("m_h1_twoLargeR",rebinFactor=10)
+# kinVar_data_ratio("m_h1_test_VR_2b2b")
+# kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
+# kinVar_data_ratio("m_hh_CR_2b2j", rebinFactor=2)
+# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
+# kinVar_data_ratio("m_hh_VR_2b2j", rebinFactor=8)
+# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+# kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+
 # for var in collectedKinVarsWithRegions:
 #     log.info(var)
 #     if "massplane" in var:
 #         massplane(var)
 #     else:
-#         kinVar_data_ratio(var, bkgEstimate=False)
+#         if "noVBF" not in var:
+#             kinVar_data_ratio(var, bkgEstimate=False)
 # for var in collectedKinVarsWithRegions:
 #     if "2b2b" in var:
 #         if "noVBF" not in var:
 #             if "massplane" not in var:
 #                 log.info(var)
 #                 kinVar_data_ratio(var, bkgEstimate=True)
-# kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=True)
-# # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
-# massplane("massplane_CR_2b2b")
-# kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
-# kinVar_data_ratio("m_h1_twoLargeR",rebinFactor=10)
-kinVar_data_ratio("m_h1_test_VR_2b2b")
-# kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
-# kinVar_data_ratio("m_hh_CR_2b2j", rebinFactor=2)
+makeGrid()
 
-
-# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
-# kinVar_data_ratio("m_hh_VR_2b2j", rebinFactor=8)
-# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
-# kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # for var in collectedKinVarsWithRegions:
 #     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:
 #         compareABCD(var, factor=6)
-
-
-# makeGrid()

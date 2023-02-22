@@ -177,8 +177,8 @@ class ObjectSelection:
         self.pt_h2 = np.copy(floatInitArray)
         self.pt_hh = np.copy(floatInitArray)
         self.pt_hh_scalar = np.copy(floatInitArray)
-        self.dR_h1 = np.copy(floatInitArray)
-        self.dR_h2 = np.copy(floatInitArray)
+        self.dR_VR_h1 = np.copy(floatInitArray)
+        self.dR_VR_h2 = np.copy(floatInitArray)
         self.X_HH = np.copy(floatInitArray)
         self.CR_hh = np.copy(floatInitArray)
         self.truth_m_hh = np.copy(floatInitArray)
@@ -294,8 +294,8 @@ class ObjectSelection:
             if j1_VRs_Btag >= 2 and j2_VRs_Btag >= 2:
                 self.btagHigh_2b2b[event] = True
 
-            self.dR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
-            self.dR_h2[event] = self.vr_deltaR12[event][self.selLargeR2Index[event]]
+            self.dR_VR_h1[event] = self.vr_deltaR12[event][self.selLargeR1Index[event]]
+            self.dR_VR_h2[event] = self.vr_deltaR12[event][self.selLargeR2Index[event]]
 
             # get pt of the btagged ones
             h1_btag_VR_pts = self.vr_pt[event][self.selLargeR1Index[event]][
@@ -440,6 +440,7 @@ class ObjectSelection:
         """
 
         selections = {
+            "None": np.repeat(True, self.nEvents),
             "SR_2b2j": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
             "VR_2b2b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
             "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
@@ -565,12 +566,12 @@ class ObjectSelection:
                 "var": self.pt_hh_scalar,
                 "sel": None,
             },
-            "dR_h1": {
-                "var": self.dR_h1,
+            "dR_VR_h1": {
+                "var": self.dR_VR_h1,
                 "sel": None,
             },
-            "dR_h2": {
-                "var": self.dR_h2,
+            "dR_VR_h2": {
+                "var": self.dR_VR_h2,
                 "sel": None,
             },
             "pt_vbf1": {
