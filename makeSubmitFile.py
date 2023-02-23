@@ -30,7 +30,7 @@ subprocess.call(
 )
 
 # write jobs per line
-log,info(f"Made submit file for {sample} with {len(filelist)} jobs. ")
+log.info(f"Made submit file for {sample} with {len(filelist)} jobs. ")
 with open(f"/lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub", "a") as f:
     for i, file in enumerate(filelist):
         f.write(f"arguments = {file}")

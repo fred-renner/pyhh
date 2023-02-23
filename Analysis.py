@@ -446,11 +446,11 @@ class ObjectSelection:
             "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
             "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
             "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
-            "SR_2b2j_noVBF": self.SR & self.btagLow_2b2j,
-            "VR_2b2b_noVBF": self.VR & self.btagHigh_2b2b,
-            "VR_2b2j_noVBF": self.VR & self.btagLow_2b2j,
-            "CR_2b2b_noVBF": self.CR & self.btagHigh_2b2b,
-            "CR_2b2j_noVBF": self.CR & self.btagLow_2b2j,
+            # "SR_2b2j_noVBF": self.SR & self.btagLow_2b2j,
+            # "VR_2b2b_noVBF": self.VR & self.btagHigh_2b2b,
+            # "VR_2b2j_noVBF": self.VR & self.btagLow_2b2j,
+            # "CR_2b2b_noVBF": self.CR & self.btagHigh_2b2b,
+            # "CR_2b2j_noVBF": self.CR & self.btagLow_2b2j,
         }
         if self.blind:
             selections["SR_2b2b"] = np.zeros(self.nEvents, dtype=bool)
@@ -542,11 +542,19 @@ class ObjectSelection:
                 "var": self.m_h1,
                 "sel": None,
             },
-            "m_h1_test": {
+            "m_h2": {
+                "var": self.m_h2,
+                "sel": None,
+            },
+            "m_hh_lessBins": {
+                "var": self.m_hh,
+                "sel": None,
+            },
+            "m_h1_lessBins": {
                 "var": self.m_h1,
                 "sel": None,
             },
-            "m_h2": {
+            "m_h2_lessBins": {
                 "var": self.m_h2,
                 "sel": None,
             },
@@ -582,19 +590,19 @@ class ObjectSelection:
                 "var": self.pt_vbf2,
                 "sel": None,
             },
-            "pt_h1_btag_vr_1": {
+            "pt_h1_btag_vr1": {
                 "var": self.pt_h1_btag_vr_1,
                 "sel": None,
             },
-            "pt_h1_btag_vr_2": {
+            "pt_h1_btag_vr2": {
                 "var": self.pt_h1_btag_vr_2,
                 "sel": None,
             },
-            "pt_h2_btag_vr_1": {
+            "pt_h2_btag_vr1": {
                 "var": self.pt_h2_btag_vr_1,
                 "sel": None,
             },
-            "pt_h2_btag_vr_2": {
+            "pt_h2_btag_vr2": {
                 "var": self.pt_h2_btag_vr_2,
                 "sel": None,
             },
@@ -602,35 +610,35 @@ class ObjectSelection:
                 "var": self.mjj_vbf,
                 "sel": None,
             },
-            "lrj_pt": {
+            "pt_lrj": {
                 "var": self.lrj_pt,
                 "sel": None,
             },
-            "lrj_eta": {
+            "eta_lrj": {
                 "var": self.lrj_eta,
                 "sel": None,
             },
-            "lrj_phi": {
+            "phi_lrj": {
                 "var": self.lrj_phi,
                 "sel": None,
             },
-            "lrj_m": {
+            "m_lrj": {
                 "var": self.lrj_m,
                 "sel": None,
             },
-            "srj_pt": {
+            "pt_srj": {
                 "var": self.srj_pt,
                 "sel": None,
             },
-            "srj_eta": {
+            "eta_srj": {
                 "var": self.srj_eta,
                 "sel": None,
             },
-            "srj_phi": {
+            "phi_srj": {
                 "var": self.srj_phi,
                 "sel": None,
             },
-            "srj_m": {
+            "m_srj": {
                 "var": self.srj_m,
                 "sel": None,
             },
@@ -645,7 +653,7 @@ class ObjectSelection:
                 # write selectionBool e.g. SR_4b
                 kinVarDict["sel"] = selectionBool
                 # need to make a deep copy as dict assignments just creates references
-                finalSel[kinVar + "_" + region] = copy.deepcopy(kinVarDict)
+                finalSel[kinVar + "." + region] = copy.deepcopy(kinVarDict)
 
         # go over all defined hists, and return
         results = {}
@@ -671,7 +679,7 @@ class ObjectSelection:
 
         # add massplane
         for region, selectionBool in selections.items():
-            results["massplane_" + region] = [
+            results["massplane." + region] = [
                 np.array(
                     [
                         self.m_h1[selectionBool],

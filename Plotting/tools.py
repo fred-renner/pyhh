@@ -165,14 +165,16 @@ def CR_hh(m_h1, m_h2):
 
 
 def ErrorPropagation(
-    sigmaA,
-    sigmaB,
-    operation,
+    sigmaA=None,
+    sigmaB=None,
+    operation=None,
     A=None,
     B=None,
+    exp=None,
 ):
     """
-    calculate propagated error
+    calculate propagated error based from
+    https://en.wikipedia.org/wiki/Propagation_of_uncertainty
 
     Parameters
     ----------
@@ -181,12 +183,13 @@ def ErrorPropagation(
     sigmaB : ndarray
         standard error of B
     operation : str
-        +, -, *, /
+        +, -, *, /, ^
     A : ndarray, optional
         A values, by default None
     B : ndarray, optional
         B values, by default None
-
+    exponent : ndarray
+        for power operation on A
     Returns
     -------
     np.ndarray
@@ -205,6 +208,8 @@ def ErrorPropagation(
             np.power(np.divide(sigmaA, A, out=np.zeros_like(sigmaA), where=A != 0), 2)
             + np.power(np.divide(sigmaB, B, out=np.zeros_like(sigmaB), where=B != 0), 2)
         )
+    if "^" in operation:
+        error = np.abs(np.power(A, exp) / A * (exp * sigmaA))
 
     return error
 
@@ -276,7 +281,7 @@ def subintervals(a, b, n):
 
 def repeatLastValue(a):
     """repeat last Value to get e.g. stat error bar ax.fill_between right"""
-    a=np.array(a)
+    a = np.array(a)
     firstNonNanIndex = np.where(np.isnan(a) == False)[0][-1]
-    b=np.insert(a, firstNonNanIndex, a[firstNonNanIndex])
+    b = np.insert(a, firstNonNanIndex, a[firstNonNanIndex])
     return b

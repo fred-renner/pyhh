@@ -16,6 +16,7 @@ from matplotlib import ticker as mticker
 from pdf2image import convert_from_path
 from tools.logging import log
 
+np.seterr(divide="ignore", invalid="ignore")
 
 plt.style.use(hep.style.ATLAS)
 
@@ -74,38 +75,38 @@ def makeGrid():
     regions = ["CR", "VR", "SR"]
     vbf = ["", "noVBF"]
 
-    # for var in collectedKinVars:
-    #     log.info(f"making grid for variable {var}")
-    #     plotsPerGrid = []
-    #     for btag in btags:
-    #         for reg in regions:
-    #             if "massplane" in var:
-    #                 plot = "_".join([var, reg, btag])
-    #             else:
-    #                 plot = "_".join([var, reg, btag, "ratio"])
-    #             plot += ".pdf"
-    #             plotsPerGrid += [plot]
-    #     plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
-    #     y = len(regions)
-    #     x = len(btags)
+    for var in collectedKinVars:
+        log.info(f"making grid for variable {var}")
+        plotsPerGrid = []
+        for btag in btags:
+            for reg in regions:
+                if "massplane" in var:
+                    plot = "_".join([var, reg, btag])
+                else:
+                    plot = "_".join([var, reg, btag, "ratio"])
+                plot += ".pdf"
+                plotsPerGrid += [plot]
+        plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
+        y = len(regions)
+        x = len(btags)
 
-    #     ims = [
-    #         np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
-    #     ]
+        ims = [
+            np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
+        ]
 
-    #     savegrid(
-    #         ims,
-    #         f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
-    #         rows=x,
-    #         cols=y,
-    #     )
+        savegrid(
+            ims,
+            f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
+            rows=x,
+            cols=y,
+        )
 
     # for bkg_estimate
     for var in collectedKinVars:
         log.info(f"making grid for variable {var} Background estimate")
         plotsPerGrid = []
         btag = "2b2b"
-        for suffix in ["bkgEstimate_ratio","ratio"]:
+        for suffix in ["bkgEstimate_ratio", "ratio"]:
             for reg in ["CR", "VR"]:
                 if "massplane" not in var:
                     plot = "_".join([var, reg, btag, suffix])
@@ -149,13 +150,12 @@ def plotLabel(histKey, ax):
     labels["vbf"] = "VBF4b"
 
     # var
-    labels["var"] = "".join(keyParts[:-2])
-    # if "mh1" in keyParts[0]:
-    #     label["var"] = "$m_{H1}$"
-    # if "mh2" in keyParts[0]:
-    #     label["var"] = "$m_{H2}$"
-    # if "mhh" in keyParts[0]:
-    #     label["var"] = "$m_{HH}$"
+    labels["var"] = " ".join(keyParts[:-2])
+
+    # labels["var"] = keyParts[0] + "$_\mathrm{" + ",".join(keyParts[1:]) + "}$"
+    # print(keyParts)
+    # print(",".join(keyParts[1:-2]))
+
 
     labels["plot"] = ("\n").join(
         ["Run 2, " + labels["vbf"], labels["region"] + ", " + labels["btag"]]
@@ -656,7 +656,13 @@ def mh_SB_ratio(histKey):
     plt.close()
 
 
-def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
+def kinVar_data_ratio(
+    histKey,
+    SoverB=False,
+    bkgEstimate=False,
+    rebinFactor=None,
+):
+    log.info("Plotting " + histKey)
     signal = SMsignal[histKey]["h"]
     signal_err = SMsignal[histKey]["err"]
     data = run2[histKey]["h"]
@@ -718,7 +724,7 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
 
     # prediction
     pred = tt + jj
-    pred_err = Plotting.tools.ErrorPropagation(tt_err, jj_err, "+")
+    pred_err = Plotting.tools.ErrorPropagation(tt_err, jj_err, operation="+")
 
     ratio = data / pred
     ratio_err = Plotting.tools.ErrorPropagation(
@@ -730,13 +736,23 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
     )
 
     plt.figure()
-    fig, (ax, rax) = plt.subplots(
-        nrows=2,
-        ncols=1,
-        figsize=(8, 8),
-        gridspec_kw={"height_ratios": (3, 1)},
-        sharex=True,
-    )
+    if SoverB:
+        fig, (ax, rax, rax2) = plt.subplots(
+            nrows=3,
+            ncols=1,
+            figsize=(8, 8 * 1.25),
+            gridspec_kw={"height_ratios": (3, 1, 1)},
+            sharex=True,
+        )
+    else:
+        fig, (ax, rax) = plt.subplots(
+            nrows=2,
+            ncols=1,
+            figsize=(8, 8),
+            gridspec_kw={"height_ratios": (3, 1)},
+            sharex=True,
+        )
+    fig.subplots_adjust(hspace=0.08)
 
     # stack plot
     hep.histplot(
@@ -774,16 +790,25 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
         label="data",
         ax=ax,
     )
+    # Signal
     hep.histplot(
         signal * 10000,
         edges,
         histtype="step",
         # yerr=True,
-        label="SM Signal x 10000",
+        label="SM Signal x $10^4$",
         ax=ax,
         color="hh:darkyellow",  # "orangered",
         linewidth=1.25,
     )
+    ax.legend(loc="upper right")
+    ax.autoscale()
+    # ax.get_ylim()
+    # if ymax:
+    #     ax.set_ylim([1e-3, 1e6])
+    # else:
+    #     ax.set_ylim([1e-3, 1e6])
+    ax.set_yscale("log")
 
     # ratio plot
     hep.histplot(
@@ -794,7 +819,6 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
         ax=rax,
         color="Black",
     )
-
     normErrLow = (pred - pred_err) / pred
     normErrHigh = (pred + pred_err) / pred
     # error ratioplot
@@ -808,46 +832,86 @@ def kinVar_data_ratio(histKey, bkgEstimate=False, rebinFactor=None, ymax=None):
         step="post",
         # label="stat. uncertainty",
     )
+    rax.set_ylim([0.0, 2])
+    # draw line at 1.0
+    rax.axhline(y=1.0, color="tab:red", linestyle="-")
 
-    fig.subplots_adjust(hspace=0.07)
+    plt.tight_layout()
+
+    if SoverB:
+        sqrt_pred = np.sqrt(pred)
+        sqrt_pred_err = Plotting.tools.ErrorPropagation(
+            A=pred, sigmaA=pred_err, operation="^", exp=0.5
+        )
+        ratio2 = signal / sqrt_pred
+        ratio2_err = Plotting.tools.ErrorPropagation(
+            signal_err,
+            sqrt_pred_err,
+            "/",
+            signal,
+            sqrt_pred,
+        )
+        hep.histplot(
+            ratio2,
+            edges,
+            histtype="errorbar",
+            yerr=ratio2_err,
+            ax=rax2,
+            color="Black",
+        )
+        # rax2.fill_between(
+        #     edges,
+        #     Plotting.tools.repeatLastValue(normErrLow),
+        #     Plotting.tools.repeatLastValue(normErrHigh),
+        #     color="dimgrey",
+        #     linewidth=0,
+        #     alpha=0.3,
+        #     step="post",
+        #     # label="stat. uncertainty",
+        # )
+        rax2.set_ylabel(
+            "$\mathrm{S}/\sqrt{\mathrm{Pred.}}$", horizontalalignment="center"
+        )
+        # rax2.set_ylabel(
+        #     r"$ \frac{\mathrm{S}}{\sqrt{\mathrm{Pred.}}}$", horizontalalignment="center"
+        # )
+        # rax2.set_yscale("log")
     ax.set_ylabel("Events")
     rax.set_ylabel(
         r"$ \frac{\mathrm{Data}}{\mathrm{Pred.}}$", horizontalalignment="center"
     )
-    rax.set_ylim([0.0, 2])
-    # draw line at 1.0
-    plt.axhline(y=1.0, color="tab:red", linestyle="-")
-    ax.legend(loc="upper right")
 
-    # ax.autoscale()
-    # ax.get_ylim()
-    # if ymax:
-    #     ax.set_ylim([1e-3, 1e6])
-    # else:
-    #     ax.set_ylim([1e-3, 1e6])
-
-    ax.set_yscale("log")
-    hep.atlas.set_xlabel(f"{histKey} [GeV] ")
     labels = plotLabel(histKey, ax)
 
-    # hep.mpl_magic(ax=ax)
+    if "eta" in histKey or "phi" in histKey or "dR" in histKey:
+        hep.atlas.set_xlabel(f"{labels['var']}")
+    else:
+        hep.atlas.set_xlabel(f"{labels['var']} [GeV]")
+        ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
 
+    # hep.mpl_magic(ax=ax)
+    newLim = list(ax.get_ylim())
+    newLim[1] = newLim[1] * 10
+    ax.set_ylim(newLim)
     plt.tight_layout()
-    rax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    if SoverB:
+        rax2.get_xaxis().get_offset_text().set_position((2, 0))
+    else:
+        rax.get_xaxis().get_offset_text().set_position((2, 0))
+
     # to show subticks of logplot
     ax.yaxis.set_major_locator(mticker.LogLocator(numticks=999))
     ax.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
-
+    # rax2.yaxis.set_major_locator(mticker.LogLocator(numticks=999))
+    # rax2.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
     if bkgEstimate:
         plt.savefig(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
-        log.info(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
-
+        log.info("saving to : " + plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
     else:
         plt.savefig(plotPath + f"{histKey}_ratio.pdf")
-        log.info(plotPath + f"{histKey}_ratio.pdf")
+        log.info("saving to : " + plotPath + f"{histKey}_ratio.pdf")
 
-    plt.close()
+    plt.close(fig)
 
 
 def compareABCD(histKey, factor=None):
@@ -1005,7 +1069,8 @@ dijet = hists["dijet"]
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
 # kinVar_data_ratio("m_h1_twoLargeR",rebinFactor=10)
-# kinVar_data_ratio("m_h1_test_VR_2b2b")
+# kinVar_data_ratio("lrj_phi_SR_2b2b", SoverB=True)
+# kinVar_data_ratio("m_h1_test_VR_2b2b", SoverB=True)
 # kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
 # kinVar_data_ratio("m_hh_CR_2b2j", rebinFactor=2)
 # kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
@@ -1013,21 +1078,20 @@ dijet = hists["dijet"]
 # kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 
-# for var in collectedKinVarsWithRegions:
-#     log.info(var)
-#     if "massplane" in var:
-#         massplane(var)
-#     else:
-#         if "noVBF" not in var:
-#             kinVar_data_ratio(var, bkgEstimate=False)
-# for var in collectedKinVarsWithRegions:
-#     if "2b2b" in var:
-#         if "noVBF" not in var:
-#             if "massplane" not in var:
-#                 log.info(var)
-#                 kinVar_data_ratio(var, bkgEstimate=True)
+
+for var in collectedKinVarsWithRegions:
+    if "massplane" in var:
+        massplane(var)
+    else:
+        if "noVBF" not in var:
+            kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
+for var in collectedKinVarsWithRegions:
+    if "2b2b" in var:
+        if "noVBF" not in var:
+            if "massplane" not in var:
+                kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
 makeGrid()
 
-# for var in collectedKinVarsWithRegions:
-#     if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:
-#         compareABCD(var, factor=6)
+for var in collectedKinVarsWithRegions:
+    if "mh" in var and "2b2b" in var and not "noVBF" in var and not "SR" in var:
+        compareABCD(var, factor=6)
