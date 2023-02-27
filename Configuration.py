@@ -2,7 +2,7 @@ import tools.HistFillerTools
 import os
 
 
-class Config:
+class Setup:
     def __init__(self, args):
         if args.batchMode:
             # to run on same cpu core as main program, even with cpus=1 a child

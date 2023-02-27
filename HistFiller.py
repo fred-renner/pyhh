@@ -19,7 +19,7 @@ parser.add_argument("--file", type=str, default=None)
 args = parser.parse_args()
 
 # get configuration
-config = Configuration.Config(args)
+config = Configuration.Setup(args)
 
 
 def filling_callback(results):

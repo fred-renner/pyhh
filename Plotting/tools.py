@@ -279,9 +279,23 @@ def subintervals(a, b, n):
     return lst
 
 
-def repeatLastValue(a):
-    """repeat last Value to get e.g. stat error bar ax.fill_between right"""
-    a = np.array(a)
-    firstNonNanIndex = np.where(np.isnan(a) == False)[0][-1]
-    b = np.insert(a, firstNonNanIndex, a[firstNonNanIndex])
-    return b
+def missing_elements(L):
+    """ find missing values in int sequence """
+    start, end = L[0], L[-1]
+    return sorted(set(range(start, end + 1)).difference(L))
+
+
+def fillStatHoles(a):
+    """
+    append one nan and replace nan next to whole with value before to get stat
+    error bars correct
+    """
+    
+    a = np.append(a, np.nan)
+    nonNanIndices = np.where(np.isnan(a) == False)[0]
+    for i in nonNanIndices:
+        if np.isnan(a[i+1]):
+            a[i+1]=a[i]
+    
+
+    return a

@@ -238,7 +238,7 @@ kinematicHists = [
 
 # construct hists for all regions and kinematic vars
 regions = [
-    "None",
+    "trigger",
     "twoLargeR",
     "SR_2b2b",
     "SR_2b2j",

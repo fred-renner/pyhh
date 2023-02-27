@@ -12,26 +12,26 @@ with h5py.File(run2File, "r") as run2:
             # works with any kinematic var as vars are filled with the nr of
             # selected events
             # print(run2.keys())
-            CR_2b2b_Data = np.sum(run2["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_Data = np.sum(run2["mhh_CR_2b2j"]["histogram"][:])
-            CR_2b2b_ttbar = np.sum(ttbar["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_ttbar = np.sum(ttbar["mhh_CR_2b2j"]["histogram"][:])
-            CR_2b2b_dijet = np.sum(dijet["mhh_CR_2b2b"]["histogram"][:])
-            CR_2b2j_dijet = np.sum(dijet["mhh_CR_2b2j"]["histogram"][:])
+            CR_2b2b_Data = np.sum(run2["m_hh.CR_2b2b"]["histogram"][:])
+            CR_2b2j_Data = np.sum(run2["m_hh.CR_2b2j"]["histogram"][:])
+            CR_2b2b_ttbar = np.sum(ttbar["m_hh.CR_2b2b"]["histogram"][:])
+            CR_2b2j_ttbar = np.sum(ttbar["m_hh.CR_2b2j"]["histogram"][:])
+            CR_2b2b_dijet = np.sum(dijet["m_hh.CR_2b2b"]["histogram"][:])
+            CR_2b2j_dijet = np.sum(dijet["m_hh.CR_2b2j"]["histogram"][:])
 
-            VR_2b2b_Data = np.sum(run2["mhh_VR_2b2b"]["histogram"][:])
-            VR_2b2j_Data = np.sum(run2["mhh_VR_2b2j"]["histogram"][:])
-            VR_2b2b_ttbar = np.sum(ttbar["mhh_VR_2b2b"]["histogram"][:])
-            VR_2b2j_ttbar = np.sum(ttbar["mhh_VR_2b2j"]["histogram"][:])
-            VR_2b2b_dijet = np.sum(dijet["mhh_VR_2b2b"]["histogram"][:])
-            VR_2b2j_dijet = np.sum(dijet["mhh_VR_2b2j"]["histogram"][:])
+            VR_2b2b_Data = np.sum(run2["m_hh.VR_2b2b"]["histogram"][:])
+            VR_2b2j_Data = np.sum(run2["m_hh.VR_2b2j"]["histogram"][:])
+            VR_2b2b_ttbar = np.sum(ttbar["m_hh.VR_2b2b"]["histogram"][:])
+            VR_2b2j_ttbar = np.sum(ttbar["m_hh.VR_2b2j"]["histogram"][:])
+            VR_2b2b_dijet = np.sum(dijet["m_hh.VR_2b2b"]["histogram"][:])
+            VR_2b2j_dijet = np.sum(dijet["m_hh.VR_2b2j"]["histogram"][:])
             
-            SR_2b2b_Data = np.sum(run2["mhh_SR_2b2b"]["histogram"][:])
-            SR_2b2j_Data = np.sum(run2["mhh_SR_2b2j"]["histogram"][:])
-            SR_2b2b_ttbar = np.sum(ttbar["mhh_SR_2b2b"]["histogram"][:])
-            SR_2b2j_ttbar = np.sum(ttbar["mhh_SR_2b2j"]["histogram"][:])
-            SR_2b2b_dijet = np.sum(dijet["mhh_SR_2b2b"]["histogram"][:])
-            SR_2b2j_dijet = np.sum(dijet["mhh_SR_2b2j"]["histogram"][:])
+            SR_2b2b_Data = np.sum(run2["m_hh.SR_2b2b"]["histogram"][:])
+            SR_2b2j_Data = np.sum(run2["m_hh.SR_2b2j"]["histogram"][:])
+            SR_2b2b_ttbar = np.sum(ttbar["m_hh.SR_2b2b"]["histogram"][:])
+            SR_2b2j_ttbar = np.sum(ttbar["m_hh.SR_2b2j"]["histogram"][:])
+            SR_2b2b_dijet = np.sum(dijet["m_hh.SR_2b2b"]["histogram"][:])
+            SR_2b2j_dijet = np.sum(dijet["m_hh.SR_2b2j"]["histogram"][:])
 # make multijet only
 CR1 = CR_2b2b_Data - CR_2b2b_ttbar
 CR2 = CR_2b2j_Data - CR_2b2j_ttbar
@@ -60,60 +60,34 @@ tmp = globals().copy()
     and not hasattr(v, "__call__")
 ]
 
-# with >=
+
 # CR_2b2b_Data :  422.0
 # CR_2b2j_Data :  51068.0
-# CR_2b2b_ttbar :  23.389917929619916
-# CR_2b2j_ttbar :  1616.5546985863693
+# CR_2b2b_ttbar :  12.646221207021231
+# CR_2b2j_ttbar :  772.0608981793496
 # CR_2b2b_dijet :  301.01295777480243
-# CR_2b2j_dijet :  50043.96716752163
+# CR_2b2j_dijet :  50043.96716752165
 # VR_2b2b_Data :  100.0
 # VR_2b2j_Data :  12017.0
-# VR_2b2b_ttbar :  8.205115660238086
-# VR_2b2j_ttbar :  369.98453930424955
+# VR_2b2b_ttbar :  3.928231397855248
+# VR_2b2j_ttbar :  178.71181653892523
 # VR_2b2b_dijet :  75.10225686177348
-# VR_2b2j_dijet :  11703.753269491555
+# VR_2b2j_dijet :  11703.753269491554
 # SR_2b2b_Data :  0.0
 # SR_2b2j_Data :  4881.0
-# SR_2b2b_ttbar :  1.60228221395706
-# SR_2b2j_ttbar :  68.95969051783325
+# SR_2b2b_ttbar :  0.8228519052958185
+# SR_2b2j_ttbar :  31.615168163356643
 # SR_2b2b_dijet :  25.728457586195567
 # SR_2b2j_dijet :  4892.262786981583
-# CR1 :  398.6100820703801
-# CR2 :  49451.44530141363
-# VR1 :  91.79488433976192
-# VR2 :  11647.015460695751
-# w_CR :  0.008060635632402544
-# w_VR :  0.007881408301511642
-# errCR1 :  25.3789510151095
-# errCR2 :  266.18870140591633
-# errVR1 :  12.864457306408683
-# errVR2 :  128.8570602440667
-# err_w_CR :  0.0005150403753024878
-# err_w_VR :  0.001107964697105445
-
-# with ==
-# CR_2b2b_Data :  393.0
-# CR_2b2j_Data :  25861.0
-# CR_2b2b_ttbar :  22.676181152330216
-# CR_2b2j_ttbar :  935.5754906961702
-# CR_2b2b_dijet :  290.60213392208226
-# CR_2b2j_dijet :  25923.139412338314
-# VR_2b2b_Data :  93.0
-# VR_2b2j_Data :  5748.0
-# VR_2b2b_ttbar :  8.205115660238086
-# VR_2b2j_ttbar :  224.09271509960655
-# VR_2b2b_dijet :  72.86379160674761
-# VR_2b2j_dijet :  5581.716131645005
-# CR1 :  370.32381884766977
-# CR2 :  24925.42450930383
-# VR1 :  84.79488433976192
-# VR2 :  5523.907284900393
-# w_CR :  0.014857272288760428
-# w_VR :  0.015350526351437657
-# errCR1 :  24.58617900331766
-# errCR2 :  191.40073517688205
-# errVR1 :  12.508108067401638
-# errVR2 :  90.78529230483662
-# err_w_CR :  0.0009929654997671551
-# err_w_VR :  0.0022783697623748847
+# CR1 :  409.35377879297874
+# CR2 :  50295.93910182065
+# VR1 :  96.07176860214476
+# VR2 :  11838.288183461074
+# w_CR :  0.008138903181910379
+# w_VR :  0.00811534295442848
+# errCR1 :  24.098791169064334
+# errCR2 :  253.7682840358571
+# errVR1 :  11.981976639079091
+# errVR2 :  122.99039196861689
+# err_w_CR :  0.00048089641813414284
+# err_w_VR :  0.0010156431633817733

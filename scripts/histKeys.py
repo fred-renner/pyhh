@@ -14,10 +14,4 @@ log.info("*** Variables ***")
 for var in collectedKinVars:
     log.info(var)
 print("\n")
-log.info("format is variable_region")
-
-# import h5py
-# file = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
-
-# with h5py.File(file, "r") as f:
-#     log.info(f.keys())
+log.info("format is variable.region_btag")

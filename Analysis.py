@@ -440,30 +440,18 @@ class ObjectSelection:
         """
 
         selections = {
-            "None": np.repeat(True, self.nEvents),
+            "trigger": self.trigger,
+            "twoLargeR": self.selectedTwoLargeRevents,
             "SR_2b2j": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
             "VR_2b2b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
             "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
             "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
             "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
-            # "SR_2b2j_noVBF": self.SR & self.btagLow_2b2j,
-            # "VR_2b2b_noVBF": self.VR & self.btagHigh_2b2b,
-            # "VR_2b2j_noVBF": self.VR & self.btagLow_2b2j,
-            # "CR_2b2b_noVBF": self.CR & self.btagHigh_2b2b,
-            # "CR_2b2j_noVBF": self.CR & self.btagLow_2b2j,
         }
         if self.blind:
             selections["SR_2b2b"] = np.zeros(self.nEvents, dtype=bool)
-            selections["SR_2b2b_noVBF"] = np.zeros(self.nEvents, dtype=bool)
-            selections["twoLargeR"] = (
-                ~self.SR & self.selectedTwoLargeRevents & self.VBFjetsPass
-            )
-            selections["twoLargeR_noVBF"] = ~self.SR & self.selectedTwoLargeRevents
         else:
             selections["SR_2b2b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
-            selections["SR_2b2b_noVBF"] = self.SR & self.btagHigh_2b2b
-            selections["twoLargeR"] = self.selectedTwoLargeRevents & self.VBFjetsPass
-            selections["twoLargeR_noVBF"] = self.selectedTwoLargeRevents
 
         # singular vars
         finalSel = {
