@@ -6,7 +6,7 @@ class Setup:
     def __init__(self, args):
         if args.batchMode:
             # to run on same cpu core as main program, even with cpus=1 a child
-            # process is spawned on another cpu core
+            # process is spawned on another cpu core if not dummy
             import multiprocessing.dummy as multiprocessing
 
         else:

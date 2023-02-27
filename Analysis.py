@@ -306,14 +306,10 @@ class ObjectSelection:
             ]
             # the following is fine as they come pt sorted already
             # h1
-            # if h1_btag_VR_pts.shape[0] == 1:
-            #     self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
             if h1_btag_VR_pts.shape[0] == 2:
                 self.pt_h1_btag_vr_1[event] = h1_btag_VR_pts[0]
                 self.pt_h1_btag_vr_2[event] = h1_btag_VR_pts[1]
             # h2
-            # if h2_btag_VR_pts.shape[0] == 1:
-            #     self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
             if h2_btag_VR_pts.shape[0] == 2:
                 self.pt_h2_btag_vr_1[event] = h2_btag_VR_pts[0]
                 self.pt_h2_btag_vr_2[event] = h2_btag_VR_pts[1]
@@ -712,14 +708,14 @@ class ObjectSelection:
 
 def flatten2d(arr, weights, sel=None):
     """
-    flatten 2d inhomogeneous array and replicate weights for each event
+    flatten 2d inhomogeneous array and replicate weights values per event
 
     Parameters
     ----------
     arr : list of lists
         list holding lists of values
     weights : nd.array
-        weights per event same shape as arr.shape[0]
+        weights per event same shape as len(arr)
     sel : np.array, optional
         event selection, by default None
     Returns

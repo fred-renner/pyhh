@@ -24,9 +24,8 @@ config = Configuration.Setup(args)
 
 def filling_callback(results):
     """
-    The filling is executed each time an Analysis.Run job finishes. According
-    to this it is executed sequentially, so no data races.
-    https://stackoverflow.com/questions/24770934/who-runs-the-callback-when-using-apply-async-method-of-a-multiprocessing-pool
+    The filling is executed each time an Analysis.Run job finishes. This is
+    executed sequentially so no data races
 
     Parameters
     ----------
