@@ -34,9 +34,8 @@ class Setup:
             # self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
             # self.filelist = tools.HistFillerTools.ConstructFilelist("run2")
             # make hist out file name from filename
-            if "histOutFileName" not in locals():
-                dataset = self.filelist[0].split("/")
-                histOutFileName = "hists-" + dataset[-2] + ".h5"
+            dataset = self.filelist[0].split("/")
+            histOutFileName = "hists-" + dataset[-2] + ".h5"
 
             self.histOutFile = (
                 "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName

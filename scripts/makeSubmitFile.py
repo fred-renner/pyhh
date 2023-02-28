@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append('/lustre/fs22/group/atlas/freder/hh/hh-analysis')
 import subprocess
 from tools.HistFillerTools import ConstructFilelist
 import argparse

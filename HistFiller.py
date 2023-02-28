@@ -18,9 +18,6 @@ parser.add_argument("--batchMode", action="store_true")
 parser.add_argument("--file", type=str, default=None)
 args = parser.parse_args()
 
-# get configuration
-config = Configuration.Setup(args)
-
 
 def filling_callback(results):
     """
@@ -48,6 +45,8 @@ def error_handler(e):
     return
 
 
+# get configuration
+config = Configuration.Setup(args)
 # init hists
 hists = HistDefs.hists
 

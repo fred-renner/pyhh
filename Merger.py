@@ -18,11 +18,6 @@ else:
 filelist = ConstructFilelist(sample, toMerge=True)
 mergedFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + sample + ".h5"
 
-# get hist names
-hists = []
-with h5py.File(filelist[0], "r") as readFile:
-    histKeys = list(readFile.keys())
-
 with h5py.File(mergedFile, "w") as mergeFile:
     # copy some file
     with h5py.File(filelist[0], "r") as readFile:

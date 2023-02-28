@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# from tqdm import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import AnchoredText

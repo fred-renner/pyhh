@@ -1,4 +1,5 @@
 import re
+import os
 import json
 from tools.MetaData import ConstructDatasetName
 import glob
@@ -16,7 +17,6 @@ mcCampaign = {
 
 
 def GetMetaDataFromFile(file):
-
     metaData = {}
     filepath = file._file._file_path
 
@@ -91,7 +91,11 @@ def ConstructFilelist(sampleName, toMerge=False):
     if "topPath" not in locals():
         raise NameError(f"{sampleName} is not defined")
     filelist = []
-    for file in glob.iglob(topPath + "/" + pattern):
+
+    # sort by descending file size
+    for file in sorted(
+        glob.iglob(topPath + "/" + pattern), key=os.path.getsize, reverse=True
+    ):
         filelist += [file]
 
     return filelist
@@ -114,7 +118,6 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
 
 
 def GetGenerators(tree, vars, nEvents=-1):
-
     batch_ranges = EventRanges
     # load a certain range
     for batch in batch_ranges:
