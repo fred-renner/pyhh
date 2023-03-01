@@ -1,9 +1,10 @@
+import copy
+import itertools
+from operator import xor
+
 import numpy as np
 import vector
-from operator import xor
-import itertools
-from Plotting.tools import Xhh, CR_hh
-import copy
+from Plotting.tools import CR_hh, Xhh
 from tools.logging import log
 
 np.set_printoptions(threshold=np.inf)
@@ -82,8 +83,8 @@ class ObjectSelection:
             self.hasTruth = True
         else:
             self.hasTruth = False
+
         # fmt: off
-        
         self.vars_arr = vars_arr
         self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
         self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
@@ -97,7 +98,7 @@ class ObjectSelection:
         self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
-        
+
         # don't refactor for now as this file is read to load the vars
         if self.mc:
             # mc21
@@ -441,6 +442,8 @@ class ObjectSelection:
             "SR_2b2j": self.SR & self.btagLow_2b2j & self.VBFjetsPass,
             "VR_2b2b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
             "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
+            "CR_1b1b": self.CR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "CR_2b1b": self.CR & self.btagHigh_2b1b & self.VBFjetsPass,
             "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
             "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
         }

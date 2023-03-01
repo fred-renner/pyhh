@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
-from tqdm.auto import tqdm
-import uproot
+import argparse
+import multiprocessing
+
+import Analysis
+import Configuration
 import HistDefs
 import tools.HistFillerTools
 import tools.MetaData
+import uproot
 from h5py import File
-import Analysis
-import multiprocessing
-import argparse
-import Configuration
 from tools.logging import log
+from tqdm.auto import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--cpus", type=int, default=None)

@@ -4,6 +4,7 @@ declare -a samples=(
     "run2"
     "mc20_dijet"
     "mc20_SM"
+    "mc20_k2v0"
 )
 
 ## now loop through the above array

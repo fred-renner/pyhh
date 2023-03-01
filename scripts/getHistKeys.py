@@ -2,8 +2,8 @@
 import sys
 
 sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh")
-from tools.logging import log
 from HistDefs import collectedKinVars, collectedKinVarsWithRegions, regions
+from tools.logging import log
 
 print("\n")
 log.info("*** Regions ***\n")

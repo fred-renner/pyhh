@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.offsetbox import AnchoredText
-import mplhep as hep
-import os
-import logging
 import argparse
-import Plotting.loadHists
+import logging
+import os
+
+import matplotlib.pyplot as plt
+import mplhep as hep
+import numpy as np
 import Plotting.colors
+import Plotting.loadHists
 import Plotting.tools
-from Plotting.tools import ErrorPropagation as propagateError
 from HistDefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
+from matplotlib.offsetbox import AnchoredText
 from pdf2image import convert_from_path
+from Plotting.tools import ErrorPropagation as propagateError
 from tools.logging import log
 
 np.seterr(divide="ignore", invalid="ignore")

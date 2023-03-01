@@ -1,5 +1,5 @@
-import numpy as np
 import matplotlib.ticker
+import numpy as np
 
 
 def EfficiencyErrorBayesian(k, n, bUpper):

@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
-import numpy as np
-import h5py
-from tqdm.auto import tqdm
-from tools.HistFillerTools import ConstructFilelist
 import argparse
+
+import h5py
+import numpy as np
+from tools.HistFillerTools import ConstructFilelist
 from tools.logging import log
+from tqdm.auto import tqdm
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--sample", type=str, default=None)

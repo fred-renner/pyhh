@@ -1,6 +1,7 @@
-from tools.Histograms import FloatHistogram, IntHistogram, FloatHistogram2D
 import copy
 import math
+
+from tools.Histograms import FloatHistogram, FloatHistogram2D, IntHistogram
 
 # define hists
 accEffBinning = {"binrange": (0, 5_000_000), "bins": 50}
@@ -90,7 +91,7 @@ hists = [
     ),
 ]
 
-# just use kinematicHists as template to construct further down for all regions
+# use kinematicHists as template to construct further down for all regions
 kinematicHists = [
     # needs to be the same binning as accEff plot
     FloatHistogram(
@@ -111,17 +112,17 @@ kinematicHists = [
     FloatHistogram(
         name="m_hh_lessBins",
         binrange=accEffBinning["binrange"],
-        bins=15,
+        bins=25,
     ),
     FloatHistogram(
         name="m_h1_lessBins",
         binrange=m_hBinning["binrange"],
-        bins=15,
+        bins=25,
     ),
     FloatHistogram(
         name="m_h2_lessBins",
         binrange=m_hBinning["binrange"],
-        bins=15,
+        bins=25,
     ),
     FloatHistogram(
         name="pt_h1",
@@ -244,11 +245,12 @@ regions = [
     "SR_2b2j",
     "VR_2b2b",
     "VR_2b2j",
+    "CR_1b1b",
+    "CR_2b1b",
     "CR_2b2b",
     "CR_2b2j",
 ]
-# regions_noVBF = [r + "_noVBF" for r in regions]
-# regions += regions_noVBF
+
 kinVars = []
 kinVarsWithRegions = []
 for hist in kinematicHists:

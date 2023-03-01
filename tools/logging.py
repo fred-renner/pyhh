@@ -1,8 +1,8 @@
 """python-colorlog"""
 
 import logging
-from colorlog import ColoredFormatter
 
+from colorlog import ColoredFormatter
 
 """Return a log with a default ColoredFormatter."""
 formatter = ColoredFormatter(

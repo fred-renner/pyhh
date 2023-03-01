@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 
-import pyhf
-import numpy as np
-import matplotlib.pyplot as plt
-from pyhf.contrib.viz import brazil
-import Plotting.loadHists
-from Plotting.tools import ErrorPropagation
 import json
+
+import matplotlib.pyplot as plt
+import numpy as np
+import Plotting.loadHists
+import pyhf
+from Plotting.tools import ErrorPropagation
+from pyhf.contrib.viz import brazil
 
 hists = Plotting.loadHists.run()
 fitVariable = "mhh_VR_2b2j"

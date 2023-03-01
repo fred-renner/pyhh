@@ -1,5 +1,6 @@
-import tools.HistFillerTools
 import os
+
+import tools.HistFillerTools
 
 
 class Setup:

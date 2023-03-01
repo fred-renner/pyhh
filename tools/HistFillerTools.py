@@ -1,9 +1,10 @@
-import re
-import os
-import json
-from tools.MetaData import ConstructDatasetName
 import glob
+import json
+import os
+import re
+
 from tools.logging import log
+from tools.MetaData import ConstructDatasetName
 
 mdFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/metaData.json"
 

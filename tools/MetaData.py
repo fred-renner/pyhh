@@ -1,10 +1,11 @@
-import re
-import pyAMI.client
-import pyAMI_atlas.api as AtlasAPI
-import os
-import json
 import csv
 import glob
+import json
+import os
+import re
+
+import pyAMI.client
+import pyAMI_atlas.api as AtlasAPI
 import uproot
 
 client = pyAMI.client.Client("atlas")
