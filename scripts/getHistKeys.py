@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append("/lustre/fs22/group/atlas/freder/hh/hh-analysis")
+sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh")
 from tools.logging import log
 from HistDefs import collectedKinVars, collectedKinVarsWithRegions, regions
 

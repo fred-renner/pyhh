@@ -19,7 +19,7 @@ mcCampaign = {
     # mc20 = "p5057"
 }
 
-mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
+mdFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/metaData.json"
 
 
 def CombineCutBookkeepers(filelist):
@@ -72,9 +72,9 @@ def get(filepath):
         else:
             ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
             if "mc20" in datasetName:
-                pmgFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/PMGxsecDB_mc16.txt"
+                pmgFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/PMGxsecDB_mc16.txt"
             if "mc21" in datasetName:
-                pmgFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/PMGxsecDB_mc21.txt"
+                pmgFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/PMGxsecDB_mc21.txt"
             with open(pmgFile) as fd:
                 # dataset_number/I:physics_short/C:crossSection/D:genFiltEff/D:kFactor/D:relUncertUP/D:relUncertDOWN/D:generator_name/C:etag/C
                 rd = csv.reader(fd, delimiter="\t")

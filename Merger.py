@@ -13,7 +13,7 @@ args = parser.parse_args()
 if args.sample:
     sample = args.sample
 else:
-    sample = "mc20_l1cvv1cv1"
+    sample = "mc20_SM"
 
 filelist = ConstructFilelist(sample, toMerge=True)
 mergedFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-" + sample + ".h5"

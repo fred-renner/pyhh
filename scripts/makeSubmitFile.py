@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys
-sys.path.append('/lustre/fs22/group/atlas/freder/hh/hh-analysis')
+sys.path.append('/lustre/fs22/group/atlas/freder/hh/pyhh')
 import subprocess
 from tools.HistFillerTools import ConstructFilelist
 import argparse
@@ -14,7 +14,7 @@ args = parser.parse_args()
 if args.sample:
     sample = args.sample
 else:
-    sample = "mc20_l1cvv1cv1"
+    sample = "mc20_SM"
 
 filelist = ConstructFilelist(sampleName=sample)
 
@@ -26,7 +26,7 @@ if "mc" in sample:
 
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
-    "cp /lustre/fs22/group/atlas/freder/hh/hh-analysis/scripts/HistFillConfig.txt"
+    "cp /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/HistFillConfig.txt"
     f" /lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub",
     shell=True,
 )

@@ -3,17 +3,17 @@ declare -a samples=(
     "mc20_ttbar"
     "run2"
     "mc20_dijet"
-    "mc20_l1cvv1cv1"
+    "mc20_SM"
 )
 
 # copy and run from submit folder
-rm -rf /lustre/fs22/group/atlas/freder/hh/submit/hh-analysis/
-rsync -r --exclude=.git /lustre/fs22/group/atlas/freder/hh/hh-analysis /lustre/fs22/group/atlas/freder/hh/submit/
+rm -rf /lustre/fs22/group/atlas/freder/hh/submit/pyhh/
+rsync -r --exclude=.git /lustre/fs22/group/atlas/freder/hh/pyhh /lustre/fs22/group/atlas/freder/hh/submit/
 
 # now loop through the above array
 for i in "${samples[@]}"; do
     echo "$i"
-    /lustre/fs22/group/atlas/freder/hh/hh-analysis/scripts/makeSubmitFile.py --sample $i
+    /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/makeSubmitFile.py --sample $i
     cd /lustre/fs22/group/atlas/freder/hh/submit/$i
     condor_submit /lustre/fs22/group/atlas/freder/hh/submit/HistFill_$i.sub
 

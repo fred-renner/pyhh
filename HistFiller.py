@@ -40,8 +40,10 @@ def filling_callback(results):
 
 
 def error_handler(e):
-    log.error("\n\n---error_start---{}\n---error_end---\n".format(e.__cause__))
+    log.error(e.__cause__)
     pool.terminate()
+    # prevents more jobs submissions
+    pool.close()
     return
 
 

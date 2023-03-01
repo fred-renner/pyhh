@@ -1,8 +1,7 @@
-"""python-colorlog example."""
+"""python-colorlog"""
 
 import logging
 from colorlog import ColoredFormatter
-
 
 
 """Return a log with a default ColoredFormatter."""
@@ -25,5 +24,3 @@ handler.setFormatter(formatter)
 log.addHandler(handler)
 log.setLevel(logging.DEBUG)
 log.propagate = False
-
-

@@ -12,42 +12,31 @@ class Setup:
         else:
             import multiprocessing
 
+        outputPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
+
         if args.file:
+            # make full output path
             self.filelist = [args.file]
             fileParts = self.filelist[0].split("/")
             dataset = fileParts[-2]
-            datasetPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + dataset
+            datasetPath = outputPath + dataset
             file = fileParts[-1]
             if not os.path.isdir(datasetPath):
                 os.makedirs(datasetPath)
-
-            self.histOutFile = (
-                "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
-                + dataset
-                + "/"
-                + file
-                + ".h5"
-            )
+            self.histOutFile = outputPath + dataset + "/" + file + ".h5"
         else:
             # default to mc 20 signal
-            self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_l1cvv1cv1")
-            # self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_ttbar")
-            # self.filelist = tools.HistFillerTools.ConstructFilelist("run2")
+            self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_SM")
             # make hist out file name from filename
             dataset = self.filelist[0].split("/")
             histOutFileName = "hists-" + dataset[-2] + ".h5"
-
-            self.histOutFile = (
-                "/lustre/fs22/group/atlas/freder/hh/run/histograms/" + histOutFileName
-            )
+            self.histOutFile = outputPath + histOutFileName
 
         # figure out which vars to load from analysis script
         start = 'vars_arr["'
         end = '"]'
         self.vars = []
-        for line in open(
-            "/lustre/fs22/group/atlas/freder/hh/hh-analysis/Analysis.py", "r"
-        ):
+        for line in open("/lustre/fs22/group/atlas/freder/hh/pyhh/Analysis.py", "r"):
             if "vars_arr[" in line:
                 if "#" not in line:
                     self.vars.append((line.split(start))[1].split(end)[0])
@@ -55,9 +44,7 @@ class Setup:
         # general settings
         if args.debug:
             self.filelist = self.filelist[:3]
-            self.histOutFile = (
-                "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-debug.h5"
-            )
+            self.histOutFile = outputPath + "hists-debug.h5"
             self.nEvents = 1000
             self.cpus = 1
             self.batchSize = 1000
@@ -69,7 +56,7 @@ class Setup:
             elif args.batchMode:
                 self.cpus = 1
             else:
-                self.cpus = multiprocessing.cpu_count() - 4
+                self.cpus = multiprocessing.cpu_count() - 2
 
         # auto setup blind if data
         if any("data" in file for file in self.filelist):

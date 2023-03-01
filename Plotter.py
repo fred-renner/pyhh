@@ -136,7 +136,10 @@ def plotLabel(histKey, ax):
     selParts = sel.split("_")
     varParts = var.split("_")
     varParts = [s for s in varParts if "lessBins" not in s]
-
+    if "pt" in varParts[0]:
+        varParts.pop(0)
+        varParts.insert(0, "t")
+        varParts.insert(0, "p")
     labels = {}
     if "CR" in histKey:
         labels["region"] = "Control Region"
@@ -1051,7 +1054,7 @@ dijet = hists["dijet"]
 # accEff_mhh()
 
 
-# kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=True)
+kinVar_data_ratio("pt_lrj.SR_2b2j", bkgEstimate=True)
 # # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
@@ -1078,6 +1081,6 @@ dijet = hists["dijet"]
 
 # makeGrid()
 
-for var in collectedKinVarsWithRegions:
-    if "m_h" in var and "2b2b" in var and "VR" in var:
-        compareABCD(var)
+# for var in collectedKinVarsWithRegions:
+#     if "m_h" in var and "2b2b" in var and "VR" in var:
+#         compareABCD(var)

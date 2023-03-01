@@ -4,7 +4,7 @@ import h5py
 
 # fmt: off
 # SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-SMsignalFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_l1cvv1cv1.h5"
+SMsignalFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_SM.h5"
 ttbarFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
 dijetFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
 run2FilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"

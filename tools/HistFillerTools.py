@@ -5,8 +5,7 @@ from tools.MetaData import ConstructDatasetName
 import glob
 from tools.logging import log
 
-mdFile = "/lustre/fs22/group/atlas/freder/hh/hh-analysis/tools/metaData.json"
-
+mdFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/metaData.json"
 
 mcCampaign = {
     "r13167": ["2015", "2016"],  # "mc20a", run2, 2015-16
@@ -53,7 +52,7 @@ def ConstructFilelist(sampleName, toMerge=False):
     Parameters
     ----------
     sampleName : str
-        options : mc21_cHHH01d0, mc20_l1cvv1cv1, mc20_ttbar, mc20_dijet, run2
+        options : mc21_SM, mc20_SM, mc20_ttbar, mc20_dijet, run2
     toMerge : bool, optional
         to construct filelist for processed files to merge, by default False
 
@@ -63,25 +62,24 @@ def ConstructFilelist(sampleName, toMerge=False):
         list of strings with full samplepaths
     """
 
-    if sampleName == "mc21_cHHH01d0":
-        topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+    if sampleName == "mc21_SM":
+        topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
-    if sampleName == "mc20_l1cvv1cv1":
-        # 1cvv1cv1
-        topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+    if sampleName == "mc20_SM":
+        topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.*.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
-
+    if sampleName == "mc20_k2v0":
+        topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
+        pattern = "user.frenner.HH4b.*.502971.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv0cv1.e8263_s3681_r*/*"
     # mc20 bkg
     if sampleName == "mc20_ttbar":
         topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
         pattern = "*ttbar*/*"
-
     if sampleName == "mc20_dijet":
         topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
         pattern = "*jetjet*/*"
-
     if sampleName == "run2":
-        topPath = "/lustre/fs22/group/atlas/freder/hh/samples/"
+        topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
         pattern = "user.frenner.HH4b.2023_01_05.data*/*"
 
     if toMerge:
@@ -115,14 +113,3 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j - 1]]
     return batch_ranges
-
-
-def GetGenerators(tree, vars, nEvents=-1):
-    batch_ranges = EventRanges
-    # load a certain range
-    for batch in batch_ranges:
-        if not vars:
-            vars = tree.keys()
-
-        yield tree.arrays(vars, entry_start=batch[0], entry_stop=batch[1], library="np")
-        # del arr
