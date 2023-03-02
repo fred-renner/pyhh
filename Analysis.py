@@ -142,7 +142,6 @@ class ObjectSelection:
         # vectors of vectors init
         # if we don't know the size, lists are faster
         self.selPtSort_lrjIndices = [[] for x in self.eventRange]
-        self.mjj_vbf = [[] for x in self.eventRange]
 
         # int init
         intInitArray = np.full(self.nEvents, -1, dtype=int)
@@ -187,6 +186,7 @@ class ObjectSelection:
         self.leadingLargeRm = np.copy(floatInitArray)
         self.pt_vbf1 = np.copy(floatInitArray)
         self.pt_vbf2 = np.copy(floatInitArray)
+        self.mjj_vbf = np.copy(floatInitArray)
         self.pt_h1_btag_vr_1 = np.copy(floatInitArray)
         self.pt_h1_btag_vr_2 = np.copy(floatInitArray)
         self.pt_h2_btag_vr_1 = np.copy(floatInitArray)
@@ -392,7 +392,6 @@ class ObjectSelection:
                     m_jjs[i] = (jetX + jetY).mass
                     m_jj_pass[i] = m_jjs[i] > 1e6
                     eta_jj_pass[i] = np.abs(jetX.eta - jetY.eta) > 3
-                self.mjj_vbf[event] = m_jjs
                 passMassEta = m_jj_pass & eta_jj_pass
                 if np.count_nonzero(passMassEta) >= 1:
                     largestPtSum = 0
@@ -405,8 +404,11 @@ class ObjectSelection:
                             if jet1Pt < jet2Pt:
                                 twoIndices = twoIndices[::-1]
                             self.VBFjetsPass[event] = True
-                            self.pt_vbf1[event] = passedJets_p4[twoIndices[0]].pt
-                            self.pt_vbf2[event] = passedJets_p4[twoIndices[1]].pt
+                            jetX = passedJets_p4[twoIndices[0]]
+                            jetY = passedJets_p4[twoIndices[1]]
+                            self.pt_vbf1[event] = jetX.pt
+                            self.pt_vbf2[event] = jetY.pt
+                            self.mjj_vbf[event] = (jetX + jetY).mass
 
     def hh_selections(self, event):
         # calculate region variables
@@ -518,6 +520,38 @@ class ObjectSelection:
                 "var": self.leadingLargeRm,
                 "sel": self.triggerRef & self.leadingLargeRpTGreater500,
             },
+            "pt_lrj": {
+                "var": self.lrj_pt,
+                "sel": None,
+            },
+            "eta_lrj": {
+                "var": self.lrj_eta,
+                "sel": None,
+            },
+            "phi_lrj": {
+                "var": self.lrj_phi,
+                "sel": None,
+            },
+            "m_lrj": {
+                "var": self.lrj_m,
+                "sel": None,
+            },
+            "pt_srj": {
+                "var": self.srj_pt,
+                "sel": None,
+            },
+            "eta_srj": {
+                "var": self.srj_eta,
+                "sel": None,
+            },
+            "phi_srj": {
+                "var": self.srj_phi,
+                "sel": None,
+            },
+            "m_srj": {
+                "var": self.srj_m,
+                "sel": None,
+            },
         }
 
         kinematics = {
@@ -530,6 +564,18 @@ class ObjectSelection:
                 "sel": None,
             },
             "m_h2": {
+                "var": self.m_h2,
+                "sel": None,
+            },
+            "m_hh_paper": {
+                "var": self.m_hh,
+                "sel": None,
+            },
+            "m_h1_paper": {
+                "var": self.m_h1,
+                "sel": None,
+            },
+            "m_h2_paper": {
                 "var": self.m_h2,
                 "sel": None,
             },
@@ -577,6 +623,10 @@ class ObjectSelection:
                 "var": self.pt_vbf2,
                 "sel": None,
             },
+            "m_jjVBF": {
+                "var": self.mjj_vbf,
+                "sel": None,
+            },
             "pt_h1_btag_vr1": {
                 "var": self.pt_h1_btag_vr_1,
                 "sel": None,
@@ -591,42 +641,6 @@ class ObjectSelection:
             },
             "pt_h2_btag_vr2": {
                 "var": self.pt_h2_btag_vr_2,
-                "sel": None,
-            },
-            "m_jjVBF": {
-                "var": self.mjj_vbf,
-                "sel": None,
-            },
-            "pt_lrj": {
-                "var": self.lrj_pt,
-                "sel": None,
-            },
-            "eta_lrj": {
-                "var": self.lrj_eta,
-                "sel": None,
-            },
-            "phi_lrj": {
-                "var": self.lrj_phi,
-                "sel": None,
-            },
-            "m_lrj": {
-                "var": self.lrj_m,
-                "sel": None,
-            },
-            "pt_srj": {
-                "var": self.srj_pt,
-                "sel": None,
-            },
-            "eta_srj": {
-                "var": self.srj_eta,
-                "sel": None,
-            },
-            "phi_srj": {
-                "var": self.srj_phi,
-                "sel": None,
-            },
-            "m_srj": {
-                "var": self.srj_m,
                 "sel": None,
             },
         }

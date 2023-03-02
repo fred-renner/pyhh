@@ -71,35 +71,35 @@ def savegrid(ims, plotName, rows=None, cols=None, fill=True, showax=False):
 
 
 def makeGrid():
-    # btags = ["2b2b", "2b2j"]
-    # regions = ["CR", "VR", "SR"]
-    # # vbf = ["", "noVBF"]
+    btags = ["2b2b", "2b2j"]
+    regions = ["CR", "VR", "SR"]
+    # vbf = ["", "noVBF"]
 
-    # for var in collectedKinVars:
-    #     log.info(f"making grid for variable {var}")
-    #     plotsPerGrid = []
-    #     for btag in btags:
-    #         for reg in regions:
-    #             if "massplane" in var:
-    #                 plot = var + "." + reg + "_" + btag
-    #             else:
-    #                 plot = var + "." + reg + "_" + btag + "_ratio"
-    #             plot += ".pdf"
-    #             plotsPerGrid += [plot]
-    #     plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
-    #     y = len(regions)
-    #     x = len(btags)
+    for var in collectedKinVars:
+        log.info(f"making grid for variable {var}")
+        plotsPerGrid = []
+        for btag in btags:
+            for reg in regions:
+                if "massplane" in var:
+                    plot = var + "." + reg + "_" + btag
+                else:
+                    plot = var + "." + reg + "_" + btag + "_ratio"
+                plot += ".pdf"
+                plotsPerGrid += [plot]
+        plotsPerGridWithPath = [plotPath + x for x in plotsPerGrid]
+        y = len(regions)
+        x = len(btags)
 
-    #     ims = [
-    #         np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
-    #     ]
+        ims = [
+            np.array(convert_from_path(file, 500)[0]) for file in plotsPerGridWithPath
+        ]
 
-    #     savegrid(
-    #         ims,
-    #         f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
-    #         rows=x,
-    #         cols=y,
-    #     )
+        savegrid(
+            ims,
+            f"/lustre/fs22/group/atlas/freder/hh/run/plots/grids/{var}.png",
+            rows=x,
+            cols=y,
+        )
 
     # for bkg_estimate
     for var in collectedKinVars:
@@ -139,7 +139,7 @@ def plotLabel(histKey, ax):
     varParts = [s for s in varParts if "lessBins" not in s]
     if "pt" in varParts[0]:
         varParts.pop(0)
-        varParts.insert(0, "t")
+        varParts.insert(0, "T")
         varParts.insert(0, "p")
     labels = {}
     if "CR" in histKey:
@@ -1055,7 +1055,7 @@ dijet = hists["dijet"]
 # accEff_mhh()
 
 
-kinVar_data_ratio("pt_lrj.SR_2b2j", bkgEstimate=True)
+# kinVar_data_ratio("pt_lrj.SR_2b2j", bkgEstimate=True)
 # # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
@@ -1070,18 +1070,18 @@ kinVar_data_ratio("pt_lrj.SR_2b2j", bkgEstimate=True)
 # kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 
 
-# for var in collectedKinVarsWithRegions:
-#     if "massplane" in var:
-#         massplane(var)
-#     else:
-#         kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
+for var in collectedKinVarsWithRegions:
+    if "massplane" in var:
+        massplane(var)
+    else:
+        kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
 
-# for var in collectedKinVarsWithRegions:
-#     if "2b2b" in var and not "massplane" in var:
-#         kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
+for var in collectedKinVarsWithRegions:
+    if "2b2b" in var and not "massplane" in var:
+        kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
 
-# makeGrid()
+makeGrid()
 
-# for var in collectedKinVarsWithRegions:
-#     if "m_h" in var and "2b2b" in var and "VR" in var:
-#         compareABCD(var)
+for var in collectedKinVarsWithRegions:
+    if "m_h" in var and "2b2b" in var and "VR" in var:
+        compareABCD(var)

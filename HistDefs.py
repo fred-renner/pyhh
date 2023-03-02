@@ -89,6 +89,46 @@ hists = [
         binrange=accEffBinning["binrange"],
         bins=accEffBinning["bins"],
     ),
+    FloatHistogram(
+        name="pt_lrj",
+        binrange=(0, 1.5e6),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="eta_lrj",
+        binrange=(-2, 2),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="phi_lrj",
+        binrange=(-math.pi, math.pi),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="m_lrj",
+        binrange=(0, 0.5e6),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="pt_srj",
+        binrange=(0, 1.5e6),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="eta_srj",
+        binrange=(-5, 5),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="phi_srj",
+        binrange=(-math.pi, math.pi),
+        bins=50,
+    ),
+    FloatHistogram(
+        name="m_srj",
+        binrange=(0, 200e3),
+        bins=50,
+    ),
 ]
 
 # use kinematicHists as template to construct further down for all regions
@@ -110,19 +150,34 @@ kinematicHists = [
         bins=m_hBinning["bins"],
     ),
     FloatHistogram(
-        name="m_hh_lessBins",
+        name="m_hh_paper",
         binrange=accEffBinning["binrange"],
         bins=25,
     ),
     FloatHistogram(
-        name="m_h1_lessBins",
+        name="m_h1_paper",
         binrange=m_hBinning["binrange"],
         bins=25,
     ),
     FloatHistogram(
-        name="m_h2_lessBins",
+        name="m_h2_paper",
         binrange=m_hBinning["binrange"],
         bins=25,
+    ),
+    FloatHistogram(
+        name="m_hh_lessBins",
+        binrange=accEffBinning["binrange"],
+        bins=15,
+    ),
+    FloatHistogram(
+        name="m_h1_lessBins",
+        binrange=m_hBinning["binrange"],
+        bins=15,
+    ),
+    FloatHistogram(
+        name="m_h2_lessBins",
+        binrange=m_hBinning["binrange"],
+        bins=15,
     ),
     FloatHistogram(
         name="pt_h1",
@@ -171,6 +226,11 @@ kinematicHists = [
         bins=50,
     ),
     FloatHistogram(
+        name="m_jjVBF",
+        binrange=(0, 3e6),
+        bins=50,
+    ),
+    FloatHistogram(
         name="pt_h1_btag_vr1",
         binrange=vrBinning["binrange"],
         bins=vrBinning["bins"],
@@ -189,51 +249,6 @@ kinematicHists = [
         name="pt_h2_btag_vr2",
         binrange=vrBinning["binrange"],
         bins=vrBinning["bins"],
-    ),
-    FloatHistogram(
-        name="m_jjVBF",
-        binrange=(0, 3e6),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="pt_lrj",
-        binrange=(0, 1.5e6),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="eta_lrj",
-        binrange=(-2, 2),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="phi_lrj",
-        binrange=(-math.pi, math.pi),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="m_lrj",
-        binrange=(0, 0.5e6),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="pt_srj",
-        binrange=(0, 1.5e6),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="eta_srj",
-        binrange=(-5, 5),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="phi_srj",
-        binrange=(-math.pi, math.pi),
-        bins=50,
-    ),
-    FloatHistogram(
-        name="m_srj",
-        binrange=(0, 200e3),
-        bins=50,
     ),
 ]
 
