@@ -1059,7 +1059,7 @@ dijet = hists["dijet"]
 # # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
-# kinVar_data_ratio("m_h1_twoLargeR",rebinFactor=10)
+kinVar_data_ratio("m_hh_lessBins.CR_2b2j",rebinFactor=10)
 # kinVar_data_ratio("lrj_phi_SR_2b2b", SoverB=True)
 # kinVar_data_ratio("m_h1_test_VR_2b2b", SoverB=True)
 # kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
@@ -1070,18 +1070,18 @@ dijet = hists["dijet"]
 # kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 
 
-for var in collectedKinVarsWithRegions:
-    if "massplane" in var:
-        massplane(var)
-    else:
-        kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
+# for var in collectedKinVarsWithRegions:
+#     if "massplane" in var:
+#         massplane(var)
+#     else:
+#         kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
 
-for var in collectedKinVarsWithRegions:
-    if "2b2b" in var and not "massplane" in var:
-        kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
+# for var in collectedKinVarsWithRegions:
+#     if "2b2b" in var and not "massplane" in var:
+#         kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
 
-makeGrid()
+# makeGrid()
 
-for var in collectedKinVarsWithRegions:
-    if "m_h" in var and "2b2b" in var and "VR" in var:
-        compareABCD(var)
+# for var in collectedKinVarsWithRegions:
+#     if "m_h" in var and "2b2b" in var and "VR" in var:
+#         compareABCD(var)

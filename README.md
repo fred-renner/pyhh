@@ -1,3 +1,6 @@
+
+pyhh is a framework that takes ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. 
+
 | script          | description                                                                                                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `HistFiller.py` | Driver script to fill histograms configured with `Configuration.py`. Runs object selection code from `Analysis.py` per file. Can run over several files or just one with the `--file` option. Outputs an .h5 file with the histograms |

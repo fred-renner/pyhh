@@ -1,13 +1,12 @@
 import h5py
 import numpy as np
 
-# fmt: off
-# SMsignalFile = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-user.frenner.HH4b.2022_12_14.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r13144_p5440_TREE.h5"
-SMsignalFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_SM.h5"
-ttbarFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
-dijetFilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
-run2FilePath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
-# fmt: on
+files = {}
+files["SMsignal"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_SM.h5"
+files["k2v0"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_k2v0.h5"
+files["ttbar"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
+files["dijet"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"
+files["run2"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-run2.h5"
 
 
 def getHist(file, name):
@@ -28,31 +27,27 @@ def get2dHist(file, name):
     return {"h": h, "hRaw": hRaw, "xbins": xbins, "ybins": ybins, "err": err}
 
 
-def load(file):
+def load(file, histKey=None):
     hists = {}
-    for key in file.keys():
-        if "massplane" in key:
-            hists[key] = get2dHist(file, key)
+    if histKey == None:
+        for key in file.keys():
+            if "massplane" in key:
+                hists[key] = get2dHist(file, key)
+            else:
+                hists[key] = getHist(file, key)
+    else:
+        if "massplane" in histKey:
+            hists[histKey] = get2dHist(file, histKey)
         else:
-            hists[key] = getHist(file, key)
+            hists[histKey] = getHist(file, histKey)
+
     return hists
 
 
-def run():
-    with h5py.File(SMsignalFilePath, "r") as f_SMsignal, h5py.File(
-        run2FilePath, "r"
-    ) as f_run2, h5py.File(ttbarFilePath, "r") as f_ttbar, h5py.File(
-        dijetFilePath, "r"
-    ) as f_dijet:
-        SMsignal = load(f_SMsignal)
-        run2 = load(f_run2)
-        ttbar = load(f_ttbar)
-        dijet = load(f_dijet)
+def run(histKey=None):
+    allHists = {}
+    for key, file in files.items():
+        with h5py.File(file, "r") as f:
+            allHists[key] = load(f, histKey)
 
-        hists = {}
-        hists["SMsignal"] = SMsignal
-        hists["run2"] = run2
-        hists["ttbar"] = ttbar
-        hists["dijet"] = dijet
-
-        return hists
+    return allHists
