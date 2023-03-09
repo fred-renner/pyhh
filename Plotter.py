@@ -2,7 +2,7 @@
 import argparse
 import logging
 import os
-
+import json
 import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
@@ -434,46 +434,6 @@ def trigger_leadingLargeRpT():
     plt.close()
 
 
-def plotVar(histKey):
-    signal = SMsignal[histKey]["h"]
-    signal_err = SMsignal[histKey]["err"]
-    data = run2[histKey]["h"]
-    data_err = run2[histKey]["err"]
-    tt = ttbar[histKey]["h"]
-    tt_err = ttbar[histKey]["err"]
-    edges = run2[histKey]["edges"]
-    plt.figure()
-    # truth_mhh = file["truth_mhh"]["histogram"][1:-1]
-    # trigger_leadingLargeRm_err = Plotting.tools.getEfficiencyErrors(
-    #     passed=mhh, total=truth_mhh
-    # )
-    hep.histplot(
-        hists["mhh"]["h"],  # / truth_mhh,
-        hists["mhh"]["edges"],  # / truth_mhh,
-        histtype="errorbar",
-        yerr=hists["mhh"]["err"],  # / truth_mhh,
-        solid_capstyle="projecting",
-        capsize=3,
-        # label=["truth", "reco"]
-        # alpha=0.75,
-    )
-    # hep.atlas.text(" Simulation", loc=1)
-    hep.atlas.set_ylabel("Events")
-    hep.atlas.set_xlabel("$m_{hh}$ $[GeV]$ ")
-    ax = plt.gca()
-    # ax.set_yscale("log")
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
-    plt.legend(loc="upper right")
-    # hep.yscale_legend()
-    hep.atlas.label(data=False, lumi="140????", year=None, loc=0)
-
-    plt.tight_layout()
-    ax.get_xaxis().get_offset_text().set_position((2, 0))
-
-    plt.savefig(plotPath + "mhh.pdf")
-    plt.close()
-
-
 def massplane(histKey):
     plt.figure()
     xbins = run2[histKey]["xbins"]
@@ -541,121 +501,6 @@ def massplane(histKey):
     plt.close()
 
 
-def mh_SB_ratio(histKey):
-    # make both ratios, s/sqrt(B) and over Data
-    signal = SMsignal[histKey]["h"]
-    tt = ttbar[histKey]["h"]
-    jj = dijet[histKey]["h"]
-    edges = SMsignal[histKey]["edges"]
-    # need to correct error
-
-    bkg_tot = tt + jj
-    bkg_tot_err = np.sqrt(ttbar[histKey]["err"] ** 2 + dijet[histKey]["err"] ** 2)
-    ratio = signal / np.sqrt(bkg_tot)
-
-    # B = Q + T
-    # Berr = sqrt(Qerr^2 + Terr^2)
-
-    # values_signal = np.repeat((edges[:-1] + edges[1:]) / 2.0, signal.astype(int))
-    # values_bkg = np.repeat((edges[:-1] + edges[1:]) / 2.0, bkg_tot.astype(int))
-    # cumulative_signal = np.array(
-    #     plt.hist(
-    #         values_signal,
-    #         edges,
-    #         # density=True,
-    #         cumulative=True,
-    #     )[0],
-    #     dtype=float,
-    # )
-    # cumulative_bkg = np.array(
-    #     plt.hist(
-    #         values_bkg,
-    #         edges,
-    #         # density=True,
-    #         cumulative=True,
-    #     )[0],
-    #     dtype=float,
-    # )
-
-    plt.figure()
-
-    fig, (ax, rax) = plt.subplots(
-        nrows=2,
-        ncols=1,
-        figsize=(8, 8),
-        gridspec_kw={"height_ratios": (3, 1)},
-        sharex=True,
-    )
-
-    # # stack plot
-    hep.histplot(
-        [tt, jj],
-        edges,
-        stack=True,
-        histtype="fill",
-        # yerr=True,
-        label=["$t\overline{t}$", "Multijet"],
-        ax=ax,
-        color=["hh:darkpink", "hh:medturquoise"],
-        edgecolor="black",
-        linewidth=0.5,
-    )
-    # error stackplot
-    ax.fill_between(
-        edges,
-        np.append(bkg_tot - bkg_tot_err, 0),
-        np.append(bkg_tot + bkg_tot_err, 0),
-        color="dimgrey",
-        linewidth=0,
-        alpha=0.5,
-        step="post",
-        label="stat. uncertainty",
-    )
-    # signal
-    hep.histplot(
-        signal * 10000,
-        edges,
-        histtype="step",
-        # yerr=True,
-        label="SM Signal x 10000",
-        ax=ax,
-        color="hh:darkyellow",  # "orangered",
-        linewidth=1.25,
-    )
-
-    # ratio plot
-    hep.histplot(
-        # cumulative_signal/cumulative_bkg,
-        ratio,
-        edges,
-        histtype="errorbar",
-        yerr=True,
-        ax=rax,
-        color="Black",
-    )
-    fig.subplots_adjust(hspace=0.06)
-    ax.set_ylabel("Events")
-    rax.set_ylabel("$S/\sqrt{B}$")
-    rax.set_ylim([0, 0.0001])
-    ax.set_yscale("log")
-    ax.set_ylim([0, 1_000_000])
-
-    hep.atlas.label(data=False, lumi="140.0", loc=0, ax=ax)
-    if "mh1" in histKey:
-        whichHiggs = "H1"
-    if "mh2" in histKey:
-        whichHiggs = "H2"
-    if "hh" in histKey:
-        whichHiggs = "HH"
-    hep.atlas.set_xlabel(f"$m_{{{whichHiggs}}}$ $[GeV]$ ")
-    plt.tight_layout()
-    rax.get_xaxis().get_offset_text().set_position((2, 0))
-    # rax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i", offset=False))
-    ax.legend(loc="upper right")
-    plt.savefig(plotPath + f"SB_{histKey}_ratio.pdf")
-    plt.close()
-
-
 def kinVar_data_ratio(
     histKey,
     SoverB=False,
@@ -663,8 +508,8 @@ def kinVar_data_ratio(
     rebinFactor=None,
 ):
     log.info("Plotting " + histKey)
-    signal = SMsignal[histKey]["h"]
-    signal_err = SMsignal[histKey]["err"]
+    s = signal[histKey]["h"]
+    s_err = signal[histKey]["err"]
     data = run2[histKey]["h"]
     data_err = run2[histKey]["err"]
     tt = ttbar[histKey]["h"]
@@ -696,11 +541,11 @@ def kinVar_data_ratio(
         jj_err = dijet[histKey]["err"]
 
     if rebinFactor:
-        signal, edges_, signal_err = Plotting.tools.factorRebin(
-            h=signal,
+        s, edges_, s_err = Plotting.tools.factorRebin(
+            h=s,
             edges=edges,
             factor=rebinFactor,
-            err=signal_err,
+            err=s_err,
         )
         data, edges_, data_err = Plotting.tools.factorRebin(
             h=data,
@@ -789,12 +634,13 @@ def kinVar_data_ratio(
         ax=ax,
     )
     # Signal
+
     hep.histplot(
-        signal * 10000,
+        s * 10000,
         edges,
         histtype="step",
         # yerr=True,
-        label="SM Signal x $10^4$",
+        label=f"{whichSignal} Signal x $10^4$",
         ax=ax,
         color="hh:darkyellow",  # "orangered",
         linewidth=1.25,
@@ -841,12 +687,12 @@ def kinVar_data_ratio(
         sqrt_pred_err = Plotting.tools.ErrorPropagation(
             A=pred, sigmaA=pred_err, operation="^", exp=0.5
         )
-        ratio2 = signal / sqrt_pred
+        ratio2 = s / sqrt_pred
         ratio2_err = Plotting.tools.ErrorPropagation(
-            signal_err,
+            s_err,
             sqrt_pred_err,
             "/",
-            signal,
+            s,
             sqrt_pred,
         )
         hep.histplot(
@@ -1044,8 +890,67 @@ def compareABCD(histKey, factor=None):
     plt.close()
 
 
+def limits():
+    fitResults = json.load(
+        open("/lustre/fs22/group/atlas/freder/hh/run/fitResults.json")
+    )
+    fig, ax = plt.subplots()
+    ax.plot(
+        fitResults["k2v"],
+        fitResults["obs"],
+        color="black",
+    )
+    ax.plot(
+        fitResults["k2v"],
+        fitResults["exp"],
+        color="black",
+        linestyle="dashed",
+    )
+    ax.fill_between(
+        fitResults["k2v"],
+        fitResults["-2s"],
+        fitResults["2s"],
+        color="hh:darkyellow",
+        linewidth=0,
+    )
+    ax.fill_between(
+        fitResults["k2v"],
+        fitResults["-1s"],
+        fitResults["1s"],
+        color="hh:medturquoise",
+        linewidth=0,
+    )
+
+    ax.set_ylabel(r"95% CL upper limit on $\sigma_{VBF,HH}$ (fb)")
+    ax.set_xlabel(r"$\kappa_{\mathrm{2v}}$")
+    ax.xaxis.set_major_locator(mticker.MaxNLocator(integer=True))
+    ax.set_yscale("log")
+    ax.legend(
+        [
+            "Observed",
+            "Expected",
+            "Expected Limit $\pm 1\sigma$",
+            "Expected Limit $\pm 2\sigma$",
+        ]
+    )
+    hep.atlas.label(
+        # data=False,
+        lumi="140.0",
+        loc=1,
+        ax=ax,
+        llabel="Internal",
+    )
+    
+    plt.tight_layout()
+    log.info(plotPath + "limit.pdf")
+    plt.savefig(plotPath + "limit.pdf")
+    plt.close()
+
+
 hists = Plotting.loadHists.run()
-SMsignal = hists["SMsignal"]
+whichSignal = "k2v0"
+# whichSignal="SM"
+signal = hists[whichSignal]
 run2 = hists["run2"]
 ttbar = hists["ttbar"]
 dijet = hists["dijet"]
@@ -1059,7 +964,7 @@ dijet = hists["dijet"]
 # # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
 # massplane("massplane_CR_2b2b")
 # kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
-kinVar_data_ratio("m_hh_lessBins.CR_2b2j",rebinFactor=10)
+# kinVar_data_ratio("m_hh_lessBins.CR_2b2j",rebinFactor=10)
 # kinVar_data_ratio("lrj_phi_SR_2b2b", SoverB=True)
 # kinVar_data_ratio("m_h1_test_VR_2b2b", SoverB=True)
 # kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
@@ -1069,7 +974,7 @@ kinVar_data_ratio("m_hh_lessBins.CR_2b2j",rebinFactor=10)
 # kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 # kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
 
-
+limits()
 # for var in collectedKinVarsWithRegions:
 #     if "massplane" in var:
 #         massplane(var)

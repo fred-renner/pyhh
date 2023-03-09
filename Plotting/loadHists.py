@@ -2,7 +2,7 @@ import h5py
 import numpy as np
 
 files = {}
-files["SMsignal"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_SM.h5"
+files["SM"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_SM.h5"
 files["k2v0"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_k2v0.h5"
 files["ttbar"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_ttbar.h5"
 files["dijet"] = "/lustre/fs22/group/atlas/freder/hh/run/histograms/hists-mc20_dijet.h5"

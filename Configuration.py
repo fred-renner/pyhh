@@ -1,5 +1,5 @@
 import os
-
+import pathlib
 import tools.HistFillerTools
 
 
@@ -16,7 +16,7 @@ class Setup:
         outputPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
 
         if args.file:
-            # make full output path
+            # make unique output path with dataset
             self.filelist = [args.file]
             fileParts = self.filelist[0].split("/")
             dataset = fileParts[-2]
@@ -37,7 +37,9 @@ class Setup:
         start = 'vars_arr["'
         end = '"]'
         self.vars = []
-        for line in open("/lustre/fs22/group/atlas/freder/hh/pyhh/Analysis.py", "r"):
+        analysisPath = pathlib.Path(__file__).parent / "Analysis.py"
+
+        for line in open(analysisPath, "r"):
             if "vars_arr[" in line:
                 if "#" not in line:
                     self.vars.append((line.split(start))[1].split(end)[0])
@@ -47,7 +49,6 @@ class Setup:
             self.filelist = self.filelist[:3]
             self.histOutFile = outputPath + "hists-debug.h5"
             self.nEvents = 1000
-            self.cpus = 1
             self.batchSize = 1000
         else:
             self.nEvents = "All"

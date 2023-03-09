@@ -108,17 +108,10 @@ def ConstructDatasetName(filepath):
     folder = filepath.split("/")[-2]
     # get ami tags until r-tag as p always changes
     ami = re.findall("e[0-9]{4}.s[0-9]{4}.r[0-9]{5}", folder)
-    # print("dataset number: ", ds_nr[0])
-    # print("partial AMI-tag: ", ami[0])
     r_tag = ami[0][-6:]
-    # if r_tag in
-    # print("dataYears: ", mcCampaign[r_tag])
-
     # construct logical dataset name from ntuple name
     ds_parts = folder.split(".")
     ds_parts = ds_parts[-3:]
-    # print(ds_parts)
-
     # remove TREE
     ds_parts[-1] = ds_parts[-1][:-5]
     if int(r_tag[1:]) < 13829:

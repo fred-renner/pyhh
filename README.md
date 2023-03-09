@@ -1,5 +1,4 @@
-
-pyhh is a framework that takes ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. 
+pyhh is a python only analysis framework processing ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. 
 
 | script          | description                                                                                                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
