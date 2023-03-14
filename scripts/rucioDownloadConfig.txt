@@ -1,0 +1,10 @@
+Proxy_path = /afs/ifh.de/user/f/freder/x509up_u37827
+
+executable              = /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/rucioDownload.sh
+log                     = Rucio_log_$(Process).log
+output                  = Rucio_outfile_$(Process).txt
+error                   = Rucio_errors_$(Process).txt
+# notification = Complete 
+should_transfer_files   = No
+# when_to_transfer_output = ON_EXIT
+getenv = True

@@ -67,7 +67,7 @@ with File(config.histOutFile, "w") as outfile:
                 metaData = {}
                 substrings = file_.split(".")
                 dataCampaign = [s for s in substrings if "data" in s]
-                metaData["dataYear"] = "20" + dataCampaign[0].split("_")[0][-2:]
+                metaData["dataYear"] = "20" + dataCampaign[-1].split("_")[0][-2:]
                 metaData["isData"] = True
             else:
                 metaData = tools.HistFillerTools.GetMetaDataFromFile(file)

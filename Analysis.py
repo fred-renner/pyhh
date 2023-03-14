@@ -86,28 +86,24 @@ class ObjectSelection:
 
         # fmt: off
         self.vars_arr = vars_arr
-        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
-        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
-        self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
-        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
+        self.lrj_pt = vars_arr["recoUFOjet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recoUFOjet_antikt10_NOSYS_eta"]
+        self.lrj_phi = vars_arr["recoUFOjet_antikt10_NOSYS_phi"]
+        self.lrj_m = vars_arr["recoUFOjet_antikt10_NOSYS_m"]
         self.srj_pt = vars_arr["recojet_antikt4_NOSYS_pt"]
         self.srj_eta = vars_arr["recojet_antikt4_NOSYS_eta"]
         self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
         self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
-        self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
-        self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
-        self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
-        # self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
+        self.vr_btag_77 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_pt = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsPt"]
+        self.vr_deltaR12 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
+        self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
-        # don't refactor for now as this file is read to load the vars
+        # don't refactor for now as this file is read to load the vars        
         if self.mc:
-            # mc21
-            if "trigPassed_HLT_j460_a10t_lcw_jes_L1J100" in vars_arr:
-                self.trigger = vars_arr["trigPassed_HLT_j460_a10t_lcw_jes_L1J100"]
-                self.triggerRef = vars_arr["trigPassed_HLT_j420_35smcINF_a10t_lcw_jes_L1J100"]
             # mc20 
             # r13144
-            elif "trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100" in vars_arr: 
+            if "trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100" in vars_arr: 
                 self.trigger = vars_arr["trigPassed_HLT_j420_a10t_lcw_jes_40smcINF_L1J100"]
                 self.triggerRef = vars_arr["trigPassed_HLT_j390_a10t_lcw_jes_30smcINF_L1J100"]
             # r13145
@@ -196,8 +192,8 @@ class ObjectSelection:
         for event in self.eventRange:
             if self.trigger[event]:
                 # order matters!
-                # if not self.vr_dontOverlap[event]:
-                #     continue
+                if not self.vr_dontOverlap[event]:
+                    continue
                 if self.mc:
                     self.weights[event] = (
                         self.weightFactor

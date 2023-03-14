@@ -27,7 +27,9 @@ class Setup:
             self.histOutFile = outputPath + dataset + "/" + file + ".h5"
         else:
             # default to mc 20 signal
-            self.filelist = tools.HistFillerTools.ConstructFilelist("mc20_SM")
+            self.filelist = tools.HistFillerTools.ConstructFilelist(
+                "mc20_SM", verbose=False
+            )
             # make hist out file name from filename
             dataset = self.filelist[0].split("/")
             histOutFileName = "hists-" + dataset[-2] + ".h5"
@@ -46,7 +48,17 @@ class Setup:
 
         # general settings
         if args.debug:
-            self.filelist = self.filelist[:3]
+            files = []
+            files.append(
+                tools.HistFillerTools.ConstructFilelist("mc20_SM", verbose=False)[0]
+            )
+            files.append(
+                tools.HistFillerTools.ConstructFilelist("mc20_ttbar", verbose=False)[0]
+            )
+            files.append(
+                tools.HistFillerTools.ConstructFilelist("mc20_dijet", verbose=False)[0]
+            )
+            self.filelist = files
             self.histOutFile = outputPath + "hists-debug.h5"
             self.nEvents = 1000
             self.batchSize = 1000
@@ -61,7 +73,7 @@ class Setup:
                 self.cpus = multiprocessing.cpu_count() - 2
 
         # auto setup blind if data
-        if any("data" in file for file in self.filelist):
+        if any("data1" in file for file in self.filelist):
             self.isData = True
         else:
             self.isData = False

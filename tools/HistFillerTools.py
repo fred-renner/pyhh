@@ -47,7 +47,7 @@ def GetMetaDataFromFile(file):
     return metaData
 
 
-def ConstructFilelist(sampleName, toMerge=False):
+def ConstructFilelist(sampleName, toMerge=False, verbose=False):
     """
 
     Parameters
@@ -68,27 +68,28 @@ def ConstructFilelist(sampleName, toMerge=False):
         pattern = "user.frenner.HH4b.2022_11_25_.601479.PhPy8EG_HH4b_cHHH01d0.e8472_s3873_r13829_p5440_TREE/*"
     if sampleName == "mc20_SM":
         topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
-        pattern = "user.frenner.HH4b.*.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
+        pattern = "user.frenner.HH4b.2023_03_13_.502970.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv1cv1.e8263_s3681_r*/*"
     if sampleName == "mc20_k2v0":
         topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
-        pattern = "user.frenner.HH4b.*.502971.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv0cv1.e8263_s3681_r*/*"
-    # mc20 bkg
+        pattern = "user.frenner.HH4b.2023_03_13_.502971.MGPy8EG_hh_bbbb_vbf_novhh_l1cvv0cv1.e8263_s3681_r*/*"
     if sampleName == "mc20_ttbar":
-        topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+        topPath = "/lustre/fs24/group/atlas/dbattulga/ntup_SH_Feb2023//MC/"
         pattern = "*ttbar*/*"
     if sampleName == "mc20_dijet":
-        topPath = "/lustre/fs22/group/atlas/dbattulga/ntup_SH_Oct20/bkg/"
+        topPath = "/lustre/fs24/group/atlas/dbattulga/ntup_SH_Feb2023//MC/"
         pattern = "*jetjet*/*"
     if sampleName == "run2":
-        topPath = "/lustre/fs24/group/atlas/freder/hh/samples/"
-        pattern = "user.frenner.HH4b.2023_01_05.data*/*"
+        topPath = "/lustre/fs24/group/atlas/dbattulga/ntup_SH_Feb2023/Data/"
+        pattern = "*data1*/*"
 
     if toMerge:
         # just changes topPath
         topPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
 
     if "topPath" not in locals():
+        verbose.error(f"{sampleName} is not defined")
         raise NameError(f"{sampleName} is not defined")
+
     filelist = []
 
     # sort by descending file size
@@ -96,6 +97,9 @@ def ConstructFilelist(sampleName, toMerge=False):
         glob.iglob(topPath + "/" + pattern), key=os.path.getsize, reverse=True
     ):
         filelist += [file]
+    if verbose:
+        for f in filelist:
+            print(f)
 
     return filelist
 
