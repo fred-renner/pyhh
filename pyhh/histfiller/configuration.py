@@ -1,6 +1,6 @@
 import os
 import pathlib
-import tools.HistFillerTools
+import histfiller.tools
 
 
 class Setup:
@@ -27,7 +27,7 @@ class Setup:
             self.histOutFile = outputPath + dataset + "/" + file + ".h5"
         else:
             # default to mc 20 signal
-            self.filelist = tools.HistFillerTools.ConstructFilelist(
+            self.filelist = histfiller.tools.ConstructFilelist(
                 "mc20_SM", verbose=False
             )
             # make hist out file name from filename
@@ -39,7 +39,7 @@ class Setup:
         start = 'vars_arr["'
         end = '"]'
         self.vars = []
-        analysisPath = pathlib.Path(__file__).parent / "Analysis.py"
+        analysisPath = pathlib.Path(__file__).parent / "analysis.py"
 
         for line in open(analysisPath, "r"):
             if "vars_arr[" in line:
@@ -50,13 +50,13 @@ class Setup:
         if args.debug:
             files = []
             files.append(
-                tools.HistFillerTools.ConstructFilelist("mc20_SM", verbose=False)[0]
+                histfiller.tools.ConstructFilelist("mc20_SM", verbose=False)[0]
             )
             files.append(
-                tools.HistFillerTools.ConstructFilelist("mc20_ttbar", verbose=False)[0]
+                histfiller.tools.ConstructFilelist("mc20_ttbar", verbose=False)[0]
             )
             files.append(
-                tools.HistFillerTools.ConstructFilelist("mc20_dijet", verbose=False)[0]
+                histfiller.tools.ConstructFilelist("mc20_dijet", verbose=False)[0]
             )
             self.filelist = files
             self.histOutFile = outputPath + "hists-debug.h5"

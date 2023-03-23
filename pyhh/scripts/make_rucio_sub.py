@@ -7,8 +7,8 @@ import subprocess
 subprocess.call(
     (
         (
-            "cp /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/rucioDownloadConfig.txt"
-            " /lustre/fs22/group/atlas/freder/hh/submit/rucioDownload.sub"
+            "cp /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/rucio_download_config.txt"
+            " /lustre/fs22/group/atlas/freder/hh/submit/rucio_download.sub"
         ),
     ),
     shell=True,
@@ -27,7 +27,7 @@ files = [
 
 # write jobs per line
 
-with open("/lustre/fs22/group/atlas/freder/hh/submit/rucioDownload.sub", "a") as f:
+with open("/lustre/fs22/group/atlas/freder/hh/submit/rucio_download.sub", "a") as f:
     for i, file in enumerate(files):
         f.write(f"arguments = $(Proxy_path) {file} /lustre/fs22/group/atlas/freder/hh/samples")
         f.write("\n")

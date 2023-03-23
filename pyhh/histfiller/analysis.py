@@ -4,13 +4,13 @@ from operator import xor
 
 import numpy as np
 import vector
-from Plotting.tools import CR_hh, Xhh
+from plotter.tools import CR_hh, Xhh
 from tools.logging import log
 
 np.set_printoptions(threshold=np.inf)
 
 
-def Run(batch, metaData, tree, vars):
+def run(batch, metaData, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
@@ -85,18 +85,21 @@ class ObjectSelection:
             self.hasTruth = False
 
         # fmt: off
+        # recoUFOjet_antikt10
+        # recojet_antikt10
+
         self.vars_arr = vars_arr
-        self.lrj_pt = vars_arr["recoUFOjet_antikt10_NOSYS_pt"]
-        self.lrj_eta = vars_arr["recoUFOjet_antikt10_NOSYS_eta"]
-        self.lrj_phi = vars_arr["recoUFOjet_antikt10_NOSYS_phi"]
-        self.lrj_m = vars_arr["recoUFOjet_antikt10_NOSYS_m"]
+        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
+        self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
+        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
         self.srj_pt = vars_arr["recojet_antikt4_NOSYS_pt"]
         self.srj_eta = vars_arr["recojet_antikt4_NOSYS_eta"]
         self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
         self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
-        self.vr_btag_77 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
-        self.vr_pt = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsPt"]
-        self.vr_deltaR12 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
+        self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
+        self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
         # don't refactor for now as this file is read to load the vars        

@@ -1,44 +1,24 @@
 #!/usr/bin/env python3
-import argparse
-import logging
 import os
 import json
 import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
-import Plotting.colors
-import Plotting.loadHists
-import Plotting.tools
-from HistDefs import collectedKinVars, collectedKinVarsWithRegions
+import plotter.colors
+import plotter.loadHists
+import plotter.tools
+from histfiller.histdefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
 from matplotlib.offsetbox import AnchoredText
 from pdf2image import convert_from_path
-from Plotting.tools import ErrorPropagation as propagateError
+from plotter.tools import ErrorPropagation as propagateError
 from tools.logging import log
 
 np.seterr(divide="ignore", invalid="ignore")
 
 plt.style.use(hep.style.ATLAS)
 
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--histFile", type=str, default=None)
-args = parser.parse_args()
-
-
-if args.histFile:
-    histFile = args.histFile
-
-
-# make plot directory
-if "histFile" in locals():
-    filename = histFile.split("/")
-    filename = str(filename[-1]).replace(".h5", "")
-else:
-    filename = "run2"
-
-logging.info("make plots for " + filename)
-plotPath = "/lustre/fs22/group/atlas/freder/hh/run/plots/" + filename + "/"
+plotPath = "/lustre/fs22/group/atlas/freder/hh/run/plots/run2/"
 
 if not os.path.isdir(plotPath):
     os.makedirs(plotPath)
@@ -128,10 +108,10 @@ def makeGrid():
         )
 
 
-def plotLabel(histKey, ax):
-    if "_noVBF" in histKey:
-        histKey = histKey[:-6]
-    keyParts = histKey.split(".")
+def plotLabel(histkey, ax):
+    if "_noVBF" in histkey:
+        histkey = histkey[:-6]
+    keyParts = histkey.split(".")
     var = keyParts[0]
     sel = keyParts[1]
     selParts = sel.split("_")
@@ -142,11 +122,11 @@ def plotLabel(histKey, ax):
         varParts.insert(0, "T")
         varParts.insert(0, "p")
     labels = {}
-    if "CR" in histKey:
+    if "CR" in histkey:
         labels["region"] = "Control Region"
-    elif "VR" in histKey:
+    elif "VR" in histkey:
         labels["region"] = "Validation Region"
-    elif "SR" in histKey:
+    elif "SR" in histkey:
         labels["region"] = "Signal Region"
     else:
         labels["region"] = ""
@@ -242,7 +222,7 @@ def plotLabel(histKey, ax):
 def triggerRef_leadingLargeRpT():
     triggerRef_leadingLargeRpT = file["triggerRef_leadingLargeRpT"]["histogram"][1:-1]
     trigger_leadingLargeRpT = file["trigger_leadingLargeRpT"]["histogram"][1:-1]
-    trigger_leadingLargeRpT_err = Plotting.tools.getEfficiencyErrors(
+    trigger_leadingLargeRpT_err = plotter.tools.getEfficiencyErrors(
         passed=trigger_leadingLargeRpT, total=triggerRef_leadingLargeRpT
     )
     # normalize + cumulative
@@ -283,7 +263,7 @@ def triggerRef_leadingLargeRpT():
     # ax.set_xlim([0.8, 2500_000])
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "triggerRef_leadingLargeRpT.pdf")
     plt.close()
@@ -293,7 +273,7 @@ def triggerRef_leadingLargeRm():
     # normalize + cumulative
     triggerRef_leadingLargeRm = file["triggerRef_leadingLargeRm"]["histogram"][1:-1]
     trigger_leadingLargeRm = file["trigger_leadingLargeRm"]["histogram"][1:-1]
-    trigger_leadingLargeRm_err = Plotting.tools.getEfficiencyErrors(
+    trigger_leadingLargeRm_err = plotter.tools.getEfficiencyErrors(
         passed=trigger_leadingLargeRm, total=triggerRef_leadingLargeRm
     )
     # edges = file["triggerRef_leadingLargeRm"]["edges"]
@@ -333,7 +313,7 @@ def triggerRef_leadingLargeRm():
 
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="upper right")
     plt.savefig(plotPath + "triggerRef_leadingLargeRm.pdf")
     plt.close()
@@ -357,7 +337,7 @@ def accEff_mhh():
         hists_.append(hists[key]["hRaw"])
         print(hists[key]["hRaw"])
     print(hists["mhh"]["hRaw"])
-    hists_cumulative, hists_cumulative_err = Plotting.tools.CumulativeEfficiencies(
+    hists_cumulative, hists_cumulative_err = plotter.tools.CumulativeEfficiencies(
         hists_, baseline=hists["mhh_twoLargeR"]["hRaw"], stopCumulativeFrom=4
     )
     labels = [
@@ -400,14 +380,14 @@ def accEff_mhh():
     hep.rescale_to_axessize
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
     plt.savefig(plotPath + "accEff_mhh.pdf")
     plt.close()
 
 
 def trigger_leadingLargeRpT():
     plt.figure()
-    err = Plotting.tools.getEfficiencyErrors(
+    err = plotter.tools.getEfficiencyErrors(
         passed=hists["leadingLargeRpT_trigger"]["hRaw"],
         total=hists["leadingLargeRpT"]["hRaw"],
     )
@@ -428,17 +408,17 @@ def trigger_leadingLargeRpT():
     ax = plt.gca()
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
     plt.legend(loc="lower right")
     plt.savefig(plotPath + "trigger_leadingLargeRpT.pdf")
     plt.close()
 
 
-def massplane(histKey):
+def massplane(hists, histkey):
     plt.figure()
-    xbins = run2[histKey]["xbins"]
-    ybins = run2[histKey]["ybins"]
-    histValues = run2[histKey]["h"]
+    xbins = hists["run2"][histkey]["xbins"]
+    ybins = hists["run2"][histkey]["ybins"]
+    histValues = hists["run2"][histkey]["h"]
     plane = hep.hist2dplot(
         histValues,
         xbins=xbins,
@@ -452,7 +432,7 @@ def massplane(histKey):
 
     X, Y = np.meshgrid(xbins, ybins)
     CS1 = plt.contour(
-        X, Y, Plotting.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
+        X, Y, plotter.tools.Xhh(X, Y), [1.6], colors="tab:red", linewidths=1
     )
     fmt = {}
     strs = ["SR"]
@@ -469,7 +449,7 @@ def massplane(histKey):
     #         fmt[l] = s
     #     ax.clabel(CS1, CS1.levels[::2], inline=True, fmt=fmt, fontsize=12)
     CS1 = plt.contour(
-        X, Y, Plotting.tools.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1
+        X, Y, plotter.tools.CR_hh(X, Y), [100e3], colors="tab:blue", linewidths=1
     )
     fmt = {}
     strs = ["VR"]
@@ -489,44 +469,45 @@ def massplane(histKey):
     plt.tight_layout()
     ax.get_xaxis().get_offset_text().set_position((2, 0))
     ax.get_yaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
-    ax.yaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
+    ax.yaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
     ax.set_aspect("equal")
 
-    plotLabel(histKey, ax)
+    plotLabel(histkey, ax)
     # plt.text(f"VBF 4b, {region}, 2b2j")
     # plt.legend(loc="upper right")
-    plt.savefig(plotPath + histKey + ".pdf")
-    log.info(plotPath + histKey + ".pdf")
+    plt.savefig(plotPath + histkey + ".pdf")
+    log.info(plotPath + histkey + ".pdf")
     plt.close()
 
 
 def kinVar_data_ratio(
-    histKey,
+    hists,
+    histkey,
     SoverB=False,
     bkgEstimate=False,
     rebinFactor=None,
 ):
-    log.info("Plotting " + histKey)
-    s = signal[histKey]["h"]
-    s_err = signal[histKey]["err"]
-    data = run2[histKey]["h"]
-    data_err = run2[histKey]["err"]
-    tt = ttbar[histKey]["h"]
-    tt_err = ttbar[histKey]["err"]
-    edges = run2[histKey]["edges"]
+    log.info("Plotting " + histkey)
+    s = hists["SM"][histkey]["h"]
+    s_err = hists["SM"][histkey]["err"]
+    data = hists["run2"][histkey]["h"]
+    data_err = hists["run2"][histkey]["err"]
+    tt = hists["ttbar"][histkey]["h"]
+    tt_err = hists["ttbar"][histkey]["err"]
+    edges = hists["run2"][histkey]["edges"]
 
     if bkgEstimate:
-        lowTagHistkey = histKey[:-1] + "j"
-        dataLowTag = run2[lowTagHistkey]["h"]
-        dataLowTag_err = run2[lowTagHistkey]["err"]
-        ttLowTag = ttbar[lowTagHistkey]["h"]
-        ttLowTag_err = ttbar[lowTagHistkey]["err"]
+        lowTaghistkey = histkey[:-1] + "j"
+        dataLowTag = hists["run2"][lowTaghistkey]["h"]
+        dataLowTag_err = hists["run2"][lowTaghistkey]["err"]
+        ttLowTag = hists["ttbar"][lowTaghistkey]["h"]
+        ttLowTag_err = hists["ttbar"][lowTaghistkey]["err"]
         w_CR = 0.008138903181910379
         err_w_CR = 0.00048089641813414284
         jj = (dataLowTag - ttLowTag) * w_CR
-        jj_err = Plotting.tools.ErrorPropagation(
-            sigmaA=Plotting.tools.ErrorPropagation(
+        jj_err = plotter.tools.ErrorPropagation(
+            sigmaA=plotter.tools.ErrorPropagation(
                 sigmaA=dataLowTag_err,
                 sigmaB=ttLowTag_err,
                 operation="-",
@@ -537,29 +518,29 @@ def kinVar_data_ratio(
             B=np.ones(jj.shape) * w_CR,
         )
     else:
-        jj = dijet[histKey]["h"]
-        jj_err = dijet[histKey]["err"]
+        jj = hists["dijet"][histkey]["h"]
+        jj_err = hists["dijet"][histkey]["err"]
 
     if rebinFactor:
-        s, edges_, s_err = Plotting.tools.factorRebin(
+        s, edges_, s_err = plotter.tools.factorRebin(
             h=s,
             edges=edges,
             factor=rebinFactor,
             err=s_err,
         )
-        data, edges_, data_err = Plotting.tools.factorRebin(
+        data, edges_, data_err = plotter.tools.factorRebin(
             h=data,
             edges=edges,
             factor=rebinFactor,
             err=data_err,
         )
-        tt, edges_, tt_err = Plotting.tools.factorRebin(
+        tt, edges_, tt_err = plotter.tools.factorRebin(
             h=tt,
             edges=edges,
             factor=rebinFactor,
             err=tt_err,
         )
-        jj, edges_, jj_err = Plotting.tools.factorRebin(
+        jj, edges_, jj_err = plotter.tools.factorRebin(
             h=jj,
             edges=edges,
             factor=rebinFactor,
@@ -569,10 +550,10 @@ def kinVar_data_ratio(
 
     # prediction
     pred = tt + jj
-    pred_err = Plotting.tools.ErrorPropagation(tt_err, jj_err, operation="+")
+    pred_err = plotter.tools.ErrorPropagation(tt_err, jj_err, operation="+")
 
     ratio = data / pred
-    ratio_err = Plotting.tools.ErrorPropagation(
+    ratio_err = plotter.tools.ErrorPropagation(
         data_err,
         pred_err,
         "/",
@@ -640,7 +621,7 @@ def kinVar_data_ratio(
         edges,
         histtype="step",
         # yerr=True,
-        label=f"{whichSignal} Signal x $10^4$",
+        label="SM Signal x $10^4$",
         ax=ax,
         color="hh:darkyellow",  # "orangered",
         linewidth=1.25,
@@ -668,8 +649,8 @@ def kinVar_data_ratio(
     # error ratioplot
     rax.fill_between(
         edges,
-        Plotting.tools.fillStatHoles(normErrLow),
-        Plotting.tools.fillStatHoles(normErrHigh),
+        plotter.tools.fillStatHoles(normErrLow),
+        plotter.tools.fillStatHoles(normErrHigh),
         color="dimgrey",
         linewidth=0,
         alpha=0.3,
@@ -684,11 +665,11 @@ def kinVar_data_ratio(
 
     if SoverB:
         sqrt_pred = np.sqrt(pred)
-        sqrt_pred_err = Plotting.tools.ErrorPropagation(
+        sqrt_pred_err = plotter.tools.ErrorPropagation(
             A=pred, sigmaA=pred_err, operation="^", exp=0.5
         )
         ratio2 = s / sqrt_pred
-        ratio2_err = Plotting.tools.ErrorPropagation(
+        ratio2_err = plotter.tools.ErrorPropagation(
             s_err,
             sqrt_pred_err,
             "/",
@@ -714,13 +695,13 @@ def kinVar_data_ratio(
         r"$ \frac{\mathrm{Data}}{\mathrm{Pred.}}$", horizontalalignment="center"
     )
 
-    labels = plotLabel(histKey, ax)
+    labels = plotLabel(histkey, ax)
 
-    if "eta" in histKey or "phi" in histKey or "dR" in histKey:
+    if "eta" in histkey or "phi" in histkey or "dR" in histkey:
         hep.atlas.set_xlabel(f"{labels['var']}")
     else:
         hep.atlas.set_xlabel(f"{labels['var']} [GeV]")
-        ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+        ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
 
     # hep.mpl_magic()
     newLim = list(ax.get_ylim())
@@ -739,48 +720,48 @@ def kinVar_data_ratio(
     # rax2.yaxis.set_major_locator(mticker.LogLocator(numticks=999))
     # rax2.yaxis.set_minor_locator(mticker.LogLocator(numticks=999, subs="auto"))
     if bkgEstimate:
-        plt.savefig(plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
-        log.info("saving to : " + plotPath + f"{histKey}_bkgEstimate_ratio.pdf")
+        plt.savefig(plotPath + f"{histkey}_bkgEstimate_ratio.pdf")
+        log.info("saving to : " + plotPath + f"{histkey}_bkgEstimate_ratio.pdf")
     else:
-        plt.savefig(plotPath + f"{histKey}_ratio.pdf")
-        log.info("saving to : " + plotPath + f"{histKey}_ratio.pdf")
+        plt.savefig(plotPath + f"{histkey}_ratio.pdf")
+        log.info("saving to : " + plotPath + f"{histkey}_ratio.pdf")
 
     plt.close(fig)
 
 
-def compareABCD(histKey, factor=None):
-    data = run2[histKey]["h"]
-    data_err = run2[histKey]["err"]
-    tt = ttbar[histKey]["h"]
-    tt_err = ttbar[histKey]["err"]
-    edges = run2[histKey]["edges"]
+def compareABCD(hists, histkey, factor=None):
+    data = hists["run2"][histkey]["h"]
+    data_err = hists["run2"][histkey]["err"]
+    tt = hists["ttbar"][histkey]["h"]
+    tt_err = hists["ttbar"][histkey]["err"]
+    edges = hists["run2"][histkey]["edges"]
 
-    lowTagHistkey = histKey[:-1] + "j"
-    data_2 = run2[lowTagHistkey]["h"]
-    data_err_2 = run2[lowTagHistkey]["err"]
-    tt_2 = ttbar[lowTagHistkey]["h"]
-    tt_err_2 = ttbar[lowTagHistkey]["err"]
+    lowTaghistkey = histkey[:-1] + "j"
+    data_2 = hists["run2"][lowTaghistkey]["h"]
+    data_err_2 = hists["run2"][lowTaghistkey]["err"]
+    tt_2 = hists["ttbar"][lowTaghistkey]["h"]
+    tt_err_2 = hists["ttbar"][lowTaghistkey]["err"]
     if factor:
-        data, edges_, data_err = Plotting.tools.factorRebin(
+        data, edges_, data_err = plotter.tools.factorRebin(
             h=data,
             edges=edges,
             factor=factor,
             err=data_err,
         )
-        tt, edges_, tt_err = Plotting.tools.factorRebin(
+        tt, edges_, tt_err = plotter.tools.factorRebin(
             h=tt,
             edges=edges,
             factor=factor,
             err=tt_err,
         )
 
-        data_2, edges_, data_err_2 = Plotting.tools.factorRebin(
+        data_2, edges_, data_err_2 = plotter.tools.factorRebin(
             h=data_2,
             edges=edges,
             factor=factor,
             err=data_err_2,
         )
-        tt_2, edges_, tt_err_2 = Plotting.tools.factorRebin(
+        tt_2, edges_, tt_err_2 = plotter.tools.factorRebin(
             h=tt_2,
             edges=edges,
             factor=factor,
@@ -791,12 +772,12 @@ def compareABCD(histKey, factor=None):
     err_w_CR = 0.0005150403753024878
 
     jj = data - tt
-    jj_err = Plotting.tools.ErrorPropagation(
+    jj_err = plotter.tools.ErrorPropagation(
         sigmaA=data_err, sigmaB=tt_err, operation="-"
     )
 
     jj_2 = data_2 - tt_2
-    jj_err_2 = Plotting.tools.ErrorPropagation(
+    jj_err_2 = plotter.tools.ErrorPropagation(
         sigmaA=data_err_2, sigmaB=tt_err_2, operation="-"
     )
 
@@ -820,7 +801,7 @@ def compareABCD(histKey, factor=None):
 
     bkgEstimate = jj_2 * w_CR
     bkgEstimateErr = (
-        Plotting.tools.ErrorPropagation(
+        plotter.tools.ErrorPropagation(
             sigmaA=jj_err_2,
             sigmaB=np.ones(jj_err_2.shape) * err_w_CR,
             operation="*",
@@ -842,7 +823,7 @@ def compareABCD(histKey, factor=None):
         jj / bkgEstimate,
         edges,
         histtype="errorbar",
-        yerr=Plotting.tools.ErrorPropagation(
+        yerr=plotter.tools.ErrorPropagation(
             sigmaA=jj_err,
             sigmaB=bkgEstimateErr,
             operation="/",
@@ -857,8 +838,8 @@ def compareABCD(histKey, factor=None):
     normErrHigh = (jj + jj_err) / jj
     rax.fill_between(
         edges,
-        Plotting.tools.fillStatHoles(normErrLow),
-        Plotting.tools.fillStatHoles(normErrHigh),
+        plotter.tools.fillStatHoles(normErrLow),
+        plotter.tools.fillStatHoles(normErrHigh),
         color="tab:blue",
         linewidth=0,
         alpha=0.3,
@@ -877,16 +858,16 @@ def compareABCD(histKey, factor=None):
     rax.axhline(y=1.0, color="tab:red", linestyle="-")
     rax.legend()
 
-    labels = plotLabel(histKey, ax)
+    labels = plotLabel(histkey, ax)
     hep.atlas.set_xlabel(f"{labels['var']} [GeV]")
     plt.tight_layout()
     rax.get_xaxis().get_offset_text().set_position((2, 0))
-    ax.xaxis.set_major_formatter(Plotting.tools.OOMFormatter(3, "%1.1i"))
+    ax.xaxis.set_major_formatter(plotter.tools.OOMFormatter(3, "%1.1i"))
 
-    plotLabel(histKey, ax)
-    log.info(plotPath + histKey + "_compareABCD.pdf")
+    plotLabel(histkey, ax)
+    log.info(plotPath + histkey + "_compareABCD.pdf")
 
-    plt.savefig(plotPath + histKey + "_compareABCD.pdf")
+    plt.savefig(plotPath + histkey + "_compareABCD.pdf")
     plt.close()
 
 
@@ -940,53 +921,37 @@ def limits():
         ax=ax,
         llabel="Internal",
     )
-    
+
     plt.tight_layout()
     log.info(plotPath + "limit.pdf")
     plt.savefig(plotPath + "limit.pdf")
     plt.close()
 
 
-hists = Plotting.loadHists.run()
-whichSignal = "k2v0"
-# whichSignal="SM"
-signal = hists[whichSignal]
-run2 = hists["run2"]
-ttbar = hists["ttbar"]
-dijet = hists["dijet"]
-# trigger_leadingLargeRpT()
-# triggerRef_leadingLargeRpT()
-# triggerRef_leadingLargeRm()
-# accEff_mhh()
+def run():
+    hists = plotter.loadHists.run()
 
+    # trigger_leadingLargeRpT()
+    # triggerRef_leadingLargeRpT()
+    # triggerRef_leadingLargeRm()
+    # accEff_mhh()
 
-# kinVar_data_ratio("pt_lrj.SR_2b2j", bkgEstimate=True)
-# # kinVar_data_ratio("m_h1_VR_2b2b", bkgEstimate=False)
-# massplane("massplane_CR_2b2b")
-# kinVar_data_ratio("m_jjVBF_twoLargeR", rebinFactor=6)
-# kinVar_data_ratio("m_hh_lessBins.CR_2b2j",rebinFactor=10)
-# kinVar_data_ratio("lrj_phi_SR_2b2b", SoverB=True)
-# kinVar_data_ratio("m_h1_test_VR_2b2b", SoverB=True)
-# kinVar_data_ratio("m_jjVBF_twoLargeR_noVBF", rebinFactor=6)
-# kinVar_data_ratio("m_hh_CR_2b2j", rebinFactor=2)
-# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8)
-# kinVar_data_ratio("m_hh_VR_2b2j", rebinFactor=8)
-# kinVar_data_ratio("m_hh_VR_2b2b", rebinFactor=8, bkgEstimate=True)
-# kinVar_data_ratio("m_h1_VR_2b2b", rebinFactor=8, bkgEstimate=True)
+    # massplane("massplane_CR_2b2b")
+    kinVar_data_ratio(hists, histkey="m_hh_lessBins.CR_2b2j", SoverB=True)
 
-limits()
-# for var in collectedKinVarsWithRegions:
-#     if "massplane" in var:
-#         massplane(var)
-#     else:
-#         kinVar_data_ratio(var, bkgEstimate=False, SoverB=True)
+    # limits()
+    for var in collectedKinVarsWithRegions:
+        if "massplane" in var:
+            massplane(hists,var)
+        else:
+            kinVar_data_ratio(hists, var, bkgEstimate=False, SoverB=True)
 
-# for var in collectedKinVarsWithRegions:
-#     if "2b2b" in var and not "massplane" in var:
-#         kinVar_data_ratio(var, bkgEstimate=True, SoverB=True)
+    for var in collectedKinVarsWithRegions:
+        if "2b2b" in var and not "massplane" in var:
+            kinVar_data_ratio(hists, var, bkgEstimate=True, SoverB=True)
 
-# makeGrid()
+    makeGrid()
 
-# for var in collectedKinVarsWithRegions:
-#     if "m_h" in var and "2b2b" in var and "VR" in var:
-#         compareABCD(var)
+    for var in collectedKinVarsWithRegions:
+        if "m_h" in var and "2b2b" in var and "VR" in var:
+            compareABCD(hists, var)

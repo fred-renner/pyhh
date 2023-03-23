@@ -5,13 +5,13 @@ from pyhf.contrib.viz import brazil
 import json
 import numpy as np
 import pyhf
-import Plotting.loadHists
-from Plotting.tools import ErrorPropagation, factorRebin
+import plotter.loadHists
+from plotter.tools import ErrorPropagation, factorRebin
 import os
 
 
 def getLimits(signalkey):
-    h = Plotting.loadHists.run("m_hh_lessBins.CR_2b2j")
+    h = plotter.loadHists.run("m_hh_lessBins.CR_2b2j")
     fitVariable = "m_hh_lessBins.CR_2b2j"
 
     for datatype in h.keys():

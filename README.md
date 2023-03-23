@@ -1,3 +1,5 @@
+DEPRECATED
+
 pyhh is a python only analysis framework processing ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. 
 
 | script          | description                                                                                                                                                                                                                           |

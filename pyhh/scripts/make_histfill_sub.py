@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 import sys
 
-sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh")
+sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh/pyhh")
 import argparse
 import subprocess
 
-from tools.HistFillerTools import ConstructFilelist
+from histfiller.tools import ConstructFilelist
 from tools.logging import log
 
 parser = argparse.ArgumentParser()
@@ -20,23 +20,23 @@ else:
 filelist = ConstructFilelist(sampleName=sample)
 
 if "mc" in sample:
-    import tools.MetaData
+    import histfiller.metadata
 
     for file in filelist:
-        tools.MetaData.get(file)
+        histfiller.metadata.get(file)
 
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
     (
-        "cp /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/HistFillConfig.txt"
-        f" /lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub"
+        "cp /lustre/fs22/group/atlas/freder/hh/pyhh/pyhh/scripts/histfill_config.txt"
+        f" /lustre/fs22/group/atlas/freder/hh/submit/histfill_{sample}.sub"
     ),
     shell=True,
 )
 
 # write jobs per line
 log.info(f"Made submit file for {sample} with {len(filelist)} jobs. ")
-with open(f"/lustre/fs22/group/atlas/freder/hh/submit/HistFill_{sample}.sub", "a") as f:
+with open(f"/lustre/fs22/group/atlas/freder/hh/submit/histfill_{sample}.sub", "a") as f:
     for i, file in enumerate(filelist):
         f.write(f"arguments = {file}")
         f.write("\n")

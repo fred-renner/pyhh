@@ -2,7 +2,7 @@
 # cpus = 1
 # request_cpus = $(cpus)
 
-executable              = /lustre/fs22/group/atlas/freder/hh/pyhh/scripts/HistFill.sh
+executable              = /lustre/fs22/group/atlas/freder/hh/submit/pyhh/pyhh/scripts/histfill.sh
 log                     = log_$(Process).log
 output                  = outfile_$(Process).txt
 error                   = errors_$(Process).txt

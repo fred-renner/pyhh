@@ -4,9 +4,10 @@ import os
 import re
 
 from tools.logging import log
-from tools.MetaData import ConstructDatasetName
+from histfiller.metadata import ConstructDatasetName
+import pathlib
 
-mdFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/metaData.json"
+mdFile = pathlib.Path(__file__).parent / "metadata.json"
 
 mcCampaign = {
     "r13167": ["2015", "2016"],  # "mc20a", run2, 2015-16
@@ -29,12 +30,17 @@ def GetMetaDataFromFile(file):
     datasetName = ConstructDatasetName(filepath)
     log.info("Original Dataset Name: " + datasetName)
 
-    md = json.load(open(mdFile))
+    if not os.path.exists(mdFile):
+        os.mknod(mdFile)
+        md = {}
+    else:
+        md = json.load(open(mdFile))
+
     if datasetName not in md:
         log.info("metaData not in json yet, will query from ami")
-        import tools.MetaData
+        import histfiller.metadata
 
-        tools.MetaData.get(filepath)
+        histfiller.metadata.get(filepath)
         md = json.load(open(mdFile))
 
     ds_info = md[datasetName]
@@ -53,7 +59,7 @@ def ConstructFilelist(sampleName, toMerge=False, verbose=False):
     Parameters
     ----------
     sampleName : str
-        options : mc21_SM, mc20_SM, mc20_ttbar, mc20_dijet, run2
+        options : mc21_SM, mc20_SM, mc20_k2v0, mc20_ttbar, mc20_dijet, run2
     toMerge : bool, optional
         to construct filelist for processed files to merge, by default False
 

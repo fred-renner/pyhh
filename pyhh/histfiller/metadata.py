@@ -7,6 +7,8 @@ import re
 import pyAMI.client
 import pyAMI_atlas.api as AtlasAPI
 import uproot
+from tools.logging import log
+import pathlib
 
 client = pyAMI.client.Client("atlas")
 AtlasAPI.init()
@@ -19,8 +21,7 @@ mcCampaign = {
     # # ptag
     # mc20 = "p5057"
 }
-
-mdFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/metaData.json"
+mdFile = pathlib.Path(__file__).parent / "metadata.json"
 
 
 def CombineCutBookkeepers(filelist):
@@ -58,7 +59,7 @@ def get(filepath):
         data = json.load(open(mdFile))
 
     if datasetName not in data:
-        print(f"query metadata for: {datasetName}")
+        log.info(f"query metadata for: {datasetName}")
         # need to do p wildcard search as too old ones get deleted
         datasetNames = datasetName[:-4] + "%"
         datasets = AtlasAPI.list_datasets(
@@ -73,9 +74,9 @@ def get(filepath):
         else:
             ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
             if "mc20" in datasetName:
-                pmgFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/PMGxsecDB_mc16.txt"
+                pmgFile = pathlib.Path(__file__).parent / "PMGxsecDB_mc16.txt"
             if "mc21" in datasetName:
-                pmgFile = "/lustre/fs22/group/atlas/freder/hh/pyhh/tools/PMGxsecDB_mc21.txt"
+                pmgFile = pathlib.Path(__file__).parent / "PMGxsecDB_mc21.txt"
             with open(pmgFile) as fd:
                 # dataset_number/I:physics_short/C:crossSection/D:genFiltEff/D:kFactor/D:relUncertUP/D:relUncertDOWN/D:generator_name/C:etag/C
                 rd = csv.reader(fd, delimiter="\t")
