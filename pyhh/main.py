@@ -7,7 +7,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     # select args
     parser_fill = subparsers.add_parser("select", help="run object selection")
-    parser_fill.add_argument("--file", type=str, default=None, required=False)
+    parser_fill.add_argument("--file", type=str, default=None)
     parser_fill.add_argument("--debug", action="store_true")
     parser_fill.add_argument("--batchMode", action="store_true")
     # merge args
@@ -18,7 +18,7 @@ def main():
     parser_plot.add_argument("--sample", type=str, default=None)
     # # fit args
     parser_fill = subparsers.add_parser("fit", help="run fitting")
-    
+
     args = parser.parse_args()
 
     if args.command == "select":
