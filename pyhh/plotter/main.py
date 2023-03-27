@@ -503,8 +503,8 @@ def kinVar_data_ratio(
         dataLowTag_err = hists["run2"][lowTaghistkey]["err"]
         ttLowTag = hists["ttbar"][lowTaghistkey]["h"]
         ttLowTag_err = hists["ttbar"][lowTaghistkey]["err"]
-        w_CR = 0.008138903181910379
-        err_w_CR = 0.00048089641813414284
+        w_CR = 0.0081093038933622
+        err_w_CR = 0.0005316268235806789
         jj = (dataLowTag - ttLowTag) * w_CR
         jj_err = plotter.tools.ErrorPropagation(
             sigmaA=plotter.tools.ErrorPropagation(
@@ -768,8 +768,8 @@ def compareABCD(hists, histkey, factor=None):
             err=tt_err_2,
         )
         edges = edges_
-    w_CR = 0.008060635632402544
-    err_w_CR = 0.0005150403753024878
+    w_CR = 0.007512067296747797
+    err_w_CR = 0.00042915519038828545
 
     jj = data - tt
     jj_err = plotter.tools.ErrorPropagation(
@@ -937,21 +937,22 @@ def run():
     # accEff_mhh()
 
     # massplane("massplane_CR_2b2b")
-    kinVar_data_ratio(hists, histkey="m_hh_lessBins.CR_2b2j", SoverB=True)
+    kinVar_data_ratio(hists, histkey="m_hh_lessBins.VR_2b2b", bkgEstimate=True, SoverB=True)
 
     # limits()
-    for var in collectedKinVarsWithRegions:
-        if "massplane" in var:
-            massplane(hists,var)
-        else:
-            kinVar_data_ratio(hists, var, bkgEstimate=False, SoverB=True)
+    # for var in collectedKinVarsWithRegions:
+    #     if "massplane" in var:
+    #         massplane(hists,var)
+    #     else:
+    #         kinVar_data_ratio(hists, var, bkgEstimate=False, SoverB=True)
 
-    for var in collectedKinVarsWithRegions:
-        if "2b2b" in var and not "massplane" in var:
-            kinVar_data_ratio(hists, var, bkgEstimate=True, SoverB=True)
+    # for var in collectedKinVarsWithRegions:
+    #     if "2b2b" in var and not "massplane" in var:
+    #         kinVar_data_ratio(hists, var, bkgEstimate=True, SoverB=True)
 
-    makeGrid()
+    # makeGrid()
 
-    for var in collectedKinVarsWithRegions:
-        if "m_h" in var and "2b2b" in var and "VR" in var:
-            compareABCD(hists, var)
+    # for var in collectedKinVarsWithRegions:
+    #     if "m_h" in var and "2b2b" in var and "VR" in var:
+    #         compareABCD(hists, var)
+    # compareABCD(hists, "m_hh_lessBins.VR_2b2b")

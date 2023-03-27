@@ -444,7 +444,9 @@ class ObjectSelection:
             "VR_2b2b": self.VR & self.btagHigh_2b2b & self.VBFjetsPass,
             "VR_2b2j": self.VR & self.btagLow_2b2j & self.VBFjetsPass,
             "CR_1b1b": self.CR & self.btagHigh_1b1b & self.VBFjetsPass,
+            "CR_1b1j": self.CR & self.btagLow_1b1j & self.VBFjetsPass,
             "CR_2b1b": self.CR & self.btagHigh_2b1b & self.VBFjetsPass,
+            "CR_2b1j": self.CR & self.btagLow_2b1j & self.VBFjetsPass,
             "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
             "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
         }

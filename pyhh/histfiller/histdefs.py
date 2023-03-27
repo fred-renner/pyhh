@@ -261,7 +261,9 @@ regions = [
     "VR_2b2b",
     "VR_2b2j",
     "CR_1b1b",
+    "CR_1b1j",
     "CR_2b1b",
+    "CR_2b1j",
     "CR_2b2b",
     "CR_2b2j",
 ]
