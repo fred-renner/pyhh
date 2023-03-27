@@ -1,6 +1,8 @@
-DEPRECATED
 
-pyhh is a python only analysis framework processing ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. 
+pyhh is a python only analysis framework processing ntuples from the easyJet framework as inputs to do a boosted VBF HH->4b analysis. It is capable of doing event selection, plotting and fitting.
+
+./pyhh/pyhh/main.py is the main script with the following options
+
 
 | script          | description                                                                                                                                                                                                                           |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -10,25 +12,4 @@ pyhh is a python only analysis framework processing ntuples from the easyJet fra
 | `Plotter.py`    | has all the plots and is still under very heavy development                                                                                                                                                                           |
 | `Fitting.py`    | yet to come                                                                                                                                                                                                                           |
 
-
-
-```mermaid
-flowchart TB
-
-    subgraph Analysis.py
-    load_vars --> ObjectSelection
-    ObjectSelection --> returnResults
-    end
-
-    multiprocessing_pool --> child_process--> Analysis.py
-    returnResults --> filling_callback
-    filling_callback --> fillHists -.-> new_child -.-> multiprocessing_pool
-    filling_callback -.- in_principle -.-> nano_ntuples
-
-    subgraph Histfiller.py
-    Configuration --> defineHists
-    defineHists --> multiprocessing_pool
-    multiprocessing_pool --> writeHists
-    end
-```
 

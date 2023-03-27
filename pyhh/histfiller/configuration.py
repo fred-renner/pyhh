@@ -17,7 +17,7 @@ class Setup:
 
         if args.file:
             # make unique output path with dataset
-            self.filelist = [args.file]
+            self.file = args.file
             fileParts = self.filelist[0].split("/")
             dataset = fileParts[-2]
             datasetPath = outputPath + dataset
@@ -26,12 +26,10 @@ class Setup:
                 os.makedirs(datasetPath)
             self.histOutFile = outputPath + dataset + "/" + file + ".h5"
         else:
-            # default to mc 20 signal
-            self.filelist = histfiller.tools.ConstructFilelist(
-                "mc20_SM", verbose=False
-            )
+            # default to an mc 20 signal file
+            self.file = histfiller.tools.ConstructFilelist("mc20_SM", verbose=False)[0]
             # make hist out file name from filename
-            dataset = self.filelist[0].split("/")
+            dataset = self.file.split("/")
             histOutFileName = "hists-" + dataset[-2] + ".h5"
             self.histOutFile = outputPath + histOutFileName
 
@@ -48,32 +46,20 @@ class Setup:
 
         # general settings
         if args.debug:
-            files = []
-            files.append(
-                histfiller.tools.ConstructFilelist("mc20_SM", verbose=False)[0]
-            )
-            files.append(
-                histfiller.tools.ConstructFilelist("mc20_ttbar", verbose=False)[0]
-            )
-            files.append(
-                histfiller.tools.ConstructFilelist("mc20_dijet", verbose=False)[0]
-            )
-            self.filelist = files
             self.histOutFile = outputPath + "hists-debug.h5"
             self.nEvents = 1000
             self.batchSize = 1000
+            self.cpus = 1
         else:
             self.nEvents = "All"
             self.batchSize = 20_000
-            if args.cpus:
-                self.cpus = args.cpus
-            elif args.batchMode:
+            if args.batchMode:
                 self.cpus = 1
             else:
                 self.cpus = multiprocessing.cpu_count() - 2
 
         # auto setup blind if data
-        if any("data1" in file for file in self.filelist):
+        if "data1" in self.file or "data2" in self.file:
             self.isData = True
         else:
             self.isData = False
