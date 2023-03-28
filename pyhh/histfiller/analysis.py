@@ -10,13 +10,14 @@ from tools.logging import log
 np.set_printoptions(threshold=np.inf)
 
 
-def run(batch, metaData, tree, vars):
+def run(batch, config, metaData, tree, vars):
     vars_arr = tree.arrays(
         vars, entry_start=batch[0], entry_stop=batch[1], library="np"
     )
-    objects = ObjectSelection(metaData, vars_arr)
+    objects = ObjectSelection(config, metaData, vars_arr)
     objects.select()
-    return objects.returnResults()
+    if config.fill:
+        return objects.returnResults()
 
 
 def get_lumi(years: list):
@@ -47,26 +48,69 @@ def get_lumi(years: list):
     return l
 
 
+# event level vars
+boolVars = [
+    "atLeastOneLargeR",
+    "selectedTwoLargeRevents",
+    "btagLow_1b1j",
+    "btagLow_2b1j",
+    "btagLow_2b2j",
+    "btagHigh_1b1b",
+    "btagHigh_2b1b",
+    "btagHigh_2b2b",
+    "SR",
+    "CR",
+    "VR",
+    "VBFjetsPass",
+    "leadingLargeRmassGreater100",
+    "leadingLargeRpTGreater500",
+]
+floatVars = [
+    "m_hh",
+    "m_h1",
+    "m_h2",
+    "pt_h1",
+    "pt_h2",
+    "pt_hh",
+    "pt_hh_scalar",
+    "dR_VR_h1",
+    "dR_VR_h2",
+    "X_HH",
+    "CR_hh",
+    "truth_m_hh",
+    "leadingLargeRpt",
+    "leadingLargeRm",
+    "pt_vbf1",
+    "pt_vbf2",
+    "mjj_vbf",
+    "pt_h1_btag_vr_1",
+    "pt_h1_btag_vr_2",
+    "pt_h2_btag_vr_1",
+    "pt_h2_btag_vr_2",
+]
+
+
 class ObjectSelection:
-    def __init__(self, metaData, vars_arr):
+    def __init__(self, config, metaData, vars_arr):
         """
         initializing all vars and reserving memory
 
         Parameters
         ----------
+        config : object
+            basic setup configured in configuration.py
         metaData : dict
             mainly info for weights
         vars_arr : dict
             holding vars loaded with uproot
         """
-
-        if metaData["isData"]:
+        self.config = config
+        if config.isData:
             self.mc = False
             self.data = True
         else:
             self.mc = True
             self.data = False
-        self.blind = metaData["blind"]
         if self.mc:
             lumi = get_lumi(metaData["dataYears"])
             # crosssection comes in nb-1 (* 1e6 = fb-1)
@@ -102,7 +146,6 @@ class ObjectSelection:
         self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
-        # don't refactor for now as this file is read to load the vars        
         if self.mc:
             # mc20 
             # r13144
@@ -142,6 +185,7 @@ class ObjectSelection:
         # if we don't know the size, lists are faster
         self.selPtSort_lrjIndices = [[] for x in self.eventRange]
 
+        # reserve np arrays and write to object
         # int init
         intInitArray = np.full(self.nEvents, -1, dtype=int)
         self.nLargeR = np.copy(intInitArray)
@@ -151,45 +195,15 @@ class ObjectSelection:
 
         # bool init
         boolInitArray = np.zeros(self.nEvents, dtype=bool)
-        self.atLeastOneLargeR = np.copy(boolInitArray)
-        self.selectedTwoLargeRevents = np.copy(boolInitArray)
-        self.btagLow_1b1j = np.copy(boolInitArray)
-        self.btagLow_2b1j = np.copy(boolInitArray)
-        self.btagLow_2b2j = np.copy(boolInitArray)
-        self.btagHigh_1b1b = np.copy(boolInitArray)
-        self.btagHigh_2b1b = np.copy(boolInitArray)
-        self.btagHigh_2b2b = np.copy(boolInitArray)
-        self.SR = np.copy(boolInitArray)
-        self.CR = np.copy(boolInitArray)
-        self.VR = np.copy(boolInitArray)
-        self.VBFjetsPass = np.copy(boolInitArray)
-        self.leadingLargeRmassGreater100 = np.copy(boolInitArray)
-        self.leadingLargeRpTGreater500 = np.copy(boolInitArray)
+        for var in boolVars:
+            setattr(self, var, np.copy(boolInitArray))
 
         # float init
         self.weights = np.full(self.nEvents, 1.0, dtype=float)
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
-        self.m_hh = np.copy(floatInitArray)
-        self.m_h1 = np.copy(floatInitArray)
-        self.m_h2 = np.copy(floatInitArray)
-        self.pt_h1 = np.copy(floatInitArray)
-        self.pt_h2 = np.copy(floatInitArray)
-        self.pt_hh = np.copy(floatInitArray)
-        self.pt_hh_scalar = np.copy(floatInitArray)
-        self.dR_VR_h1 = np.copy(floatInitArray)
-        self.dR_VR_h2 = np.copy(floatInitArray)
-        self.X_HH = np.copy(floatInitArray)
-        self.CR_hh = np.copy(floatInitArray)
-        self.truth_m_hh = np.copy(floatInitArray)
-        self.leadingLargeRpt = np.copy(floatInitArray)
-        self.leadingLargeRm = np.copy(floatInitArray)
-        self.pt_vbf1 = np.copy(floatInitArray)
-        self.pt_vbf2 = np.copy(floatInitArray)
-        self.mjj_vbf = np.copy(floatInitArray)
-        self.pt_h1_btag_vr_1 = np.copy(floatInitArray)
-        self.pt_h1_btag_vr_2 = np.copy(floatInitArray)
-        self.pt_h2_btag_vr_1 = np.copy(floatInitArray)
-        self.pt_h2_btag_vr_2 = np.copy(floatInitArray)
+
+        for var in floatVars:
+            setattr(self, var, np.copy(floatInitArray))
 
     def select(self):
         for event in self.eventRange:
@@ -450,7 +464,7 @@ class ObjectSelection:
             "CR_2b2b": self.CR & self.btagHigh_2b2b & self.VBFjetsPass,
             "CR_2b2j": self.CR & self.btagLow_2b2j & self.VBFjetsPass,
         }
-        if self.blind:
+        if self.config.BLIND:
             selections["SR_2b2b"] = np.zeros(self.nEvents, dtype=bool)
         else:
             selections["SR_2b2b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
@@ -691,6 +705,14 @@ class ObjectSelection:
                 np.array(self.weights[selectionBool]),
             ]
 
+        if self.config.dump:
+            results["selections"] = selections
+            results["bools"]={}
+            results["floats"]={}
+            for var in boolVars:
+                results["bools"][var] = getattr(self, var)
+            for var in floatVars:
+                results["floats"][var] = getattr(self, var)
         return results
 
     def resultWithWeights(self, var, sel=None, userWeight=None):

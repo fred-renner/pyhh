@@ -6,6 +6,7 @@ import re
 from tools.logging import log
 from histfiller.metadata import ConstructDatasetName
 import pathlib
+import histfiller.analysis
 
 mdFile = pathlib.Path(__file__).parent / "metadata.json"
 
@@ -111,16 +112,50 @@ def ConstructFilelist(sampleName, toMerge=False, verbose=False):
 
 
 def EventRanges(tree, batch_size=10_000, nEvents="All"):
-    # construct ranges, batch_size=1000 gives e.g.
-    # [[0, 999], [1000, 1999], [2000, 2999],...]
+    """
+    construct ranges, batch_size=1000 gives e.g.
+    [[0, 1000], [1000, 2000], [2000, 3000],...]
+
+    Parameters
+    ----------
+    tree : uproot TTree
+        tree with branches from uproot
+    batch_size : int, optional
+        how many events per batch, by default 10_000
+    nEvents : str, optional
+        total amount of events, by default "All"
+
+    Returns
+    -------
+    list
+        event ranges
+    """
     ranges = []
     batch_ranges = []
     if nEvents == "All":
         nEvents = tree.num_entries
-    for i in range(0, nEvents, batch_size):
+    for i in range(0, nEvents, batch_size + 1):
         ranges += [i]
     if nEvents not in ranges:
         ranges += [nEvents + 1]
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j - 1]]
     return batch_ranges
+
+
+def write_vars(results, f):
+    for varType in ["bools", "floats"]:
+        if varType == "bools":
+            vars = histfiller.analysis.boolVars
+        if varType == "floats":
+            vars = histfiller.analysis.floatVars
+        for var in vars:
+            var_ds = f[varType][var]
+            var_result = results[varType][var]
+            if var_ds.shape[0] == 0:
+                idx_start = var_ds.shape[0]
+            else:
+                idx_start = var_ds.shape[0] + 1
+            idx_end = idx_start + var_result.shape[0]
+            var_ds.resize((idx_end,))
+            var_ds[idx_start:idx_end] = var_result
