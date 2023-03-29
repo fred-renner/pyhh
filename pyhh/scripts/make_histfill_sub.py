@@ -1,7 +1,4 @@
 #!/usr/bin/env python3
-import sys
-
-sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh/pyhh")
 import argparse
 import subprocess
 
