@@ -133,17 +133,17 @@ class ObjectSelection:
         # recojet_antikt10
 
         self.vars_arr = vars_arr
-        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
-        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
-        self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
-        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
+        self.lrj_pt = vars_arr["recoUFOjet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recoUFOjet_antikt10_NOSYS_eta"]
+        self.lrj_phi = vars_arr["recoUFOjet_antikt10_NOSYS_phi"]
+        self.lrj_m = vars_arr["recoUFOjet_antikt10_NOSYS_m"]
         self.srj_pt = vars_arr["recojet_antikt4_NOSYS_pt"]
         self.srj_eta = vars_arr["recojet_antikt4_NOSYS_eta"]
         self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
         self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
-        self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
-        self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
-        self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
+        self.vr_btag_77 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_pt = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsPt"]
+        self.vr_deltaR12 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
         if self.mc:

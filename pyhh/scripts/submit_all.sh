@@ -14,7 +14,7 @@ rsync -r --exclude=.git /lustre/fs22/group/atlas/freder/hh/pyhh /lustre/fs22/gro
 # now loop through the above array
 for i in "${samples[@]}"; do
 
-    /lustre/fs22/group/atlas/freder/hh/pyhh/pyhh/scripts/make_histfill_sub.py --sample $i
+    /lustre/fs22/group/atlas/freder/hh/submit/pyhh/pyhh/main.py make-submit --sample $i
     mkdir /lustre/fs22/group/atlas/freder/hh/submit/$i -p
     cd /lustre/fs22/group/atlas/freder/hh/submit/$i
     condor_submit /lustre/fs22/group/atlas/freder/hh/submit/histfill_$i.sub

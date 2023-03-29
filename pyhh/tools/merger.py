@@ -9,6 +9,17 @@ import selector.analysis
 
 
 def run(args):
+    """
+    Depending on the use case this merges histogram samples by adding the
+    histograms of an entire sample or concatenates dumped variables into one
+    file. It uses files created with pyhh.selector.
+
+    Parameters
+    ----------
+    args : Namespace
+        args from pyhh.main
+    """
+
     if args.hists:
         filelist = ConstructFilelist(args.sample, mergeProcessedHists=True)
         mergedFile = (

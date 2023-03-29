@@ -12,6 +12,12 @@ def main():
     parser_select.add_argument("--dump", action="store_true")
     parser_select.add_argument("--debug", action="store_true")
     parser_select.add_argument("--batchMode", action="store_true")
+    # submit all
+    parser_submit = subparsers.add_parser(
+        "make-submit", help="make HTCondor submit file"
+    )
+    parser_submit.add_argument("--sample", type=str, default=None, required=True)
+
     # merge args
     parser_merge = subparsers.add_parser(
         "merge", help="merge files of same logical dataset"
@@ -19,7 +25,6 @@ def main():
     parser_merge.add_argument("--sample", type=str, default=None, required=True)
     parser_merge.add_argument("--hists", action="store_true")
     parser_merge.add_argument("--dumped", action="store_true")
-
     # # plot args
     parser_plot = subparsers.add_parser("plot", help="run plotting")
     parser_plot.add_argument("--sample", type=str, default=None)
@@ -32,6 +37,11 @@ def main():
         import selector.main
 
         selector.main.run(args)
+
+    if args.command == "make-submit":
+        import scripts.make_histfill_sub
+
+        scripts.make_histfill_sub.run(args)
 
     if args.command == "merge":
         import tools.merger

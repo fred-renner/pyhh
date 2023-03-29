@@ -3,12 +3,13 @@ pyhh is a python only analysis framework processing ntuples from the easyJet fra
 
 ```
 ./pyhh/pyhh/main.py -h       
-usage: pyhh [-h] {select,merge,plot,fit} ...
+usage: pyhh [-h] {select,make-submit,merge,plot,fit} ...
 
 positional arguments:
-  {select,merge,plot,fit}
+  {select,make-submit,merge,plot,fit}
     select              run object selection
-    merge               merge hist files
+    make-submit         make HTCondor submit file
+    merge               merge files of same logical dataset
     plot                run plotting
     fit                 run fitting
 ```
