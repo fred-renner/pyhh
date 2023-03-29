@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 import multiprocessing
-import histfiller.analysis
-import histfiller.configuration
-import histfiller.histdefs as histdefs
-import histfiller.tools
+import selector.analysis
+import selector.configuration
+import selector.histdefs as histdefs
+import selector.tools
 import uproot
 import h5py
 from tools.logging import log
@@ -11,11 +11,21 @@ from tqdm.auto import tqdm
 
 
 def run(args):
-    """ """
+    """
+    Main program for HH-->4b VBF boosted selection. It runs
+    selector.analysis.run() jobs per event batch and executes the callback
+    function each time it finishes. The callback does histogram filling or
+    variable dumping.
+
+    Parameters
+    ----------
+    args : Namespace
+        args from the entry program
+    """
 
     def callback(results):
         """
-        The filling dumping is executed each time an analysis.run job finishes.
+        The fillin/dumping is executed each time a selector.analysis.run job finishes.
         This is executed sequentially so no data races.
 
         Parameters
@@ -37,23 +47,32 @@ def run(args):
         # dump variables by appending to dump file
         if config.dump:
             with h5py.File(config.dumpFile, "r+") as f:
-                histfiller.tools.write_vars(results, f)
+                selector.tools.write_vars(results, f)
 
         pbar.update(config.batchSize)
         return
 
-    def error_handler(e):
+    def error_callback(e):
+        """
+        handles error if selector.analysis.job fails
+
+        Parameters
+        ----------
+        e : BaseException
+            error
+        """
         log.error(e.__cause__)
         pool.terminate()
         # prevents more jobs submissions
         pool.close()
         return
 
+    ########## here starts the actual execution ##########
+
     # get configuration
-    config = histfiller.configuration.setup(args)
+    config = selector.configuration.setup(args)
     # init hists
     hists = histdefs.hists
-
     # loop over input files
     log.info("Processing file " + config.file)
     with uproot.open(config.file) as file:
@@ -68,16 +87,17 @@ def run(args):
             dataCampaign = [s for s in substrings if "data" in s]
             metaData["dataYear"] = "20" + dataCampaign[-1].split("_")[0][-2:]
         else:
-            metaData = histfiller.tools.GetMetaDataFromFile(file)
-        eventBatches = histfiller.tools.EventRanges(
+            metaData = selector.tools.GetMetaDataFromFile(file)
+        eventBatches = selector.tools.EventRanges(
             tree, batch_size=config.batchSize, nEvents=config.nEvents
         )
+        print(eventBatches)
 
         # progressbar
         pbar = tqdm(total=tree.num_entries, position=0, leave=True)
         if args.debug:
             for batch in eventBatches:
-                results = histfiller.analysis.run(
+                results = selector.analysis.run(
                     batch, config, metaData, tree, existingVars
                 )
                 callback(results)
@@ -87,10 +107,10 @@ def run(args):
             pool = multiprocessing.Pool(config.cpus)
             for batch in eventBatches:
                 pool.apply_async(
-                    histfiller.analysis.run,
+                    selector.analysis.run,
                     (batch, config, metaData, tree, existingVars),
                     callback=callback,
-                    error_callback=error_handler,
+                    error_callback=error_callback,
                 )
             pool.close()
             pool.join()
@@ -105,3 +125,5 @@ def run(args):
                 hist.write(outfile)
     if config.dump:
         log.info("Dumped selected vars to: " + config.dumpFile)
+
+    return

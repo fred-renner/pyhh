@@ -1,11 +1,10 @@
 # samples to submit
 declare -a samples=(
     "mc20_SM"
-    "mc20_k2v0"
-    "mc20_ttbar"
-    "mc20_dijet"
-    "run2"
-
+    # "mc20_k2v0"
+    # "mc20_ttbar"
+    # "mc20_dijet"
+    # "run2"
 )
 
 # copy and run from submit folder

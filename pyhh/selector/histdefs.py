@@ -1,7 +1,7 @@
 import copy
 import math
 
-from histfiller.histograms import FloatHistogram, FloatHistogram2D, IntHistogram
+from selector.histograms import FloatHistogram, FloatHistogram2D, IntHistogram
 
 # define hists
 accEffBinning = {"binrange": (0, 5_000_000), "bins": 50}

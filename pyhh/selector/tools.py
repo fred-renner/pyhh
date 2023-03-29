@@ -4,9 +4,9 @@ import os
 import re
 
 from tools.logging import log
-from histfiller.metadata import ConstructDatasetName
+from selector.metadata import ConstructDatasetName
 import pathlib
-import histfiller.analysis
+import selector.analysis
 
 mdFile = pathlib.Path(__file__).parent / "metadata.json"
 
@@ -39,9 +39,9 @@ def GetMetaDataFromFile(file):
 
     if datasetName not in md:
         log.info("metaData not in json yet, will query from ami")
-        import histfiller.metadata
+        import selector.metadata
 
-        histfiller.metadata.get(filepath)
+        selector.metadata.get(filepath)
         md = json.load(open(mdFile))
 
     ds_info = md[datasetName]
@@ -54,16 +54,20 @@ def GetMetaDataFromFile(file):
     return metaData
 
 
-def ConstructFilelist(sampleName, toMerge=False, verbose=False):
+def ConstructFilelist(
+    sampleName, mergeProcessedHists=False, mergeProcessedDumps=False, verbose=False
+):
     """
-
     Parameters
     ----------
     sampleName : str
         options : mc21_SM, mc20_SM, mc20_k2v0, mc20_ttbar, mc20_dijet, run2
     toMerge : bool, optional
         to construct filelist for processed files to merge, by default False
-
+    mergeProcessedHists : bool, optional
+        construct filelist for processed hists
+    mergeProcessedDumps : bool, optional
+        construct filelist for processed dumps
     Returns
     -------
     filelist : list
@@ -89,9 +93,11 @@ def ConstructFilelist(sampleName, toMerge=False, verbose=False):
         topPath = "/lustre/fs24/group/atlas/dbattulga/ntup_SH_Feb2023/Data/"
         pattern = "*data1*/*"
 
-    if toMerge:
-        # just changes topPath
+    # just changes topPath
+    if mergeProcessedHists:
         topPath = "/lustre/fs22/group/atlas/freder/hh/run/histograms/"
+    if mergeProcessedDumps:
+        topPath = "/lustre/fs22/group/atlas/freder/hh/run/dump/"
 
     if "topPath" not in locals():
         verbose.error(f"{sampleName} is not defined")
@@ -134,28 +140,41 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     batch_ranges = []
     if nEvents == "All":
         nEvents = tree.num_entries
-    for i in range(0, nEvents, batch_size + 1):
+    for i in range(0, nEvents, batch_size):
         ranges += [i]
-    if nEvents not in ranges:
+    if nEvents + 1 not in ranges:
         ranges += [nEvents + 1]
     for i, j in zip(ranges[:-1], ranges[1:]):
-        batch_ranges += [[i, j - 1]]
+        batch_ranges += [[i, j]]
+    # also include last entry
+    # batch_ranges[-1][-1] += 1
     return batch_ranges
 
 
 def write_vars(results, f):
+    """
+    writes variables from callback
+
+    Parameters
+    ----------
+    results : results dict
+        see selector.callback()
+    f : h5py.File
+        file to write to
+    """
+
     for varType in ["bools", "floats"]:
         if varType == "bools":
-            vars = histfiller.analysis.boolVars
+            vars = selector.analysis.boolVars
         if varType == "floats":
-            vars = histfiller.analysis.floatVars
+            vars = selector.analysis.floatVars
         for var in vars:
             var_ds = f[varType][var]
             var_result = results[varType][var]
             if var_ds.shape[0] == 0:
-                idx_start = var_ds.shape[0]
+                idx_start = 0
             else:
-                idx_start = var_ds.shape[0] + 1
+                idx_start = var_ds.shape[0] 
             idx_end = idx_start + var_result.shape[0]
             var_ds.resize((idx_end,))
             var_ds[idx_start:idx_end] = var_result

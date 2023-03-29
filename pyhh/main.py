@@ -13,11 +13,13 @@ def main():
     parser_select.add_argument("--debug", action="store_true")
     parser_select.add_argument("--batchMode", action="store_true")
     # merge args
-    parser_merge = subparsers.add_parser("merge", help="merge files of same logical dataset")
-    # parser_merge.add_argument("--fill", action="store_true")
-    # parser_merge.add_argument("--fill", type=str, default=None)
-    parser_merge = subparsers.add_parser("merge", help="merge files of same logical dataset")
-    parser_merge.add_argument("--sample", type=str, default=None)
+    parser_merge = subparsers.add_parser(
+        "merge", help="merge files of same logical dataset"
+    )
+    parser_merge.add_argument("--sample", type=str, default=None, required=True)
+    parser_merge.add_argument("--hists", action="store_true")
+    parser_merge.add_argument("--dumped", action="store_true")
+
     # # plot args
     parser_plot = subparsers.add_parser("plot", help="run plotting")
     parser_plot.add_argument("--sample", type=str, default=None)
@@ -27,9 +29,9 @@ def main():
     args = parser.parse_args()
 
     if args.command == "select":
-        import histfiller.main
+        import selector.main
 
-        histfiller.main.run(args)
+        selector.main.run(args)
 
     if args.command == "merge":
         import tools.merger

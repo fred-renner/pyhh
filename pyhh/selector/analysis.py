@@ -16,8 +16,8 @@ def run(batch, config, metaData, tree, vars):
     )
     objects = ObjectSelection(config, metaData, vars_arr)
     objects.select()
-    if config.fill:
-        return objects.returnResults()
+
+    return objects.returnResults()
 
 
 def get_lumi(years: list):
@@ -671,39 +671,40 @@ class ObjectSelection:
                 # need to make a deep copy as dict assignments just creates references
                 finalSel[kinVar + "." + region] = copy.deepcopy(kinVarDict)
 
-        # go over all defined hists, and return
         results = {}
-        for hist in finalSel.keys():
-            # if list of lists build var/weights manually
-            if isinstance(finalSel[hist]["var"], list) or (
-                finalSel[hist]["var"].dtype == object
-            ):
-                finalSel[hist]["var"], w = flatten2d(
-                    finalSel[hist]["var"],
-                    self.weights,
-                    finalSel[hist]["sel"],
+        # if fill hists go over all defined hists
+        if self.config.fill:
+            for hist in finalSel.keys():
+                # if list of lists build var/weights manually
+                if isinstance(finalSel[hist]["var"], list) or (
+                    finalSel[hist]["var"].dtype == object
+                ):
+                    finalSel[hist]["var"], w = flatten2d(
+                        finalSel[hist]["var"],
+                        self.weights,
+                        finalSel[hist]["sel"],
+                    )
+                    finalSel[hist]["sel"] = None
+                else:
+                    w = None
+                # get final values with according weights
+                results[hist] = self.resultWithWeights(
+                    var=finalSel[hist]["var"],
+                    sel=finalSel[hist]["sel"],
+                    userWeight=w,
                 )
-                finalSel[hist]["sel"] = None
-            else:
-                w = None
-            # get final values with according weights
-            results[hist] = self.resultWithWeights(
-                var=finalSel[hist]["var"],
-                sel=finalSel[hist]["sel"],
-                userWeight=w,
-            )
 
-        # add massplane
-        for region, selectionBool in selections.items():
-            results["massplane." + region] = [
-                np.array(
-                    [
-                        self.m_h1[selectionBool],
-                        self.m_h2[selectionBool],
-                    ]
-                ).T,
-                np.array(self.weights[selectionBool]),
-            ]
+            # add massplane
+            for region, selectionBool in selections.items():
+                results["massplane." + region] = [
+                    np.array(
+                        [
+                            self.m_h1[selectionBool],
+                            self.m_h2[selectionBool],
+                        ]
+                    ).T,
+                    np.array(self.weights[selectionBool]),
+                ]
 
         if self.config.dump:
             results["selections"] = selections
@@ -713,6 +714,7 @@ class ObjectSelection:
                 results["bools"][var] = getattr(self, var)
             for var in floatVars:
                 results["floats"][var] = getattr(self, var)
+
         return results
 
     def resultWithWeights(self, var, sel=None, userWeight=None):

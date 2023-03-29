@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from histfiller.histdefs import collectedKinVars, collectedKinVarsWithRegions, regions
+from selector.histdefs import collectedKinVars, collectedKinVarsWithRegions, regions
 from tools.logging import log
 
 print("\n")

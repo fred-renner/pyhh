@@ -1,8 +1,10 @@
 import os
 import pathlib
-import histfiller.tools
+import selector.tools
 import h5py
-import histfiller.analysis
+import selector.analysis
+
+outputPath = "/lustre/fs22/group/atlas/freder/hh/run/"
 
 
 class setup:
@@ -19,12 +21,11 @@ class setup:
         self.file = args.file
         # default to an mc 20 signal file
         if not args.file:
-            self.file = histfiller.tools.ConstructFilelist("mc20_SM", verbose=False)[0]
+            self.file = selector.tools.ConstructFilelist("mc20_SM", verbose=False)[0]
         fileParts = self.file.split("/")
         dataset = fileParts[-2]
         file = fileParts[-1]
 
-        outputPath = "/lustre/fs22/group/atlas/freder/hh/run/"
         histpath = outputPath + "histograms/" + dataset + "/"
         dumppath = outputPath + "dump/" + dataset + "/"
 
@@ -72,19 +73,24 @@ class setup:
         # if fill hists
         self.fill = args.fill
         # init dump file for dumping of selected vars
+
         self.dump = args.dump
         if args.dump:
             self.dump = args.dump
-            with h5py.File(self.dumpFile, "w") as f:
-                # event selection bools
-                bools = f.create_group("bools")
-                for var in histfiller.analysis.boolVars:
-                    ds = bools.create_dataset(
-                        var, (0,), maxshape=(None,), compression="gzip", dtype="i1"
-                    )
-                # event vars
-                floats = f.create_group("floats")
-                for var in histfiller.analysis.floatVars:
-                    ds = floats.create_dataset(
-                        var, (0,), maxshape=(None,), compression="gzip", dtype="f8"
-                    )
+            initDumpFile(self.dumpFile)
+
+
+def initDumpFile(filepath):
+    with h5py.File(filepath, "w") as f:
+        # event selection bools
+        bools = f.create_group("bools")
+        for var in selector.analysis.boolVars:
+            ds = bools.create_dataset(
+                var, (0,), maxshape=(None,), compression="gzip", dtype="i1"
+            )
+        # event vars
+        floats = f.create_group("floats")
+        for var in selector.analysis.floatVars:
+            ds = floats.create_dataset(
+                var, (0,), maxshape=(None,), compression="gzip", dtype="f8"
+            )

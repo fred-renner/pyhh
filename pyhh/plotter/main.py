@@ -7,7 +7,7 @@ import numpy as np
 import plotter.colors
 import plotter.loadHists
 import plotter.tools
-from histfiller.histdefs import collectedKinVars, collectedKinVarsWithRegions
+from selector.histdefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
 from matplotlib.offsetbox import AnchoredText
 from pdf2image import convert_from_path

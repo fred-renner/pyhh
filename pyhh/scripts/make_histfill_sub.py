@@ -5,7 +5,7 @@ sys.path.append("/lustre/fs22/group/atlas/freder/hh/pyhh/pyhh")
 import argparse
 import subprocess
 
-from histfiller.tools import ConstructFilelist
+from selector.tools import ConstructFilelist
 from tools.logging import log
 
 parser = argparse.ArgumentParser()
@@ -20,10 +20,10 @@ else:
 filelist = ConstructFilelist(sampleName=sample)
 
 if "mc" in sample:
-    import histfiller.metadata
+    import selector.metadata
 
     for file in filelist:
-        histfiller.metadata.get(file)
+        selector.metadata.get(file)
 
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
