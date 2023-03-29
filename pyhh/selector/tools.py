@@ -19,6 +19,20 @@ mcCampaign = {
 
 
 def GetMetaDataFromFile(file):
+    """
+    Gets necessary metdadata from metdata file for selection, e.g. eventweight.
+    Also does a ami query if metadata for file don't exist.
+
+    Parameters
+    ----------
+    file : uproot.ReadOnlyFile
+        root file
+
+    Returns
+    -------
+    metadata : dict
+        metadata
+    """
     metaData = {}
     filepath = file._file._file_path
 
@@ -140,14 +154,13 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     batch_ranges = []
     if nEvents == "All":
         nEvents = tree.num_entries
-    for i in range(0, nEvents, batch_size):
+    for i in range(0, nEvents + 1, batch_size):
         ranges += [i]
+    # add very last index to not include
     if nEvents + 1 not in ranges:
         ranges += [nEvents + 1]
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j]]
-    # also include last entry
-    # batch_ranges[-1][-1] += 1
     return batch_ranges
 
 
@@ -157,7 +170,7 @@ def write_vars(results, f):
 
     Parameters
     ----------
-    results : results dict
+    results : dict
         see selector.callback()
     f : h5py.File
         file to write to
@@ -174,7 +187,7 @@ def write_vars(results, f):
             if var_ds.shape[0] == 0:
                 idx_start = 0
             else:
-                idx_start = var_ds.shape[0] 
+                idx_start = var_ds.shape[0]
             idx_end = idx_start + var_result.shape[0]
             var_ds.resize((idx_end,))
             var_ds[idx_start:idx_end] = var_result

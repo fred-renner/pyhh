@@ -20,7 +20,7 @@ def run(args):
     Parameters
     ----------
     args : Namespace
-        args from the entry program
+        args from the pyhh.main entry program
     """
 
     def callback(results):
@@ -67,7 +67,7 @@ def run(args):
         pool.close()
         return
 
-    ########## here starts the actual execution ##########
+    ########## here the actual program starts ##########
 
     # get configuration
     config = selector.configuration.setup(args)
@@ -91,7 +91,6 @@ def run(args):
         eventBatches = selector.tools.EventRanges(
             tree, batch_size=config.batchSize, nEvents=config.nEvents
         )
-        print(eventBatches)
 
         # progressbar
         pbar = tqdm(total=tree.num_entries, position=0, leave=True)

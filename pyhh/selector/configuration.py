@@ -72,8 +72,8 @@ class setup:
 
         # if fill hists
         self.fill = args.fill
-        # init dump file for dumping of selected vars
 
+        # init dump file for dumping of selected vars
         self.dump = args.dump
         if args.dump:
             self.dump = args.dump
