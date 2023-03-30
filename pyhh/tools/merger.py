@@ -84,3 +84,4 @@ def run(args):
                             var_out_ds[idx_start:idx_end] = appendValues
                 pbar.update(1)
         pbar.close()
+    return

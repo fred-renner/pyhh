@@ -206,6 +206,9 @@ class ObjectSelection:
             setattr(self, var, np.copy(floatInitArray))
 
     def select(self):
+        """
+        This does the actual analysis/selection steps
+        """
         for event in self.eventRange:
             if self.trigger[event]:
                 # order matters!
@@ -443,7 +446,9 @@ class ObjectSelection:
 
     def returnResults(self):
         """
-        apply selections to variables and weights
+        This writes everything to a returned results dict.
+        if fill hists: apply selections to variables and weights
+        if dump variables: write bools and floats to results.
 
         Returns
         -------
@@ -469,6 +474,34 @@ class ObjectSelection:
         else:
             selections["SR_2b2b"] = self.SR & self.btagHigh_2b2b & self.VBFjetsPass
 
+        # make kinematics vars for all selections, e.g. mhh_CR_4b, mhh_CR_2b, etc.
+        # and write to finalSel
+        finalSel, kinematics = self.histvariableDefs()
+        # e.g. region==CR_2b, selectionBool==boolArray_CR_2b
+        for region, selectionBool in selections.items():
+            for kinVar, kinVarDict in kinematics.items():
+                # write selectionBool e.g. SR_4b
+                kinVarDict["sel"] = selectionBool
+                # need to make a deep copy as dict assignments just creates references
+                finalSel[kinVar + "." + region] = copy.deepcopy(kinVarDict)
+
+        results = {}
+        # if fill hists go over all defined hists
+        if self.config.fill:
+            self.fill(selections, finalSel, results)
+
+        if self.config.dump:
+            results["selections"] = selections
+            results["bools"] = {}
+            results["floats"] = {}
+            for var in boolVars:
+                results["bools"][var] = getattr(self, var)
+            for var in floatVars:
+                results["floats"][var] = getattr(self, var)
+
+        return results
+
+    def histvariableDefs(self):
         # singular vars
         finalSel = {
             "truth_mhh": {
@@ -659,63 +692,41 @@ class ObjectSelection:
                 "sel": None,
             },
         }
+        return finalSel, kinematics
 
-        # make kinematics vars for all selections, e.g. mhh_CR_4b, mhh_CR_2b, etc.
-        # and write to finalSel
-
-        # e.g. region==CR_2b, selectionBool==boolArray_CR_2b
-        for region, selectionBool in selections.items():
-            for kinVar, kinVarDict in kinematics.items():
-                # write selectionBool e.g. SR_4b
-                kinVarDict["sel"] = selectionBool
-                # need to make a deep copy as dict assignments just creates references
-                finalSel[kinVar + "." + region] = copy.deepcopy(kinVarDict)
-
-        results = {}
-        # if fill hists go over all defined hists
-        if self.config.fill:
-            for hist in finalSel.keys():
-                # if list of lists build var/weights manually
-                if isinstance(finalSel[hist]["var"], list) or (
-                    finalSel[hist]["var"].dtype == object
-                ):
-                    finalSel[hist]["var"], w = flatten2d(
-                        finalSel[hist]["var"],
-                        self.weights,
-                        finalSel[hist]["sel"],
-                    )
-                    finalSel[hist]["sel"] = None
-                else:
-                    w = None
-                # get final values with according weights
-                results[hist] = self.resultWithWeights(
-                    var=finalSel[hist]["var"],
-                    sel=finalSel[hist]["sel"],
-                    userWeight=w,
+    def fill(self, selections, finalSel, results):
+        for hist in finalSel.keys():
+            # if list of lists build var/weights manually
+            if isinstance(finalSel[hist]["var"], list) or (
+                finalSel[hist]["var"].dtype == object
+            ):
+                finalSel[hist]["var"], w = flatten2d(
+                    finalSel[hist]["var"],
+                    self.weights,
+                    finalSel[hist]["sel"],
                 )
+                finalSel[hist]["sel"] = None
+            else:
+                w = None
+                # get final values with according weights
+            results[hist] = self.resultWithWeights(
+                var=finalSel[hist]["var"],
+                sel=finalSel[hist]["sel"],
+                userWeight=w,
+            )
 
             # add massplane
-            for region, selectionBool in selections.items():
-                results["massplane." + region] = [
-                    np.array(
-                        [
-                            self.m_h1[selectionBool],
-                            self.m_h2[selectionBool],
-                        ]
-                    ).T,
-                    np.array(self.weights[selectionBool]),
-                ]
-
-        if self.config.dump:
-            results["selections"] = selections
-            results["bools"]={}
-            results["floats"]={}
-            for var in boolVars:
-                results["bools"][var] = getattr(self, var)
-            for var in floatVars:
-                results["floats"][var] = getattr(self, var)
-
-        return results
+        for region, selectionBool in selections.items():
+            results["massplane." + region] = [
+                np.array(
+                    [
+                        self.m_h1[selectionBool],
+                        self.m_h2[selectionBool],
+                    ]
+                ).T,
+                np.array(self.weights[selectionBool]),
+            ]
+        return
 
     def resultWithWeights(self, var, sel=None, userWeight=None):
         """
