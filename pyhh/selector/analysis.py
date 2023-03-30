@@ -66,6 +66,7 @@ boolVars = [
     "leadingLargeRpTGreater500",
 ]
 floatVars = [
+    "weights",
     "m_hh",
     "m_h1",
     "m_h2",
@@ -199,16 +200,17 @@ class ObjectSelection:
             setattr(self, var, np.copy(boolInitArray))
 
         # float init
-        self.weights = np.full(self.nEvents, 1.0, dtype=float)
         floatInitArray = np.full(self.nEvents, -1.0, dtype=float)
-
         for var in floatVars:
             setattr(self, var, np.copy(floatInitArray))
+        # init weights to one
+        self.weights = np.full(self.nEvents, 1.0, dtype=float)
 
     def select(self):
         """
         This does the actual analysis/selection steps
         """
+
         for event in self.eventRange:
             if self.trigger[event]:
                 # order matters!
