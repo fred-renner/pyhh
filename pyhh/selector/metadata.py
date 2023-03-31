@@ -54,11 +54,11 @@ def get(filepath):
 
     if not os.path.exists(mdFile):
         os.mknod(mdFile)
-        data = {}
+        md = {}
     else:
-        data = json.load(open(mdFile))
+        md = json.load(open(mdFile))
 
-    if datasetName not in data:
+    if datasetName not in md:
         log.info(f"query metadata for: {datasetName}")
         # need to do p wildcard search as too old ones get deleted
         datasetNames = datasetName[:-4] + "%"
@@ -66,11 +66,11 @@ def get(filepath):
             client, patterns=datasetNames, type="DAOD_PHYS"
         )
         ds_info = AtlasAPI.get_dataset_info(client, dataset=datasets[0]["ldn"])
-        data[datasetName] = ds_info[0]
+        md[datasetName] = ds_info[0]
 
         # add kfactor either from ami or PMG file
         if "kFactor@PMG" in ds_info:
-            ds_info["kFactor"] = float(ds_info["kFactor@PMG"])
+            md[datasetName]["kFactor"] = float(ds_info["kFactor@PMG"])
         else:
             ds_nr = re.findall("(?<=\.)[0-9]{6}(?=\.)", filepath)
             if "mc20" in datasetName:
@@ -84,14 +84,14 @@ def get(filepath):
                     if row[0] == ds_nr[0]:
                         # delete empty strings
                         row = list(filter(None, row))
-                        data[datasetName]["kFactor"] = row[4]
+                        md[datasetName]["kFactor"] = row[4]
         # get all files in dataset to sum up their sum_of_weights
         filelist = glob.glob(os.path.dirname(filepath) + "/*.root")
         cbk = CombineCutBookkeepers(filelist)
-        data[datasetName]["initial_events"] = cbk["initial_events"]
-        data[datasetName]["initial_sum_of_weights"] = cbk["initial_sum_of_weights"]
+        md[datasetName]["initial_events"] = cbk["initial_events"]
+        md[datasetName]["initial_sum_of_weights"] = cbk["initial_sum_of_weights"]
 
-    json.dump(data, open(mdFile, "w"))
+    json.dump(md, open(mdFile, "w"))
 
 
 def ConstructDatasetName(filepath):

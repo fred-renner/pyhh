@@ -1,7 +1,6 @@
 import os
 import pathlib
 import selector.tools
-import h5py
 import selector.analysis
 
 outputPath = "/lustre/fs22/group/atlas/freder/hh/run/"
@@ -49,20 +48,6 @@ class setup:
                 if "#" not in line:
                     self.vars.append((line.split(start))[1].split(end)[0])
 
-        # basic settings
-        if args.debug:
-            self.histOutFile = outputPath + "histograms/hists-debug.h5"
-            self.nEvents = 30
-            self.batchSize = 5
-            self.cpus = 1
-        else:
-            self.nEvents = "All"
-            self.batchSize = 20_000
-            if args.batchMode:
-                self.cpus = 1
-            else:
-                self.cpus = multiprocessing.cpu_count() - 2
-
         # auto setup blind if data
         if "data1" in self.file or "data2" in self.file:
             self.isData = True
@@ -77,20 +62,21 @@ class setup:
         self.dump = args.dump
         if args.dump:
             self.dump = args.dump
-            initDumpFile(self.dumpFile)
+            selector.tools.initDumpFile(self.dumpFile)
 
+        # basic settings
+        if args.debug:
+            self.histOutFile = outputPath + "histograms/hists-debug.h5"
+            self.nEvents = 1
+            self.batchSize = 1
+            self.cpus = 1
+            self.fill = True
+            self.dump = True
+        else:
+            self.nEvents = "All"
+            self.batchSize = 20_000
+            if args.batchMode:
+                self.cpus = 1
+            else:
+                self.cpus = multiprocessing.cpu_count() - 2
 
-def initDumpFile(filepath):
-    with h5py.File(filepath, "w") as f:
-        # event selection bools
-        bools = f.create_group("bools")
-        for var in selector.analysis.boolVars:
-            ds = bools.create_dataset(
-                var, (0,), maxshape=(None,), compression="gzip", dtype="i1"
-            )
-        # event vars
-        floats = f.create_group("floats")
-        for var in selector.analysis.floatVars:
-            ds = floats.create_dataset(
-                var, (0,), maxshape=(None,), compression="gzip", dtype="f8"
-            )

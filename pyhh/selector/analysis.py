@@ -6,6 +6,7 @@ import numpy as np
 import vector
 from plotter.tools import CR_hh, Xhh
 from tools.logging import log
+import selector.tools
 
 np.set_printoptions(threshold=np.inf)
 
@@ -18,34 +19,6 @@ def run(batch, config, metaData, tree, vars):
     objects.select()
 
     return objects.returnResults()
-
-
-def get_lumi(years: list):
-    """
-    Get luminosity value per given year in fb-1
-
-    Parameters
-    ----------
-    years : list
-        Years corresponding to desired lumi
-
-    Returns
-    -------
-    float
-        lumi sum of given years
-    """
-    lumi = {
-        "2015": 3.4454,
-        "2016": 33.4022,
-        "2017": 44.6306,
-        "2018": 58.7916,
-        "all": 140.06894,
-    }
-    l = 0
-    for yr in years:
-        l += lumi[yr]
-
-    return l
 
 
 # event level vars
@@ -113,7 +86,7 @@ class ObjectSelection:
             self.mc = True
             self.data = False
         if self.mc:
-            lumi = get_lumi(metaData["dataYears"])
+            lumi = selector.tools.get_lumi(metaData["dataYears"])
             # crosssection comes in nb-1 (* 1e6 = fb-1)
             xsec = metaData["crossSection"] * 1e6
             sum_of_weights = metaData["sum_of_weights"]
@@ -134,17 +107,17 @@ class ObjectSelection:
         # recojet_antikt10
 
         self.vars_arr = vars_arr
-        self.lrj_pt = vars_arr["recoUFOjet_antikt10_NOSYS_pt"]
-        self.lrj_eta = vars_arr["recoUFOjet_antikt10_NOSYS_eta"]
-        self.lrj_phi = vars_arr["recoUFOjet_antikt10_NOSYS_phi"]
-        self.lrj_m = vars_arr["recoUFOjet_antikt10_NOSYS_m"]
+        self.lrj_pt = vars_arr["recojet_antikt10_NOSYS_pt"]
+        self.lrj_eta = vars_arr["recojet_antikt10_NOSYS_eta"]
+        self.lrj_phi = vars_arr["recojet_antikt10_NOSYS_phi"]
+        self.lrj_m = vars_arr["recojet_antikt10_NOSYS_m"]
         self.srj_pt = vars_arr["recojet_antikt4_NOSYS_pt"]
         self.srj_eta = vars_arr["recojet_antikt4_NOSYS_eta"]
         self.srj_phi = vars_arr["recojet_antikt4_NOSYS_phi"]
         self.srj_m = vars_arr["recojet_antikt4_NOSYS_m"]
-        self.vr_btag_77 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
-        self.vr_pt = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsPt"]
-        self.vr_deltaR12 = vars_arr["recoUFOjet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
+        self.vr_btag_77 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsBtag_DL1r_FixedCutBEff_77"]
+        self.vr_pt = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsPt"]
+        self.vr_deltaR12 = vars_arr["recojet_antikt10_NOSYS_leadingVRTrackJetsDeltaR12"]
         self.vr_dontOverlap = vars_arr["passRelativeDeltaRToVRJetCut"]
 
         if self.mc:
@@ -779,7 +752,7 @@ def flatten2d(arr, weights, sel=None):
 
     """
     if sel is None:
-        selection = np.full(len(arr), 1, dtype=int)
+        selection = np.full(len(arr), True, dtype=bool)
     else:
         selection = sel
 
@@ -787,12 +760,13 @@ def flatten2d(arr, weights, sel=None):
     selectedArr = list(itertools.compress(arr, selection))
     # itertools.chain.from_iterable flattens
     flatArr = np.array(list(itertools.chain.from_iterable(selectedArr)))
+    # replicate weight values per number of objects in event
     flatArrWeights = np.array(
         list(
             itertools.chain.from_iterable(
                 [
-                    np.repeat(w, len(mjjs))
-                    for mjjs, w in zip(selectedArr, weights[selection])
+                    np.repeat(w, len(values))
+                    for values, w in zip(selectedArr, weights[selection])
                 ]
             )
         )

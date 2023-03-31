@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import h5py
-from selector.tools import ConstructFilelist
 from tools.logging import log
 from tqdm.auto import tqdm
-import selector.configuration
+import selector.tools
 import selector.analysis
+import selector.configuration
 
 
 def run(args):
@@ -21,7 +21,9 @@ def run(args):
     """
 
     if args.hists:
-        filelist = ConstructFilelist(args.sample, mergeProcessedHists=True)
+        filelist = selector.tools.ConstructFilelist(
+            args.sample, mergeProcessedHists=True
+        )
         mergedFile = (
             selector.configuration.outputPath
             + "histograms/hists-"
@@ -54,12 +56,14 @@ def run(args):
             pbar.close()
 
     if args.dumped:
-        filelist = ConstructFilelist(args.sample, mergeProcessedDumps=True)
+        filelist = selector.tools.ConstructFilelist(
+            args.sample, mergeProcessedDumps=True
+        )
         mergedFile = (
             selector.configuration.outputPath + "dump/dump-" + args.sample + ".h5"
         )
         # create empty dump file with vars structure
-        selector.configuration.initDumpFile(mergedFile)
+        selector.tools.initDumpFile(mergedFile)
 
         # append vars to final file
         with h5py.File(mergedFile, "r+") as f:

@@ -2,7 +2,7 @@ import glob
 import json
 import os
 import re
-
+import h5py
 from tools.logging import log
 from selector.metadata import ConstructDatasetName
 import pathlib
@@ -154,14 +154,61 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     batch_ranges = []
     if nEvents == "All":
         nEvents = tree.num_entries
-    for i in range(0, nEvents + 1, batch_size):
+    for i in range(0, nEvents, batch_size):
         ranges += [i]
     # add very last index to not include
-    if nEvents + 1 not in ranges:
-        ranges += [nEvents + 1]
+    if nEvents not in ranges:
+        ranges += [nEvents]
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j]]
+
+    print(batch_ranges)
     return batch_ranges
+
+
+def get_lumi(years: list):
+    """
+    Get luminosity value per given year in fb-1
+
+    Parameters
+    ----------
+    years : list
+        Years corresponding to desired lumi
+
+    Returns
+    -------
+    float
+        lumi sum of given years
+    """
+    lumi = {
+        "2015": 3.4454,
+        "2016": 33.4022,
+        "2017": 44.6306,
+        "2018": 58.7916,
+        "all": 140.06894,
+    }
+    l = 0
+    for yr in years:
+        l += lumi[yr]
+
+    return l
+
+
+def initDumpFile(filepath):
+    with h5py.File(filepath, "w") as f:
+        # event selection bools
+        bools = f.create_group("bools")
+        for var in selector.analysis.boolVars:
+            ds = bools.create_dataset(
+                var, (0,), maxshape=(None,), compression="gzip", dtype="i1"
+            )
+        # event vars
+        floats = f.create_group("floats")
+        for var in selector.analysis.floatVars:
+            ds = floats.create_dataset(
+                var, (0,), maxshape=(None,), compression="gzip", dtype="f4"
+            )
+
 
 
 def write_vars(results, f):
