@@ -2,13 +2,13 @@ import csv
 import glob
 import json
 import os
+import pathlib
 import re
 
 import pyAMI.client
 import pyAMI_atlas.api as AtlasAPI
 import uproot
 from tools.logging import log
-import pathlib
 
 client = pyAMI.client.Client("atlas")
 AtlasAPI.init()

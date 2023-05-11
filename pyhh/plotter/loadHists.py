@@ -46,6 +46,7 @@ def load(file, histKey=None):
 
 def run(histKey=None):
     allHists = {}
+    # loops over datatype files
     for key, file in files.items():
         with h5py.File(file, "r") as f:
             allHists[key] = load(f, histKey)

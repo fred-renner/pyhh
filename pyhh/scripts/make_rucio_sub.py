@@ -2,7 +2,6 @@
 
 import subprocess
 
-
 # copy template header HistFillConfig.txt to submit file
 subprocess.call(
     (

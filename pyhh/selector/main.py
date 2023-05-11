@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 import multiprocessing
+
+import h5py
 import selector.analysis
 import selector.configuration
-import selector.histdefs as histdefs
+import selector.histdefs
 import selector.tools
 import uproot
-import h5py
 from tools.logging import log
 from tqdm.auto import tqdm
 
@@ -46,7 +47,7 @@ def run(args):
 
         # dump variables by appending to dump file
         if config.dump:
-            with h5py.File(config.dumpFile, "r+") as f:
+            with h5py.File(config.dump_file, "r+") as f:
                 selector.tools.write_vars(results, f)
 
         pbar.update(config.batchSize)
@@ -72,15 +73,16 @@ def run(args):
     # get configuration
     config = selector.configuration.setup(args)
     # init hists
-    hists = histdefs.hists
+    hists, _, _ = selector.histdefs.get(do_systs=config.do_systematics)
     # loop over input files
     log.info("Processing file " + config.file)
     with uproot.open(config.file) as file:
         # access the tree
         tree = file["AnalysisMiniTree"]
-        # take only vars that exist
-        existingVars = set(tree.keys()).intersection(config.vars)
-
+        # more config
+        selector.tools.vars_to_load(tree, config)
+        if config.dump:
+            selector.tools.init_dump_file(config)
         if config.isData:
             metaData = {}
             substrings = config.file.split(".")
@@ -91,14 +93,13 @@ def run(args):
         eventBatches = selector.tools.EventRanges(
             tree, batch_size=config.batchSize, nEvents=config.nEvents
         )
-
         # progressbar
         pbar = tqdm(total=tree.num_entries, position=0, leave=True)
+
+        # RUN
         if args.debug:
             for batch in eventBatches:
-                results = selector.analysis.run(
-                    batch, config, metaData, tree, existingVars
-                )
+                results = selector.analysis.run(batch, config, metaData, tree)
                 callback(results)
         else:
             # a pool object can start child processes on different cpu cores,
@@ -107,22 +108,23 @@ def run(args):
             for batch in eventBatches:
                 pool.apply_async(
                     selector.analysis.run,
-                    (batch, config, metaData, tree, existingVars),
+                    (batch, config, metaData, tree),
                     callback=callback,
                     error_callback=error_callback,
                 )
             pool.close()
             pool.join()
             pbar.close()
-        log.info("Done")
 
     # write histograms to file
     if config.fill:
-        with h5py.File(config.histOutFile, "w") as outfile:
-            log.info("Writing Hists to: " + config.histOutFile)
+        with h5py.File(config.hist_out_file, "w") as outfile:
+            log.info("Writing Hists to: " + config.hist_out_file)
             for hist in hists:
                 hist.write(outfile)
     if config.dump:
-        log.info("Dumped selected vars to: " + config.dumpFile)
+        log.info("Dumped selected vars to: " + config.dump_file)
+
+    log.info("Done")
 
     return

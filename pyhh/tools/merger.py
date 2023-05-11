@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
 import h5py
-from tools.logging import log
-from tqdm.auto import tqdm
-import selector.tools
 import selector.analysis
 import selector.configuration
+import selector.tools
+from tools.logging import log
+from tqdm.auto import tqdm
 
 
 def run(args):
@@ -63,7 +63,7 @@ def run(args):
             selector.configuration.outputPath + "dump/dump-" + args.sample + ".h5"
         )
         # create empty dump file with vars structure
-        selector.tools.initDumpFile(mergedFile)
+        selector.tools.init_dump_file(mergedFile)
 
         # append vars to final file
         with h5py.File(mergedFile, "r+") as f:

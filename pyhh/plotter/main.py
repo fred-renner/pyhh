@@ -1,17 +1,18 @@
 #!/usr/bin/env python3
-import os
 import json
+import os
+
 import matplotlib.pyplot as plt
 import mplhep as hep
 import numpy as np
 import plotter.colors
 import plotter.loadHists
 import plotter.tools
-from selector.histdefs import collectedKinVars, collectedKinVarsWithRegions
 from matplotlib import ticker as mticker
 from matplotlib.offsetbox import AnchoredText
 from pdf2image import convert_from_path
 from plotter.tools import ErrorPropagation as propagateError
+from selector.histdefs import collectedKinVars, collectedKinVarsWithRegions
 from tools.logging import log
 
 np.seterr(divide="ignore", invalid="ignore")

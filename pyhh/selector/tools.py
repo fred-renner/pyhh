@@ -1,12 +1,13 @@
 import glob
 import json
 import os
-import re
-import h5py
-from tools.logging import log
-from selector.metadata import ConstructDatasetName
 import pathlib
+import re
+
+import h5py
 import selector.analysis
+from selector.metadata import ConstructDatasetName
+from tools.logging import log
 
 mdFile = pathlib.Path(__file__).parent / "metadata.json"
 
@@ -131,6 +132,70 @@ def ConstructFilelist(
     return filelist
 
 
+def vars_to_load(tree, config):
+    """
+    Figure out vars to load from the ones used in the analysis script and all
+    the systematics if wanted. Decorates config with config.load_vars and
+    config.vars_with_syst if systematics are enabled.
+
+    Parameters
+    ----------
+    tree : uproot.tree
+        tree object from uproot
+    config : dict
+
+    Returns
+    -------
+    """
+
+    # vars in the file
+    tree_vars = tree.keys()
+
+    # figure out vars to load from the ones used in the analysis script
+    start = 'vars_arr["'
+    end = '"]'
+    analysis_vars = []
+    analysisPath = pathlib.Path(__file__).parent / "analysis.py"
+
+    for line in open(analysisPath, "r"):
+        if 'vars_arr["' in line:
+            if "#" not in line:
+                analysis_vars.append((line.split(start))[1].split(end)[0])
+    # take only vars that exist
+    # this is mainly because of the different triggers in the campaigns
+    load_vars = list(set(tree_vars).intersection(analysis_vars))
+
+    if config.do_systematics:
+        # get substrings for systematic variables to match the ones only
+        # required in the analysis
+        split_vars = {}
+        vars_with_syst = {}
+        for var in load_vars:
+            if "NOSYS" in var:
+                var = var.replace("_NOSYS", "")
+                vars_with_syst[var] = []
+                split_vars[var] = var.split("_")
+
+        # include only the corresponding systematics
+        for tree_v in tree_vars:
+            if "NOSYS" in tree_v:
+                continue
+            # get systematics by substrings match
+            for var in vars_with_syst:
+                # match vars with NOSYS to their systematics
+                if all(x in tree_v for x in split_vars[var]):
+                    # filter for systematics defined in config
+                    if any(x in tree_v for x in config.systematics):
+                        load_vars += [tree_v]
+                        vars_with_syst[var] += [tree_v]
+
+        config.vars_with_syst = vars_with_syst
+
+    config.load_vars = load_vars
+
+    return
+
+
 def EventRanges(tree, batch_size=10_000, nEvents="All"):
     """
     construct ranges, batch_size=1000 gives e.g.
@@ -162,7 +227,6 @@ def EventRanges(tree, batch_size=10_000, nEvents="All"):
     for i, j in zip(ranges[:-1], ranges[1:]):
         batch_ranges += [[i, j]]
 
-    print(batch_ranges)
     return batch_ranges
 
 
@@ -194,21 +258,20 @@ def get_lumi(years: list):
     return l
 
 
-def initDumpFile(filepath):
-    with h5py.File(filepath, "w") as f:
+def init_dump_file(config):
+    with h5py.File(config.dump_file, "w") as f:
         # event selection bools
         bools = f.create_group("bools")
         for var in selector.analysis.boolVars:
             ds = bools.create_dataset(
                 var, (0,), maxshape=(None,), compression="gzip", dtype="i1"
             )
-        # event vars
+        # event floats
         floats = f.create_group("floats")
         for var in selector.analysis.floatVars:
             ds = floats.create_dataset(
                 var, (0,), maxshape=(None,), compression="gzip", dtype="f4"
             )
-
 
 
 def write_vars(results, f):
@@ -224,11 +287,7 @@ def write_vars(results, f):
     """
 
     for varType in ["bools", "floats"]:
-        if varType == "bools":
-            vars = selector.analysis.boolVars
-        if varType == "floats":
-            vars = selector.analysis.floatVars
-        for var in vars:
+        for var in f[varType].keys():
             var_ds = f[varType][var]
             var_result = results[varType][var]
             if var_ds.shape[0] == 0:

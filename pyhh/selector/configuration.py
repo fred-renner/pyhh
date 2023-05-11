@@ -1,7 +1,7 @@
 import os
-import pathlib
-import selector.tools
+
 import selector.analysis
+import selector.tools
 
 outputPath = "/lustre/fs22/group/atlas/freder/hh/run/"
 
@@ -34,19 +34,8 @@ class setup:
         if args.dump:
             if not os.path.isdir(dumppath):
                 os.makedirs(dumppath)
-        self.histOutFile = histpath + file + ".h5"
-        self.dumpFile = dumppath + file + ".h5"
-
-        # figure out which vars to load from analysis script
-        start = 'vars_arr["'
-        end = '"]'
-        self.vars = []
-        analysisPath = pathlib.Path(__file__).parent / "analysis.py"
-
-        for line in open(analysisPath, "r"):
-            if "vars_arr[" in line:
-                if "#" not in line:
-                    self.vars.append((line.split(start))[1].split(end)[0])
+        self.hist_out_file = histpath + file + ".h5"
+        self.dump_file = dumppath + file + ".h5"
 
         # auto setup blind if data
         if "data1" in self.file or "data2" in self.file:
@@ -57,21 +46,37 @@ class setup:
 
         # if fill hists
         self.fill = args.fill
+        self.do_systematics = True
+        self.systematics = [
+            "JET_JER",
+            # "JET_JMR",
+            # "JET_JD2R",
+            "JET_Comb_Modelling",
+            # "JET_Comb_Baseline",
+            # "JET_Comb_Tracking",
+            # "JET_Comb_TotalStat",
+            # "JET_MassRes_Hbb",
+            # "JET_MassRes_Top",
+            # "JET_MassRes_WZ",
+            # "JET_Rtrk_Modelling",
+            # "JET_Rtrk_Baseline",
+            # "JET_Rtrk_Tracking",
+            # "JET_Rtrk_TotalStat",
+        ]
 
         # init dump file for dumping of selected vars
         self.dump = args.dump
-        if args.dump:
-            self.dump = args.dump
-            selector.tools.initDumpFile(self.dumpFile)
 
         # basic settings
         if args.debug:
-            self.histOutFile = outputPath + "histograms/hists-debug.h5"
-            self.nEvents = 1
-            self.batchSize = 1
+            self.hist_out_file = outputPath + "histograms/hists-debug.h5"
+            self.nEvents = 100
+            self.batchSize = 50
             self.cpus = 1
             self.fill = True
             self.dump = True
+            if not os.path.isdir(dumppath):
+                os.makedirs(dumppath)
         else:
             self.nEvents = "All"
             self.batchSize = 20_000
@@ -79,4 +84,3 @@ class setup:
                 self.cpus = 1
             else:
                 self.cpus = multiprocessing.cpu_count() - 2
-

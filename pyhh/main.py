@@ -7,11 +7,11 @@ def main():
     subparsers = parser.add_subparsers(dest="command")
     # select args
     parser_select = subparsers.add_parser("select", help="run object selection")
-    parser_select.add_argument("--file", type=str, default=None)
-    parser_select.add_argument("--fill", action="store_true")
-    parser_select.add_argument("--dump", action="store_true")
-    parser_select.add_argument("--debug", action="store_true")
-    parser_select.add_argument("--batchMode", action="store_true")
+    parser_select.add_argument("--file", type=str, required=True)
+    parser_select.add_argument("--fill", action="store_true", default=False)
+    parser_select.add_argument("--dump", action="store_true", default=False)
+    parser_select.add_argument("--debug", action="store_true", default=False)
+    parser_select.add_argument("--batchMode", action="store_true", default=False)
     # submit all
     parser_submit = subparsers.add_parser(
         "make-submit", help="make HTCondor submit file"
@@ -52,6 +52,11 @@ def main():
         import plotter.main
 
         plotter.main.run()
+
+    if args.command == "fit":
+        import fitter.main
+
+        fitter.main.run()
 
 
 if __name__ == "__main__":

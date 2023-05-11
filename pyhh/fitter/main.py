@@ -1,18 +1,19 @@
 #!/usr/bin/env python3
 
-import matplotlib.pyplot as plt
-from pyhf.contrib.viz import brazil
 import json
-import numpy as np
-import pyhf
-import plotter.loadHists
-from plotter.tools import ErrorPropagation, factorRebin
 import os
 
+import matplotlib.pyplot as plt
+import numpy as np
+import plotter.loadHists
+import pyhf
+from plotter.tools import ErrorPropagation, factorRebin
+from pyhf.contrib.viz import brazil
 
-def getLimits(signalkey):
-    h = plotter.loadHists.run("m_hh_lessBins.CR_2b2j")
-    fitVariable = "m_hh_lessBins.CR_2b2j"
+
+def get_limits(signalkey):
+    h = plotter.loadHists.run("m_hh_lessBins.VR_2b2b")
+    fitVariable = "m_hh_lessBins.VR_2b2b"
 
     for datatype in h.keys():
         (
@@ -88,27 +89,28 @@ def getLimits(signalkey):
     return float(obs_limit), [float(l) for l in exp_limits]
 
 
-results = {}
-resultsFile = "/lustre/fs22/group/atlas/freder/hh/run/fitResults.json"
-if not os.path.exists(resultsFile):
-    os.mknod(resultsFile)
+def run():
+    results = {}
+    resultsFile = "/lustre/fs22/group/atlas/freder/hh/run/fitResults.json"
+    if not os.path.exists(resultsFile):
+        os.mknod(resultsFile)
 
 
-results["hypotheses"] = ["k2v0", "SM", "k2v0"]
-results["k2v"] = [-1, 0, 1]
-results["obs"] = []
-results["-2s"] = []
-results["-1s"] = []
-results["exp"] = []
-results["2s"] = []
-results["1s"] = []
+    results["hypotheses"] = ["k2v0", "SM", "k2v0"]
+    results["k2v"] = [-1, 0, 1]
+    results["obs"] = []
+    results["-2s"] = []
+    results["-1s"] = []
+    results["exp"] = []
+    results["2s"] = []
+    results["1s"] = []
 
-for hyp in results["hypotheses"]:
-    obs_limit, exp_limits = getLimits(hyp)
-    results["obs"].append(obs_limit)
-    results["-2s"].append(exp_limits[0])
-    results["-1s"].append(exp_limits[1])
-    results["exp"].append(exp_limits[2])
-    results["1s"].append(exp_limits[3])
-    results["2s"].append(exp_limits[4])
-json.dump(results, open(resultsFile, "w"))
+    for hyp in results["hypotheses"]:
+        obs_limit, exp_limits = get_limits(hyp)
+        results["obs"].append(obs_limit)
+        results["-2s"].append(exp_limits[0])
+        results["-1s"].append(exp_limits[1])
+        results["exp"].append(exp_limits[2])
+        results["1s"].append(exp_limits[3])
+        results["2s"].append(exp_limits[4])
+    json.dump(results, open(resultsFile, "w"))
